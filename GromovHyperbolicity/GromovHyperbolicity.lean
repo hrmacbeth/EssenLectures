@@ -110,19 +110,25 @@ lemma Gromov_hyperbolic_subsetI2
 --     by (auto simp add: divide_simps algebra_simps dist_commute)
 -- qed
 
--- [simp, mono_intros]
+-- [mono_intros]
 @[simp] lemma Gromov_product_nonneg (e x y : X) : Gromov_product_at e x y ≥ 0 := by
-  sorry
+  have := dist_triangle x e y
+  simp only [Gromov_product_at, dist_comm] at *
+  linarith
 -- unfolding Gromov_product_at_def by (simp add: dist_triangle3)
 
 lemma Gromov_product_commute (e x y : X) : Gromov_product_at e x y = Gromov_product_at e y x := by
-  sorry
+  simp only [Gromov_product_at, dist_comm]
+  ring
 -- unfolding Gromov_product_at_def by (auto simp add: dist_commute)
 
--- [simp, mono_intros]
+-- [mono_intros]
 @[simp] lemma Gromov_product_le_dist (e x y : X) :
     Gromov_product_at e x y ≤ dist e x ∧ Gromov_product_at e x y ≤ dist e y := by
-  sorry
+  have := dist_triangle e x y
+  have := dist_triangle e y x
+  simp only [Gromov_product_at, dist_comm] at *
+  constructor <;> linarith
 -- unfolding Gromov_product_at_def by (auto simp add: diff_le_eq dist_triangle dist_triangle2)
 
 -- [mono_intros]
@@ -174,17 +180,20 @@ lemma Gromov_product_at_diff (x y z a b c : X) :
 
 lemma Gromov_product_at_diff1 (x y a b : X) :
     |Gromov_product_at a x y - Gromov_product_at b x y| ≤ dist a b := by
-  sorry
+  have := Gromov_product_at_diff a x y b x y
+  aesop
 -- using Gromov_product_at_diff[of a x y b x y] by auto
 
 lemma Gromov_product_at_diff2 (e x y z : X) :
     |Gromov_product_at e x z - Gromov_product_at e y z| ≤ dist x y := by
-  sorry
+  have := Gromov_product_at_diff e x z e y z
+  aesop
 -- using Gromov_product_at_diff[of e x z e y z] by auto
 
 lemma Gromov_product_at_diff3 (e x y z : X) :
     |Gromov_product_at e x y - Gromov_product_at e x z| ≤ dist y z := by
-  sorry
+  have := Gromov_product_at_diff e x y e x z
+  aesop
 -- using Gromov_product_at_diff[of e x y e x z] by auto
 
 open Filter Topology in
@@ -258,6 +267,7 @@ open Gromov_hyperbolic_space
 -- begin
 
 --  [mono_intros]
+variable (X) in
 @[simp] lemma delta_nonneg [Inhabited X] : δ ≥ 0 := by
   let x : X := default
   have := hyperb_quad_ineq x x x x
@@ -270,28 +280,42 @@ open Gromov_hyperbolic_space
 -- [mono_intros]
 lemma hyperb_ineq (e x y z : X) :
     Gromov_product_at e x z ≥ min (Gromov_product_at e x y) (Gromov_product_at e y z) - δ := by
-  sorry
+  have H := hyperb_quad_ineq e y x z
+  simp only [Gromov_product_at, dist_comm, ← max_add_add_right, ← min_sub_sub_right,
+    le_max_iff, min_le_iff] at *
+  refine Or.elim H (fun _ => Or.inr ?_) (fun _ => Or.inl ?_) <;>
+  · cancel_denoms
+    rw [← sub_nonpos] at *
+    abel_nf at *
+    assumption
 -- using hyperb_quad_ineq[of e y x z] unfolding Gromov_product_at_def min_def max_def
 -- by (auto simp add: divide_simps algebra_simps metric_space_class.dist_commute)
 
 -- [mono_intros]
 lemma hyperb_ineq' (e x y z : X) :
     Gromov_product_at e x z + δ ≥ min (Gromov_product_at e x y) (Gromov_product_at e y z) := by
-  sorry
+  have := hyperb_ineq e x y z
+  aesop
 -- using hyperb_ineq[of e x y z] by auto
 
 -- [mono_intros]
-lemma hyperb_ineq_4_points (e x y z t : X) :
+lemma hyperb_ineq_4_points [Inhabited X] (e x y z t : X) :
     min (Gromov_product_at e x y) (min (Gromov_product_at e y z) (Gromov_product_at e z t)) - 2 * δ
     ≤ Gromov_product_at e x t := by
-  sorry
+  have h1 := hyperb_ineq e x y z
+  have h2 := hyperb_ineq e x z t
+  have := delta_nonneg X
+  simp only [← min_sub_sub_right, min_le_iff] at *
+  by_contra!
+  obtain h1a | h1b := h1 <;> obtain h2a | h2b := h2 <;> linarith
 -- using hyperb_ineq[of e x y z] hyperb_ineq[of e x z t] apply auto using delta_nonneg by linarith
 
 -- [mono_intros]
-lemma hyperb_ineq_4_points' (e x y z t : X) :
+lemma hyperb_ineq_4_points' [Inhabited X] (e x y z t : X) :
     min (Gromov_product_at e x y) (min (Gromov_product_at e y z) (Gromov_product_at e z t))
     ≤ Gromov_product_at e x t + 2 * δ := by
-  sorry
+  have := hyperb_ineq_4_points e x y z t
+  aesop
 -- using hyperb_ineq_4_points[of e x y z t] by auto
 
 /-- In Gromov-hyperbolic spaces, geodesic triangles are thin, i.e., a point on one side of a
@@ -522,7 +546,7 @@ to $t$ remains within distance $8\delta$ of the union of these 3 geodesics. We f
 statement in geodesic hyperbolic spaces as the proof requires the construction of an additional
 geodesic, but in fact the statement is true without this assumption, thanks to the Bonk-Schramm
 extension theorem. -/
-lemma thin_quadrilaterals {x y z t w : X} [GeodesicSpace X]
+lemma thin_quadrilaterals [GeodesicSpace X] {x y z t w : X}
     (hxy : geodesic_segment_between Gxy x y)
     (hyz : geodesic_segment_between Gyz y z)
     (hzt : geodesic_segment_between Gzt z t)
@@ -530,7 +554,6 @@ lemma thin_quadrilaterals {x y z t w : X} [GeodesicSpace X]
     (hw : w ∈ Gxt) :
     infDist w (Gxy ∪ Gyz ∪ Gzt) ≤ 8 * δ := by
   sorry
-
 -- proof -
 --   have I: "infDist w ({x--z} ∪ Gzt) ≤ 4 * δ"
 --     apply (rule thin_triangles[OF _ assms(3) assms(4) assms(5)])
@@ -564,7 +587,6 @@ lemma thin_quadrilaterals {x y z t w : X} [GeodesicSpace X]
 --     using I u(2) by auto
 -- qed
 #exit
-
 
 /-- There are converses to the above statements: if triangles are thin, or slim, then the space
 is Gromov-hyperbolic, for some $\delta$. We prove these criteria here, following the proofs in
