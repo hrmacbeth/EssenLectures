@@ -23,6 +23,10 @@ theorem UniformSpace.Completion.induction_on₄ [UniformSpace α] [UniformSpace 
     (ih : ∀ (a : α) (b : β) (c : γ) (d : δ), p a b c d) : p a b c d :=
   sorry
 
+def proj_set {X : Type*} [MetricSpace X] (x : X) (s : Set X) : Set X := sorry
+
+def geodesic_segment {X : Type*} [MetricSpace X] (s : Set X) : Prop := sorry
+
 def geodesic_segment_between {X : Type*} [MetricSpace X] (s : Set X) (x y : X) : Prop := sorry
 
 def geodesic_segment_param {X : Type*} [MetricSpace X] (G : Set X) (x : X) (t : ℝ) : X := sorry

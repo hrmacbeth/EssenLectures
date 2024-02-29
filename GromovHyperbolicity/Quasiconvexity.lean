@@ -21,151 +21,153 @@ $0$-quasi-convex. -/
 def quasiconvex (C : ℝ) (X : Set M) : Prop :=
   C ≥ 0 ∧ (∀ x ∈ X, ∀ y ∈ X, ∃ G, geodesic_segment_between G x y ∧ (∀ z ∈ G, infDist z X ≤ C))
 
-#exit
+variable {C D : ℝ} {X G : Set M}
 
-lemma quasiconvexD:
-  assumes "quasiconvex C X" "x∈X" "y∈X"
-  shows "∃ G. geodesic_segment_between G x y ∧ (∀ z ∈ G. infDist z X ≤ C)"
-using assms unfolding quasiconvex_def by auto
+lemma quasiconvexD (h : quasiconvex C X) {x y : M} (hx : x ∈ X) (hy : y∈X) :
+    ∃ G, geodesic_segment_between G x y ∧ (∀ z ∈ G, infDist z X ≤ C) := by
+  aesop (add norm unfold quasiconvex)
+-- using assms unfolding quasiconvex_def by auto
 
-lemma quasiconvexC:
-  assumes "quasiconvex C X"
-  shows "C ≥ 0"
-using assms unfolding quasiconvex_def by auto
+lemma quasiconvexC (h : quasiconvex C X) : C ≥ 0 := by
+  aesop (add norm unfold quasiconvex)
+-- using assms unfolding quasiconvex_def by auto
 
-lemma quasiconvexI:
-  assumes "C ≥ 0"
-          "∧x y. x∈X \<Longrightarrow> y∈X \<Longrightarrow> (∃ G. geodesic_segment_between G x y ∧ (∀ z ∈ G. infDist z X ≤ C))"
-  shows "quasiconvex C X"
-using assms unfolding quasiconvex_def by auto
+lemma quasiconvexI (hC : C ≥ 0)
+    (hCX : ∀ x y, x ∈ X → y ∈ X → (∃ G, geodesic_segment_between G x y ∧ (∀ z ∈ G, infDist z X ≤ C))) :
+    quasiconvex C X := by
+  aesop (add norm unfold quasiconvex)
+-- using assms unfolding quasiconvex_def by auto
 
-lemma quasiconvex_of_geodesic:
-  assumes "geodesic_segment G"
-  shows "quasiconvex 0 G"
-proof (rule quasiconvexI, simp)
-  fix x y assume *: "x∈G" "y∈G"
-  obtain H where H: "H \<subseteq> G" "geodesic_segment_between H x y"
-    using geodesic_subsegment_exists[OF assms(1) *] by auto
-  have "infDist z G ≤ 0" if "z∈H" for z
-    using H(1) that by auto
-  then show "∃ H. geodesic_segment_between H x y ∧ (∀ z ∈ H. infDist z G ≤ 0)"
-    using H(2) by auto
-qed
+lemma quasiconvex_of_geodesic {G : Set X} (hG : geodesic_segment G) : quasiconvex 0 G := by
+  sorry
+-- proof (rule quasiconvexI, simp)
+--   fix x y assume *: "x∈G" "y∈G"
+--   obtain H where H: "H \<subseteq> G" "geodesic_segment_between H x y"
+--     using geodesic_subsegment_exists[OF assms(1) *] by auto
+--   have "infDist z G ≤ 0" if "z∈H" for z
+--     using H(1) that by auto
+--   then show "∃ H. geodesic_segment_between H x y ∧ (∀ z ∈ H. infDist z G ≤ 0)"
+--     using H(2) by auto
+-- qed
 
-lemma quasiconvex_empty:
-  assumes "C ≥ 0"
-  shows "quasiconvex C {}"
-unfolding quasiconvex_def using assms by auto
+lemma quasiconvex_empty (hC : C ≥ 0) : quasiconvex C (∅ : Set M) := by
+  aesop (add norm unfold quasiconvex)
+-- unfolding quasiconvex_def using assms by auto
 
-lemma quasiconvex_mono:
-  assumes "C ≤ D"
-          "quasiconvex C G"
-  shows "quasiconvex D G"
-using assms unfolding quasiconvex_def by (auto, fastforce)
+lemma quasiconvex_mono (hCD : C ≤ D) (hC : quasiconvex C G) : quasiconvex D G := by
+  sorry
+-- using assms unfolding quasiconvex_def by (auto, fastforce)
+
+variable [Gromov_hyperbolic_space M] [GeodesicSpace M]
+
+set_option quotPrecheck false in
+notation "δ" => Gromov_hyperbolic_space.deltaG M
 
 /-- The $r$-neighborhood of a quasi-convex set is still quasi-convex in a hyperbolic space,
 for a constant that does not depend on $r$. -/
-lemma (in Gromov_hyperbolic_space_geodesic) quasiconvex_thickening:
-  assumes "quasiconvex C (X::'a set)" "r ≥ 0"
-  shows "quasiconvex (C + 8 *deltaG(TYPE('a))) (\<Union>x ∈ X. cball x r)"
-proof (rule quasiconvexI)
-  show "C + 8 *deltaG(TYPE('a)) ≥ 0" using quasiconvexC[OF assms(1)] by simp
-next
-  fix y z assume *: "y∈(\<Union>x ∈ X. cball x r)" "z∈(\<Union>x ∈ X. cball x r)"
-  have A: "infDist w (\<Union>x ∈ X. cball x r) ≤ C + 8 * deltaG TYPE('a)" if "w∈{y--z}" for w
-  proof -
-    obtain py where py: "py∈X" "y∈cball py r"
-      using * by auto
-    obtain pz where pz: "pz∈X" "z∈cball pz r"
-      using * by auto
-    obtain G where G: "geodesic_segment_between G py pz" "(∀ p ∈ G. infDist p X ≤ C)"
-      using quasiconvexD[OF assms(1) \<open>py∈X\<close> \<open>pz∈X\<close>] by auto
-    have A: "infDist w ({y--py} \<union> G \<union> {pz--z}) ≤ 8 * deltaG(TYPE('a))"
-      by (rule thin_quadrilaterals[OF _ G(1) _ _ \<open>w∈{y--z}\<close>, where ?x = y and ?t = z], auto)
-    have "∃ u∈{y--py} \<union> G \<union> {pz--z}. infDist w ({y--py} \<union> G \<union> {pz--z}) = dist w u"
-      apply (rule infDist_proper_attained, auto intro!: proper_Un simp add: geodesic_segment_topology(7))
-      by (meson G(1) geodesic_segmentI geodesic_segment_topology(7))
-    then obtain u where u: "u∈{y--py} \<union> G \<union> {pz--z}" "infDist w ({y--py} \<union> G \<union> {pz--z}) = dist w u"
-      by auto
-    then consider "u∈{y--py}" | "u∈G" | "u∈{pz--z}" by auto
-    then have "infDist u (\<Union>x ∈ X. cball x r) ≤ C"
-    proof (cases)
-      case 1
-      then have "dist py u ≤ dist py y"
-        using geodesic_segment_dist_le local.some_geodesic_is_geodesic_segment(1) some_geodesic_commute some_geodesic_endpoints(1) by blast
-      also have "... ≤ r"
-        using py(2) by auto
-      finally have "u∈cball py r"
-        by auto
-      then have "u∈(\<Union>x ∈ X. cball x r)"
-        using py(1) by auto
-      then have "infDist u (\<Union>x ∈ X. cball x r) = 0"
-        by auto
-      then show ?thesis
-        using quasiconvexC[OF assms(1)] by auto
-    next
-      case 3
-      then have "dist pz u ≤ dist pz z"
-        using geodesic_segment_dist_le local.some_geodesic_is_geodesic_segment(1) some_geodesic_commute some_geodesic_endpoints(1) by blast
-      also have "... ≤ r"
-        using pz(2) by auto
-      finally have "u∈cball pz r"
-        by auto
-      then have "u∈(\<Union>x ∈ X. cball x r)"
-        using pz(1) by auto
-      then have "infDist u (\<Union>x ∈ X. cball x r) = 0"
-        by auto
-      then show ?thesis
-        using quasiconvexC[OF assms(1)] by auto
-    next
-      case 2
-      have "infDist u (\<Union>x ∈ X. cball x r) ≤ infDist u X"
-        apply (rule infDist_mono) using assms(2) py(1) by auto
-      then show ?thesis using 2 G(2) by auto
-    qed
-    moreover have "infDist w (\<Union>x ∈ X. cball x r) ≤ infDist u (\<Union>x ∈ X. cball x r) + dist w u"
-      by (intro mono_intros)
-    ultimately show ?thesis
-      using A u(2) by auto
-  qed
-  show "∃ G. geodesic_segment_between G y z ∧ (∀ w ∈ G. infDist w (\<Union>x ∈ X. cball x r) ≤ C + 8 * deltaG TYPE('a))"
-    apply (rule exI[of _ "{y--z}"]) using A by auto
-qed
+lemma quasiconvex_thickening (h : quasiconvex C X) (hr : r ≥ 0) :
+    quasiconvex (C + 8 * δ) (⋃ x ∈ X, closedBall x r) := by
+  sorry
+-- proof (rule quasiconvexI)
+--   show "C + 8 *deltaG(TYPE('a)) ≥ 0" using quasiconvexC[OF assms(1)] by simp
+-- next
+--   fix y z assume *: "y∈(\<Union>x ∈ X. cball x r)" "z∈(\<Union>x ∈ X. cball x r)"
+--   have A: "infDist w (\<Union>x ∈ X. cball x r) ≤ C + 8 * deltaG TYPE('a)" if "w∈{y--z}" for w
+--   proof -
+--     obtain py where py: "py∈X" "y∈cball py r"
+--       using * by auto
+--     obtain pz where pz: "pz∈X" "z∈cball pz r"
+--       using * by auto
+--     obtain G where G: "geodesic_segment_between G py pz" "(∀ p ∈ G. infDist p X ≤ C)"
+--       using quasiconvexD[OF assms(1) \<open>py∈X\<close> \<open>pz∈X\<close>] by auto
+--     have A: "infDist w ({y--py} \<union> G \<union> {pz--z}) ≤ 8 * deltaG(TYPE('a))"
+--       by (rule thin_quadrilaterals[OF _ G(1) _ _ \<open>w∈{y--z}\<close>, where ?x = y and ?t = z], auto)
+--     have "∃ u∈{y--py} \<union> G \<union> {pz--z}. infDist w ({y--py} \<union> G \<union> {pz--z}) = dist w u"
+--       apply (rule infDist_proper_attained, auto intro!: proper_Un simp add: geodesic_segment_topology(7))
+--       by (meson G(1) geodesic_segmentI geodesic_segment_topology(7))
+--     then obtain u where u: "u∈{y--py} \<union> G \<union> {pz--z}" "infDist w ({y--py} \<union> G \<union> {pz--z}) = dist w u"
+--       by auto
+--     then consider "u∈{y--py}" | "u∈G" | "u∈{pz--z}" by auto
+--     then have "infDist u (\<Union>x ∈ X. cball x r) ≤ C"
+--     proof (cases)
+--       case 1
+--       then have "dist py u ≤ dist py y"
+--         using geodesic_segment_dist_le local.some_geodesic_is_geodesic_segment(1) some_geodesic_commute some_geodesic_endpoints(1) by blast
+--       also have "... ≤ r"
+--         using py(2) by auto
+--       finally have "u∈cball py r"
+--         by auto
+--       then have "u∈(\<Union>x ∈ X. cball x r)"
+--         using py(1) by auto
+--       then have "infDist u (\<Union>x ∈ X. cball x r) = 0"
+--         by auto
+--       then show ?thesis
+--         using quasiconvexC[OF assms(1)] by auto
+--     next
+--       case 3
+--       then have "dist pz u ≤ dist pz z"
+--         using geodesic_segment_dist_le local.some_geodesic_is_geodesic_segment(1) some_geodesic_commute some_geodesic_endpoints(1) by blast
+--       also have "... ≤ r"
+--         using pz(2) by auto
+--       finally have "u∈cball pz r"
+--         by auto
+--       then have "u∈(\<Union>x ∈ X. cball x r)"
+--         using pz(1) by auto
+--       then have "infDist u (\<Union>x ∈ X. cball x r) = 0"
+--         by auto
+--       then show ?thesis
+--         using quasiconvexC[OF assms(1)] by auto
+--     next
+--       case 2
+--       have "infDist u (\<Union>x ∈ X. cball x r) ≤ infDist u X"
+--         apply (rule infDist_mono) using assms(2) py(1) by auto
+--       then show ?thesis using 2 G(2) by auto
+--     qed
+--     moreover have "infDist w (\<Union>x ∈ X. cball x r) ≤ infDist u (\<Union>x ∈ X. cball x r) + dist w u"
+--       by (intro mono_intros)
+--     ultimately show ?thesis
+--       using A u(2) by auto
+--   qed
+--   show "∃ G. geodesic_segment_between G y z ∧ (∀ w ∈ G. infDist w (\<Union>x ∈ X. cball x r) ≤ C + 8 * deltaG TYPE('a))"
+--     apply (rule exI[of _ "{y--z}"]) using A by auto
+-- qed
 
 /-- If $x$ has a projection $p$ on a quasi-convex set $G$, then all segments from a point in $G$
 to $x$ go close to $p$, i.e., the triangular inequality $d(x,y) \leq d(x,p) + d(p,y)$ is essentially
 an equality, up to an additive constant. -/
-lemma (in Gromov_hyperbolic_space_geodesic) dist_along_quasiconvex:
-  assumes "quasiconvex C G" "p∈proj_set x G" "y∈G"
-  shows "dist x p + dist p y ≤ dist x y + 4 * deltaG(TYPE('a)) + 2 * C"
-proof -
-  have *: "p∈G"
-    using assms proj_setD by auto
-  obtain H where H: "geodesic_segment_between H p y" "∧q. q∈H \<Longrightarrow> infDist q G ≤ C"
-    using quasiconvexD[OF assms(1) * assms(3)] by auto
-  have "∃ m ∈ H. infDist x H = dist x m"
-    apply (rule infDist_proper_attained[of H x]) using geodesic_segment_topology[OF geodesic_segmentI[OF H(1)]] by auto
-  then obtain m where m: "m∈H" "infDist x H = dist x m" by auto
-  then have I: "dist x m ≤ Gromov_product_at x p y + 2 * deltaG(TYPE('a))"
-    using infDist_triangle_side[OF H(1), of x] by auto
-  have "dist x p - dist x m - C ≤ e" if "e > 0" for e
-  proof -
-    have "∃ r ∈ G. dist m r < infDist m G + e"
-      apply (rule infDist_almost_attained) using \<open>e > 0\<close> assms(3) by auto
-    then obtain r where r: "r∈G" "dist m r < infDist m G + e"
-      by auto
-    then have *: "dist m r ≤ C + e" using H(2)[OF \<open>m∈H\<close>] by auto
-    have "dist x p ≤ dist x r"
-      using \<open>r∈G\<close> assms(2) proj_set_dist_le by blast
-    also have "... ≤ dist x m + dist m r"
-      by (intro mono_intros)
-    finally show ?thesis using * by (auto simp add: metric_space_class.dist_commute)
-  qed
-  then have "dist x p - dist x m - C ≤ 0"
-    using dense_ge by blast
-  then show ?thesis
-    using I unfolding Gromov_product_at_def by (auto simp add: algebra_simps divide_simps)
-qed
+lemma dist_along_quasiconvex (hCG : quasiconvex C G) (hp : p ∈ proj_set x G) (hy : y ∈ G) :
+    dist x p + dist p y ≤ dist x y + 4 * δ + 2 * C := by
+  sorry
+-- proof -
+--   have *: "p∈G"
+--     using assms proj_setD by auto
+--   obtain H where H: "geodesic_segment_between H p y" "∧q. q∈H \<Longrightarrow> infDist q G ≤ C"
+--     using quasiconvexD[OF assms(1) * assms(3)] by auto
+--   have "∃ m ∈ H. infDist x H = dist x m"
+--     apply (rule infDist_proper_attained[of H x]) using geodesic_segment_topology[OF geodesic_segmentI[OF H(1)]] by auto
+--   then obtain m where m: "m∈H" "infDist x H = dist x m" by auto
+--   then have I: "dist x m ≤ Gromov_product_at x p y + 2 * deltaG(TYPE('a))"
+--     using infDist_triangle_side[OF H(1), of x] by auto
+--   have "dist x p - dist x m - C ≤ e" if "e > 0" for e
+--   proof -
+--     have "∃ r ∈ G. dist m r < infDist m G + e"
+--       apply (rule infDist_almost_attained) using \<open>e > 0\<close> assms(3) by auto
+--     then obtain r where r: "r∈G" "dist m r < infDist m G + e"
+--       by auto
+--     then have *: "dist m r ≤ C + e" using H(2)[OF \<open>m∈H\<close>] by auto
+--     have "dist x p ≤ dist x r"
+--       using \<open>r∈G\<close> assms(2) proj_set_dist_le by blast
+--     also have "... ≤ dist x m + dist m r"
+--       by (intro mono_intros)
+--     finally show ?thesis using * by (auto simp add: metric_space_class.dist_commute)
+--   qed
+--   then have "dist x p - dist x m - C ≤ 0"
+--     using dense_ge by blast
+--   then show ?thesis
+--     using I unfolding Gromov_product_at_def by (auto simp add: algebra_simps divide_simps)
+-- qed
+
+#exit
 
 /-- The next lemma is~\<^cite>\<open>\<open>Proposition 10.2.1\<close> in "coornaert_delzant_papadopoulos"\<close> with better
 constants. It states that the distance between the projections
