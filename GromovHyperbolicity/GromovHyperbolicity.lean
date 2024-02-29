@@ -29,6 +29,31 @@ def geodesic_segment {X : Type*} [MetricSpace X] (s : Set X) : Prop := sorry
 
 def geodesic_segment_between {X : Type*} [MetricSpace X] (s : Set X) (x y : X) : Prop := sorry
 
+lemma some_geodesic_segment_between_exists (X : Type*) [MetricSpace X]
+    [∀ x y : X, ∀ S : Set X, Decidable (∃ G, geodesic_segment_between G x y ∧ G ⊆ S)] :
+    ∃ f : X → Set X → X → Set X, ∀ x y S, f x S y = f y S x
+    ∧  (if (∃ G, geodesic_segment_between G x y ∧ G ⊆ S) then
+          (geodesic_segment_between (f x S y) x y ∧ (f x S y ⊆ S))
+        else
+          f x S y = {x, y}) :=
+  sorry
+
+def some_geodesic_segment_between {X : Type*} [MetricSpace X]
+    [∀ x y : X, ∀ S : Set X, Decidable (∃ G, geodesic_segment_between G x y ∧ G ⊆ S)]
+    (x y : X) (S : Set X) : Set X :=
+  (some_geodesic_segment_between_exists X).choose x S y
+
+set_option quotPrecheck false in
+notation "{" x "‒" S "‒" y "}" => some_geodesic_segment_between x y S
+
+abbrev some_geodesic_segment_between_UNIV {X : Type*} [MetricSpace X]
+    [∀ x y : X, ∀ S : Set X, Decidable (∃ G, geodesic_segment_between G x y ∧ G ⊆ S)]
+    (x y : X) : Set X :=
+  {x‒(@Set.univ X)‒y}
+
+set_option quotPrecheck false in
+notation "{" x "‒" y "}" => some_geodesic_segment_between_UNIV x y
+
 def geodesic_segment_param {X : Type*} [MetricSpace X] (G : Set X) (x : X) (t : ℝ) : X := sorry
 
 class GeodesicSpace (X : Type*) [MetricSpace X]

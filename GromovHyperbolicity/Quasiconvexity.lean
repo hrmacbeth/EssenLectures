@@ -65,11 +65,18 @@ notation "δ" => Gromov_hyperbolic_space.deltaG M
 
 /-- The $r$-neighborhood of a quasi-convex set is still quasi-convex in a hyperbolic space,
 for a constant that does not depend on $r$. -/
-lemma quasiconvex_thickening (h : quasiconvex C X) (hr : r ≥ 0) :
+lemma quasiconvex_thickening [Inhabited M] (h : quasiconvex C X) (hr : r ≥ 0) :
     quasiconvex (C + 8 * δ) (⋃ x ∈ X, closedBall x r) := by
+  classical
+  apply quasiconvexI
+  · have := quasiconvexC h
+    have := delta_nonneg M
+    positivity
+  intro y z hy hz
+  refine ⟨{y‒z}, sorry, ?_⟩
   sorry
 -- proof (rule quasiconvexI)
---   show "C + 8 *deltaG(TYPE('a)) ≥ 0" using quasiconvexC[OF assms(1)] by simp
+--   show "C + 8 * δ ≥ 0" using quasiconvexC[OF assms(1)] by simp
 -- next
 --   fix y z assume *: "y∈(\<Union>x ∈ X. cball x r)" "z∈(\<Union>x ∈ X. cball x r)"
 --   have A: "infDist w (\<Union>x ∈ X. cball x r) ≤ C + 8 * deltaG TYPE('a)" if "w∈{y--z}" for w
@@ -80,7 +87,7 @@ lemma quasiconvex_thickening (h : quasiconvex C X) (hr : r ≥ 0) :
 --       using * by auto
 --     obtain G where G: "geodesic_segment_between G py pz" "(∀ p ∈ G. infDist p X ≤ C)"
 --       using quasiconvexD[OF assms(1) \<open>py∈X\<close> \<open>pz∈X\<close>] by auto
---     have A: "infDist w ({y--py} \<union> G \<union> {pz--z}) ≤ 8 * deltaG(TYPE('a))"
+--     have A: "infDist w ({y--py} \<union> G \<union> {pz--z}) ≤ 8 * δ"
 --       by (rule thin_quadrilaterals[OF _ G(1) _ _ \<open>w∈{y--z}\<close>, where ?x = y and ?t = z], auto)
 --     have "∃ u∈{y--py} \<union> G \<union> {pz--z}. infDist w ({y--py} \<union> G \<union> {pz--z}) = dist w u"
 --       apply (rule infDist_proper_attained, auto intro!: proper_Un simp add: geodesic_segment_topology(7))
@@ -146,7 +153,7 @@ lemma dist_along_quasiconvex (hCG : quasiconvex C G) (hp : p ∈ proj_set x G) (
 --   have "∃ m ∈ H. infDist x H = dist x m"
 --     apply (rule infDist_proper_attained[of H x]) using geodesic_segment_topology[OF geodesic_segmentI[OF H(1)]] by auto
 --   then obtain m where m: "m∈H" "infDist x H = dist x m" by auto
---   then have I: "dist x m ≤ Gromov_product_at x p y + 2 * deltaG(TYPE('a))"
+--   then have I: "dist x m ≤ Gromov_product_at x p y + 2 * δ"
 --     using infDist_triangle_side[OF H(1), of x] by auto
 --   have "dist x p - dist x m - C ≤ e" if "e > 0" for e
 --   proof -
@@ -175,28 +182,28 @@ on a quasi-convex set is controlled by the distance of the original points, with
 distances of the points to the set. -/
 lemma (in Gromov_hyperbolic_space_geodesic) proj_along_quasiconvex_contraction:
   assumes "quasiconvex C G" "px∈proj_set x G" "py∈proj_set y G"
-  shows "dist px py ≤ max (5 * deltaG(TYPE('a)) + 2 * C) (dist x y - dist px x - dist py y + 10 * deltaG(TYPE('a)) + 4 * C)"
+  shows "dist px py ≤ max (5 * δ + 2 * C) (dist x y - dist px x - dist py y + 10 * δ + 4 * C)"
 proof -
   have "px∈G" "py∈G"
     using assms proj_setD by auto
-  have "(dist x px + dist px py - 4 * deltaG(TYPE('a)) - 2 * C) + (dist y py + dist py px - 4 *deltaG(TYPE('a)) - 2 * C)
+  have "(dist x px + dist px py - 4 * δ - 2 * C) + (dist y py + dist py px - 4 *δ - 2 * C)
         ≤ dist x py + dist y px"
     apply (intro mono_intros)
     using dist_along_quasiconvex[OF assms(1) assms(2) \<open>py∈G\<close>] dist_along_quasiconvex[OF assms(1) assms(3) \<open>px∈G\<close>] by auto
-  also have "... ≤ max (dist x y + dist py px) (dist x px + dist py y) + 2 * deltaG(TYPE('a))"
+  also have "... ≤ max (dist x y + dist py px) (dist x px + dist py y) + 2 * δ"
     by (rule hyperb_quad_ineq)
   finally have *: "dist x px + dist y py + 2 * dist px py
-          ≤ max (dist x y + dist py px) (dist x px + dist py y) + 10 * deltaG(TYPE('a)) + 4 * C"
+          ≤ max (dist x y + dist py px) (dist x px + dist py y) + 10 * δ + 4 * C"
     by (auto simp add: metric_space_class.dist_commute)
   show ?thesis
   proof (cases "dist x y + dist py px ≥ dist x px + dist py y")
     case True
-    then have "dist x px + dist y py + 2 * dist px py ≤ dist x y + dist py px + 10 * deltaG(TYPE('a)) + 4 * C"
+    then have "dist x px + dist y py + 2 * dist px py ≤ dist x y + dist py px + 10 * δ + 4 * C"
       using * by auto
     then show ?thesis by (auto simp add: metric_space_class.dist_commute)
   next
     case False
-    then have "dist x px + dist y py + 2 * dist px py ≤ dist x px + dist py y + 10 * deltaG(TYPE('a)) + 4 * C"
+    then have "dist x px + dist y py + 2 * dist px py ≤ dist x px + dist py y + 10 * δ + 4 * C"
       using * by auto
     then show ?thesis by (simp add: metric_space_class.dist_commute)
   qed
@@ -205,19 +212,19 @@ qed
 /-- The projection on a quasi-convex set is $1$-Lipschitz up to an additive error. -/
 lemma (in Gromov_hyperbolic_space_geodesic) proj_along_quasiconvex_contraction':
   assumes "quasiconvex C G" "px∈proj_set x G" "py∈proj_set y G"
-  shows "dist px py ≤ dist x y + 4 * deltaG(TYPE('a)) + 2 * C"
+  shows "dist px py ≤ dist x y + 4 * δ + 2 * C"
 proof (cases "dist y py ≤ dist x px")
   case True
-  have "dist x px + dist px py ≤ dist x py + 4 * deltaG(TYPE('a)) + 2 * C"
+  have "dist x px + dist px py ≤ dist x py + 4 * δ + 2 * C"
     by (rule dist_along_quasiconvex[OF assms(1) assms(2) proj_setD(1)[OF assms(3)]])
-  also have "... ≤ (dist x y + dist y py) + 4 * deltaG(TYPE('a)) + 2 * C"
+  also have "... ≤ (dist x y + dist y py) + 4 * δ + 2 * C"
     by (intro mono_intros)
   finally show ?thesis using True by auto
 next
   case False
-  have "dist y py + dist py px ≤ dist y px + 4 * deltaG(TYPE('a)) + 2 * C"
+  have "dist y py + dist py px ≤ dist y px + 4 * δ + 2 * C"
     by (rule dist_along_quasiconvex[OF assms(1) assms(3) proj_setD(1)[OF assms(2)]])
-  also have "... ≤ (dist y x + dist x px) + 4 * deltaG(TYPE('a)) + 2 * C"
+  also have "... ≤ (dist y x + dist x px) + 4 * δ + 2 * C"
     by (intro mono_intros)
   finally show ?thesis using False by (auto simp add: metric_space_class.dist_commute)
 qed
@@ -226,17 +233,17 @@ qed
 $0$-quasi-convex. -/
 lemma (in Gromov_hyperbolic_space_geodesic) dist_along_geodesic:
   assumes "geodesic_segment G" "p∈proj_set x G" "y∈G"
-  shows "dist x p + dist p y ≤ dist x y + 4 * deltaG(TYPE('a))"
+  shows "dist x p + dist p y ≤ dist x y + 4 * δ"
 using dist_along_quasiconvex[OF quasiconvex_of_geodesic[OF assms(1)] assms(2) assms(3)] by auto
 
 lemma (in Gromov_hyperbolic_space_geodesic) proj_along_geodesic_contraction:
   assumes "geodesic_segment G" "px∈proj_set x G" "py∈proj_set y G"
-  shows "dist px py ≤ max (5 * deltaG(TYPE('a))) (dist x y - dist px x - dist py y + 10 * deltaG(TYPE('a)))"
+  shows "dist px py ≤ max (5 * δ) (dist x y - dist px x - dist py y + 10 * δ)"
 using proj_along_quasiconvex_contraction[OF quasiconvex_of_geodesic[OF assms(1)] assms(2) assms(3)] by auto
 
 lemma (in Gromov_hyperbolic_space_geodesic) proj_along_geodesic_contraction':
   assumes "geodesic_segment G" "px∈proj_set x G" "py∈proj_set y G"
-  shows "dist px py ≤ dist x y + 4 * deltaG(TYPE('a))"
+  shows "dist px py ≤ dist x y + 4 * δ"
 using proj_along_quasiconvex_contraction'[OF quasiconvex_of_geodesic[OF assms(1)] assms(2) assms(3)] by auto
 
 /-- If one projects a continuous curve on a quasi-convex set, the image does not have to be
@@ -249,7 +256,7 @@ lemma (in Gromov_hyperbolic_space_geodesic) quasi_convex_projection_small_gaps:
           "a ≤ b"
           "quasiconvex C G"
           "∧t. t∈{a..b} \<Longrightarrow> p t∈proj_set (f t) G"
-          "delta > deltaG(TYPE('a))"
+          "delta > δ"
           "d∈{4 * delta + 2 * C..dist (p a) (p b)}"
   shows "∃ t∈{a..b}. (dist (p a) (p t)∈{d - 4 * delta - 2 * C .. d})
                     ∧ (∀ s∈{a..t}. dist (p a) (p s) ≤ d)"
@@ -288,9 +295,9 @@ proof -
   qed
   have "continuous (at u within {a..b}) f"
     using assms(1) by (simp add: \<open>a ≤ u\<close> \<open>u ≤ b\<close> continuous_on_eq_continuous_within)
-  then have "∃ i > 0. ∀ s ∈ {a..b}. dist u s < i \<longrightarrow> dist (f u) (f s) < (delta - deltaG(TYPE('a)))"
-    unfolding continuous_within_eps_delta using \<open>deltaG(TYPE('a)) < delta\<close> by (auto simp add: metric_space_class.dist_commute)
-  then obtain e0 where e0: "e0 > 0" "∧s. s∈{a..b} \<Longrightarrow> dist u s < e0 \<Longrightarrow> dist (f u) (f s) < (delta - deltaG(TYPE('a)))"
+  then have "∃ i > 0. ∀ s ∈ {a..b}. dist u s < i \<longrightarrow> dist (f u) (f s) < (delta - δ)"
+    unfolding continuous_within_eps_delta using \<open>δ < delta\<close> by (auto simp add: metric_space_class.dist_commute)
+  then obtain e0 where e0: "e0 > 0" "∧s. s∈{a..b} \<Longrightarrow> dist u s < e0 \<Longrightarrow> dist (f u) (f s) < (delta - δ)"
     by auto
 
   show ?thesis
@@ -314,14 +321,14 @@ proof -
       unfolding t_def e_def dist_real_def using \<open>e0 > 0\<close> \<open>a ≤ u\<close> by auto
     have *: "∀ s∈{a..t}. dist (p a) (p s) ≤ d"
       using A \<open>t < u\<close> by auto
-    have "dist (p t) (p u) ≤ dist (f t) (f u) + 4 * deltaG(TYPE('a)) + 2 * C"
+    have "dist (p t) (p u) ≤ dist (f t) (f u) + 4 * δ + 2 * C"
       apply (rule proj_along_quasiconvex_contraction'[OF \<open>quasiconvex C G\<close>])
       using assms (4) \<open>t∈{a..b}\<close> \<open>a ≤ u\<close> \<open>u ≤ b\<close> by auto
-    also have "... ≤ (delta - deltaG(TYPE('a))) + 4 * deltaG(TYPE('a)) + 2 * C"
+    also have "... ≤ (delta - δ) + 4 * δ + 2 * C"
       apply (intro mono_intros)
       using e0(2)[OF \<open>t∈{a..b}\<close> \<open>dist u t < e0\<close>] by (auto simp add: metric_space_class.dist_commute)
     finally have I: "dist (p t) (p u) ≤ 4 * delta + 2 * C"
-      using \<open>delta > deltaG(TYPE('a))\<close> by simp
+      using \<open>delta > δ\<close> by simp
 
     have "d ≤ dist (p a) (p u)"
       using True by auto
@@ -361,7 +368,7 @@ proof -
         apply (intro mono_intros proj_along_quasiconvex_contraction'[OF \<open>quasiconvex C G\<close>])
         using assms \<open>a ≤ u\<close> \<open>u ≤ b\<close> by auto
       finally show ?thesis
-        unfolding True using \<open>deltaG(TYPE('a)) < delta\<close> by auto
+        unfolding True using \<open>δ < delta\<close> by auto
     next
       case False
       then have "u < b"
@@ -394,14 +401,14 @@ proof -
       also have "... < e0"
         unfolding v_def e_def min_def using \<open>e0 > 0\<close> by auto
       finally have "dist u w < e0" by simp
-      have "dist (p u) (p w) ≤ dist (f u) (f w) + 4 * deltaG(TYPE('a)) + 2 * C"
+      have "dist (p u) (p w) ≤ dist (f u) (f w) + 4 * δ + 2 * C"
         apply (rule proj_along_quasiconvex_contraction'[OF \<open>quasiconvex C G\<close>])
         using assms \<open>a ≤ u\<close> \<open>u ≤ b\<close> \<open>w∈{a..b}\<close> by auto
-      also have "... ≤ (delta - deltaG(TYPE('a))) + 4 * deltaG(TYPE('a)) + 2 * C"
+      also have "... ≤ (delta - δ) + 4 * δ + 2 * C"
         apply (intro mono_intros)
         using e0(2)[OF \<open>w∈{a..b}\<close> \<open>dist u w < e0\<close>] by (auto simp add: metric_space_class.dist_commute)
       finally have I: "dist (p u) (p w) ≤ 4 * delta + 2 * C"
-        using \<open>delta > deltaG(TYPE('a))\<close> by simp
+        using \<open>delta > δ\<close> by simp
       have "d ≤ dist (p a) (p u) + dist (p u) (p w)"
         using w(2) metric_space_class.dist_triangle[of "p a" "p w" "p u"] by auto
       also have "... ≤ dist (p a) (p u) + 4 * delta + 2 * C"
@@ -420,7 +427,7 @@ lemma (in Gromov_hyperbolic_space_geodesic) quasi_convex_projection_small_gaps':
           "a ≤ b"
           "quasiconvex C G"
           "∧x. x∈{a..b} \<Longrightarrow> p x∈proj_set (f x) G"
-          "delta > deltaG(TYPE('a))"
+          "delta > δ"
           "d∈{4 * delta + 2 * C..dist (p a) (p b)}"
   shows "∃ t∈{a..b}. dist (p b) (p t)∈{d - 4 * delta - 2 * C .. d}
                     ∧ (∀ s∈{t..b}. dist (p b) (p s) ≤ d)"
