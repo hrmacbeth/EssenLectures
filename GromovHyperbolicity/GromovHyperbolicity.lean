@@ -14,6 +14,15 @@ open Metric
 /-! ## TODO Missing geodesic space theory -/
 section
 
+open UniformSpace in
+@[elab_as_elim]
+theorem UniformSpace.Completion.induction_on₄ [UniformSpace α] [UniformSpace β] [UniformSpace γ] [UniformSpace δ]
+    {p : Completion α → Completion β → Completion γ → Completion δ → Prop}
+    (a : Completion α) (b : Completion β) (c : Completion γ) (d : Completion δ)
+    (hp : IsClosed { x : Completion α × Completion β × Completion γ × Completion δ | p x.1 x.2.1 x.2.2.1 x.2.2.2 })
+    (ih : ∀ (a : α) (b : β) (c : γ) (d : δ), p a b c d) : p a b c d :=
+  sorry
+
 def geodesic_segment_between {X : Type*} [MetricSpace X] (s : Set X) (x y : X) : Prop := sorry
 
 def geodesic_segment_param {X : Type*} [MetricSpace X] (G : Set X) (x : X) (t : ℝ) : X := sorry
@@ -68,7 +77,28 @@ lemma Gromov_hyperbolic_ineq_not_distinct {x y z t : X}
 /-- It readily follows from the definition that hyperbolicity passes to the closure of the set. -/
 lemma Gromov_hyperbolic_closure (h : Gromov_hyperbolic_subset δ A) :
     Gromov_hyperbolic_subset δ (closure A) := by
-  sorry
+  let f : X × X × X × X → ℝ := fun (x, y, z, t) ↦ dist x y + dist z t
+  have hf : Continuous f := by
+    apply Continuous.add
+    · exact continuous_dist.comp (continuous_fst.prod_mk (continuous_fst.comp continuous_snd))
+    · exact continuous_dist.comp continuous_snd.snd
+  let g : X × X × X × X → ℝ :=
+    fun (x, y, z, t) ↦ max (dist x z + dist y t) (dist x t + dist y z) + 2 * δ
+  have hg : Continuous g := by
+    refine (continuous_add_right _).comp (Continuous.max ?_ ?_)
+    · apply Continuous.add
+      · exact continuous_dist.comp (continuous_fst.prod_mk continuous_snd.snd.fst)
+      · exact continuous_dist.comp ((continuous_fst.prod_mk continuous_snd.snd).comp continuous_snd)
+    · apply Continuous.add
+      · exact continuous_dist.comp (continuous_fst.prod_mk continuous_snd.snd.snd)
+      · exact continuous_dist.comp ((continuous_fst.prod_mk continuous_snd.fst).comp continuous_snd)
+  intro x hx y hy z hz t ht
+  have hxyzt : (x, y, z, t) ∈ closure (A ×ˢ (A ×ˢ (A ×ˢ A))) := by
+    simp only [closure_prod_eq, Set.mem_prod]
+    tauto
+  refine le_on_closure (f := f) (g := g) ?_ hf.continuousOn hg.continuousOn hxyzt
+  rintro ⟨x, y, z, t⟩ ⟨hx, hy, hz, ht⟩
+  exact h x hx y hy z hz t ht
 -- unfolding Gromov_hyperbolic_subset_def proof (auto)
 --   fix x y z t assume H: "x \∈ closure A" "y \∈ closure A" "z \∈ closure A" "t \∈ closure A"
 --   obtain X::"nat \<Rightarrow> 'a" where X: "∧n. X n \∈ A" "X \<longlonglongrightarrow> x"
@@ -112,13 +142,13 @@ lemma Gromov_hyperbolic_subsetI2
 -- [mono_intros]
 @[simp] lemma Gromov_product_nonneg (e x y : X) : Gromov_product_at e x y ≥ 0 := by
   have := dist_triangle x e y
-  simp only [Gromov_product_at, dist_comm] at *
-  linarith
+  simp only [Gromov_product_at, ge_iff_le]
+  cancel_denoms
+  simpa [dist_comm, add_comm] using this
 -- unfolding Gromov_product_at_def by (simp add: dist_triangle3)
 
 lemma Gromov_product_commute (e x y : X) : Gromov_product_at e x y = Gromov_product_at e y x := by
-  simp only [Gromov_product_at, dist_comm]
-  ring
+  simp only [Gromov_product_at, dist_comm, add_comm]
 -- unfolding Gromov_product_at_def by (auto simp add: dist_commute)
 
 -- [mono_intros]
@@ -203,8 +233,12 @@ lemma Gromov_product_at_continuous :
     -- {u v w : ι → X} (l : Filter ι)
     -- (h1 : Tendsto u l (𝓝 x)) (h2 : Tendsto v l (𝓝 y)) (h3 : Tendsto w l (𝓝 z)) :
     -- Tendsto (fun n ↦ Gromov_product_at (u n) (v n) (w n)) l (𝓝 (Gromov_product_at x y z)) := by
-    Continuous (fun p : X × X × X ↦ Gromov_product_at p.1 p.2.1 p.2.2) := by
-  sorry
+    Continuous (fun ((x, y, z) : X × X × X) ↦ Gromov_product_at x y z) := by
+  simp only [Gromov_product_at]
+  refine Continuous.div₀ ?_ continuous_const (fun _ ↦ by norm_num)
+  refine Continuous.sub (Continuous.add ?_ ?_) (continuous_dist.comp continuous_snd)
+  · exact continuous_dist.comp (continuous_fst.prod_mk continuous_snd.fst)
+  · exact continuous_dist.comp (continuous_fst.prod_mk continuous_snd.snd)
 -- proof -
 --   have "((\<lambda>n. abs(Gromov_product_at (u n) (v n) (w n) - Gromov_product_at x y z)) \<longlongrightarrow> 0 + 0 + 0) F"
 --     apply (rule tendsto_sandwich[of "\<lambda>n. 0" _ _ "\<lambda>n. dist (u n) x + dist (v n) y + dist (w n) z", OF always_eventually always_eventually])
@@ -248,7 +282,26 @@ lemma Gromov_hyperbolic_space.hyperb_quad_ineq (x y z t : X) :
 space is still δ-hyperbolic. -/
 instance deltaG_metric_completion : Gromov_hyperbolic_space (UniformSpace.Completion X) where
   deltaG := δ
-  hyperb_quad_ineq0 := sorry
+  hyperb_quad_ineq0 := by
+    apply Gromov_hyperbolic_subsetI
+    intro x y z t
+    simp only [Set.mem_univ, forall_true_left]
+    induction x, y, z, t using UniformSpace.Completion.induction_on₄
+    · apply isClosed_le
+      · apply Continuous.add
+        · exact continuous_dist.comp (continuous_fst.prod_mk (continuous_fst.comp continuous_snd))
+        · exact continuous_dist.comp (continuous_snd.comp continuous_snd)
+      · refine (continuous_add_right _).comp (Continuous.max ?_ ?_)
+        · apply Continuous.add
+          · exact continuous_dist.comp (continuous_fst.prod_mk continuous_snd.snd.fst)
+          · exact continuous_dist.comp ((continuous_fst.prod_mk continuous_snd.snd).comp
+              continuous_snd)
+        · apply Continuous.add
+          · exact continuous_dist.comp (continuous_fst.prod_mk continuous_snd.snd.snd)
+          · exact continuous_dist.comp ((continuous_fst.prod_mk continuous_snd.fst).comp
+              continuous_snd)
+    · simp only [UniformSpace.Completion.dist_eq]
+      apply Gromov_hyperbolic_space.hyperb_quad_ineq
 -- instance proof (standard, rule Gromov_hyperbolic_subsetI)
 --   have "Gromov_hyperbolic_subset δ (range (to_metric_completion::'a \<Rightarrow> _))"
 --     unfolding Gromov_hyperbolic_subset_def
