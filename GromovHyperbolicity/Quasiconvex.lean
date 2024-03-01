@@ -254,7 +254,7 @@ uniformly bounded distance one can find in the projection a point with almost pr
 to the starting point, say. For further applications, we also pick the first such point, i.e.,
 all the previous points are also close to the starting point. -/
 -- not sure whether inequalities are sharp or non-sharp
-lemma quasi_convex_projection_small_gaps (f p : ℝ → M) {a b : ℝ}
+lemma quasi_convex_projection_small_gaps {f p : ℝ → M} {a b : ℝ}
     (hf : ContinuousOn f (Set.Icc a b))
     (hab : a ≤ b)
     (h : quasiconvex C G)
@@ -262,7 +262,7 @@ lemma quasi_convex_projection_small_gaps (f p : ℝ → M) {a b : ℝ}
     (hdelta : delta > δ)
     (hd : d ∈ Set.Icc (4 * delta + 2 * C) (dist (p a) (p b))) :
     ∃ t ∈ Set.Icc a b, (dist (p a) (p t) ∈ Set.Icc (d - 4 * delta - 2 * C) d)
-                    ∧ (∀ s ∈ Set.Icc a t, dist (p a) (p s) ≤ d):= by
+                    ∧ (∀ s ∈ Set.Icc a t, dist (p a) (p s) ≤ d) := by
   sorry
 -- proof -
 --   have "delta > 0"
@@ -425,31 +425,30 @@ lemma quasi_convex_projection_small_gaps (f p : ℝ → M) {a b : ℝ}
 --   qed
 -- qed
 
-#exit
-
 /-- Same lemma, except that one exchanges the roles of the beginning and the end point. -/
-lemma (in Gromov_hyperbolic_space_geodesic) quasi_convex_projection_small_gaps':
-  assumes "continuous_on {a..(b::real)} f"
-          "a ≤ b"
-          "quasiconvex C G"
-          "∧x. x∈{a..b} \<Longrightarrow> p x∈proj_set (f x) G"
-          "delta > δ"
-          "d∈{4 * delta + 2 * C..dist (p a) (p b)}"
-  shows "∃ t∈{a..b}. dist (p b) (p t)∈{d - 4 * delta - 2 * C .. d}
-                    ∧ (∀ s∈{t..b}. dist (p b) (p s) ≤ d)"
-proof -
-  have *: "continuous_on {-b..-a} (\<lambda>t. f(-t))"
-    using continuous_on_compose[of "{-b..-a}" "\<lambda>t. -t" f] using assms(1) continuous_on_minus[OF continuous_on_id] by auto
-  define q where "q = (\<lambda>t. p(-t))"
-  have "∃ t∈{-b..-a}. (dist (q (-b)) (q t)∈{d - 4 * delta - 2 * C .. d})
-                    ∧ (∀ s∈{-b..t}. dist (q (-b)) (q s) ≤ d)"
-    apply (rule quasi_convex_projection_small_gaps[where ?f = "\<lambda>t. f(-t)" and ?G = G])
-    unfolding q_def using assms * by (auto simp add: metric_space_class.dist_commute)
-  then obtain t where t: "t∈{-b..-a}" "dist (q (-b)) (q t)∈{d - 4 * delta - 2 * C .. d}"
-                      "∧s. s∈{-b..t} \<Longrightarrow> dist (q (-b)) (q s) ≤ d"
-    by blast
-  have *: "dist (p b) (p s) ≤ d" if "s∈{-t..b}" for s
-    using t(3)[of "-s"] that q_def by auto
-  show ?thesis
-    apply (rule bexI[of _ "-t"]) using t * q_def by auto
-qed
+-- not sure whether inequalities are sharp or non-sharp
+lemma quasi_convex_projection_small_gaps' {f p : ℝ → M} {a b : ℝ}
+    (hf : ContinuousOn f (Set.Icc a b))
+    (hab : a ≤ b)
+    (h : quasiconvex C G)
+    (hfG : ∀ t ∈ Set.Icc a b, p t ∈ proj_set (f t) G)
+    (hdelta : delta > δ)
+    (hd : d ∈ Set.Icc (4 * delta + 2 * C) (dist (p a) (p b))) :
+    ∃ t ∈ Set.Icc a b, (dist (p a) (p t) ∈ Set.Icc (d - 4 * delta - 2 * C) d)
+                    ∧ (∀ s ∈ Set.Icc t b, dist (p b) (p s) ≤ d) := by
+  sorry
+--   have *: "continuous_on {-b..-a} (\<lambda>t. f(-t))"
+--     using continuous_on_compose[of "{-b..-a}" "\<lambda>t. -t" f] using assms(1) continuous_on_minus[OF continuous_on_id] by auto
+--   define q where "q = (\<lambda>t. p(-t))"
+--   have "∃ t∈{-b..-a}. (dist (q (-b)) (q t)∈{d - 4 * delta - 2 * C .. d})
+--                     ∧ (∀ s∈{-b..t}. dist (q (-b)) (q s) ≤ d)"
+--     apply (rule quasi_convex_projection_small_gaps[where ?f = "\<lambda>t. f(-t)" and ?G = G])
+--     unfolding q_def using assms * by (auto simp add: metric_space_class.dist_commute)
+--   then obtain t where t: "t∈{-b..-a}" "dist (q (-b)) (q t)∈{d - 4 * delta - 2 * C .. d}"
+--                       "∧s. s∈{-b..t} \<Longrightarrow> dist (q (-b)) (q s) ≤ d"
+--     by blast
+--   have *: "dist (p b) (p s) ≤ d" if "s∈{-t..b}" for s
+--     using t(3)[of "-s"] that q_def by auto
+--   show ?thesis
+--     apply (rule bexI[of _ "-t"]) using t * q_def by auto
+-- qed
