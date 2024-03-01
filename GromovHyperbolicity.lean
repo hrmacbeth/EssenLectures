@@ -4,3 +4,4 @@ import GromovHyperbolicity.MorseLemma
 import GromovHyperbolicity.Prereqs
 import GromovHyperbolicity.QuantitativeMorseLemma
 import GromovHyperbolicity.Quasiconvex
+import GromovHyperbolicity.QuasiIsometryInvariant
