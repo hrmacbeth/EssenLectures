@@ -174,77 +174,81 @@ lemma dist_along_quasiconvex (hCG : quasiconvex C G) (hp : p ∈ proj_set x G) (
 --     using I unfolding Gromov_product_at_def by (auto simp add: algebra_simps divide_simps)
 -- qed
 
-#exit
-
-/-- The next lemma is~\<^cite>\<open>\<open>Proposition 10.2.1\<close> in "coornaert_delzant_papadopoulos"\<close> with better
+/-- The next lemma is~\<^cite> Proposition 10.2.1 in "coornaert_delzant_papadopoulos" with better
 constants. It states that the distance between the projections
 on a quasi-convex set is controlled by the distance of the original points, with a gain given by the
 distances of the points to the set. -/
-lemma (in Gromov_hyperbolic_space_geodesic) proj_along_quasiconvex_contraction:
-  assumes "quasiconvex C G" "px∈proj_set x G" "py∈proj_set y G"
-  shows "dist px py ≤ max (5 * δ + 2 * C) (dist x y - dist px x - dist py y + 10 * δ + 4 * C)"
-proof -
-  have "px∈G" "py∈G"
-    using assms proj_setD by auto
-  have "(dist x px + dist px py - 4 * δ - 2 * C) + (dist y py + dist py px - 4 *δ - 2 * C)
-        ≤ dist x py + dist y px"
-    apply (intro mono_intros)
-    using dist_along_quasiconvex[OF assms(1) assms(2) \<open>py∈G\<close>] dist_along_quasiconvex[OF assms(1) assms(3) \<open>px∈G\<close>] by auto
-  also have "... ≤ max (dist x y + dist py px) (dist x px + dist py y) + 2 * δ"
-    by (rule hyperb_quad_ineq)
-  finally have *: "dist x px + dist y py + 2 * dist px py
-          ≤ max (dist x y + dist py px) (dist x px + dist py y) + 10 * δ + 4 * C"
-    by (auto simp add: metric_space_class.dist_commute)
-  show ?thesis
-  proof (cases "dist x y + dist py px ≥ dist x px + dist py y")
-    case True
-    then have "dist x px + dist y py + 2 * dist px py ≤ dist x y + dist py px + 10 * δ + 4 * C"
-      using * by auto
-    then show ?thesis by (auto simp add: metric_space_class.dist_commute)
-  next
-    case False
-    then have "dist x px + dist y py + 2 * dist px py ≤ dist x px + dist py y + 10 * δ + 4 * C"
-      using * by auto
-    then show ?thesis by (simp add: metric_space_class.dist_commute)
-  qed
-qed
+lemma proj_along_quasiconvex_contraction (h : quasiconvex C G) (hx : px ∈ proj_set x G)
+    (hy : py ∈ proj_set y G) :
+    dist px py ≤ max (5 * δ + 2 * C) (dist x y - dist px x - dist py y + 10 * δ + 4 * C) := by
+  sorry
+-- proof -
+--   have "px∈G" "py∈G"
+--     using assms proj_setD by auto
+--   have "(dist x px + dist px py - 4 * δ - 2 * C) + (dist y py + dist py px - 4 *δ - 2 * C)
+--         ≤ dist x py + dist y px"
+--     apply (intro mono_intros)
+--     using dist_along_quasiconvex[OF assms(1) assms(2) \<open>py∈G\<close>] dist_along_quasiconvex[OF assms(1) assms(3) \<open>px∈G\<close>] by auto
+--   also have "... ≤ max (dist x y + dist py px) (dist x px + dist py y) + 2 * δ"
+--     by (rule hyperb_quad_ineq)
+--   finally have *: "dist x px + dist y py + 2 * dist px py
+--           ≤ max (dist x y + dist py px) (dist x px + dist py y) + 10 * δ + 4 * C"
+--     by (auto simp add: metric_space_class.dist_commute)
+--   show ?thesis
+--   proof (cases "dist x y + dist py px ≥ dist x px + dist py y")
+--     case True
+--     then have "dist x px + dist y py + 2 * dist px py ≤ dist x y + dist py px + 10 * δ + 4 * C"
+--       using * by auto
+--     then show ?thesis by (auto simp add: metric_space_class.dist_commute)
+--   next
+--     case False
+--     then have "dist x px + dist y py + 2 * dist px py ≤ dist x px + dist py y + 10 * δ + 4 * C"
+--       using * by auto
+--     then show ?thesis by (simp add: metric_space_class.dist_commute)
+--   qed
+-- qed
 
 /-- The projection on a quasi-convex set is $1$-Lipschitz up to an additive error. -/
-lemma (in Gromov_hyperbolic_space_geodesic) proj_along_quasiconvex_contraction':
-  assumes "quasiconvex C G" "px∈proj_set x G" "py∈proj_set y G"
-  shows "dist px py ≤ dist x y + 4 * δ + 2 * C"
-proof (cases "dist y py ≤ dist x px")
-  case True
-  have "dist x px + dist px py ≤ dist x py + 4 * δ + 2 * C"
-    by (rule dist_along_quasiconvex[OF assms(1) assms(2) proj_setD(1)[OF assms(3)]])
-  also have "... ≤ (dist x y + dist y py) + 4 * δ + 2 * C"
-    by (intro mono_intros)
-  finally show ?thesis using True by auto
-next
-  case False
-  have "dist y py + dist py px ≤ dist y px + 4 * δ + 2 * C"
-    by (rule dist_along_quasiconvex[OF assms(1) assms(3) proj_setD(1)[OF assms(2)]])
-  also have "... ≤ (dist y x + dist x px) + 4 * δ + 2 * C"
-    by (intro mono_intros)
-  finally show ?thesis using False by (auto simp add: metric_space_class.dist_commute)
-qed
+lemma proj_along_quasiconvex_contraction' (h : quasiconvex C G) (hx : px ∈ proj_set x G)
+    (hy : py ∈ proj_set y G) :
+    dist px py ≤ dist x y + 4 * δ + 2 * C := by
+  sorry
+-- proof (cases "dist y py ≤ dist x px")
+--   case True
+--   have "dist x px + dist px py ≤ dist x py + 4 * δ + 2 * C"
+--     by (rule dist_along_quasiconvex[OF assms(1) assms(2) proj_setD(1)[OF assms(3)]])
+--   also have "... ≤ (dist x y + dist y py) + 4 * δ + 2 * C"
+--     by (intro mono_intros)
+--   finally show ?thesis using True by auto
+-- next
+--   case False
+--   have "dist y py + dist py px ≤ dist y px + 4 * δ + 2 * C"
+--     by (rule dist_along_quasiconvex[OF assms(1) assms(3) proj_setD(1)[OF assms(2)]])
+--   also have "... ≤ (dist y x + dist x px) + 4 * δ + 2 * C"
+--     by (intro mono_intros)
+--   finally show ?thesis using False by (auto simp add: metric_space_class.dist_commute)
+-- qed
 
 /-- We can in particular specialize the previous statements to geodesics, which are
 $0$-quasi-convex. -/
-lemma (in Gromov_hyperbolic_space_geodesic) dist_along_geodesic:
-  assumes "geodesic_segment G" "p∈proj_set x G" "y∈G"
-  shows "dist x p + dist p y ≤ dist x y + 4 * δ"
-using dist_along_quasiconvex[OF quasiconvex_of_geodesic[OF assms(1)] assms(2) assms(3)] by auto
+lemma dist_along_geodesic (h : geodesic_segment G) (hx : p ∈ proj_set x G) (hy : y ∈ G) :
+    dist x p + dist p y ≤ dist x y + 4 * δ := by
+  sorry
+-- using dist_along_quasiconvex[OF quasiconvex_of_geodesic[OF assms(1)] assms(2) assms(3)] by auto
 
-lemma (in Gromov_hyperbolic_space_geodesic) proj_along_geodesic_contraction:
-  assumes "geodesic_segment G" "px∈proj_set x G" "py∈proj_set y G"
-  shows "dist px py ≤ max (5 * δ) (dist x y - dist px x - dist py y + 10 * δ)"
-using proj_along_quasiconvex_contraction[OF quasiconvex_of_geodesic[OF assms(1)] assms(2) assms(3)] by auto
+lemma proj_along_geodesic_contraction (h : geodesic_segment G) (hx : px ∈ proj_set x G)
+    (hy : py ∈ proj_set y G) :
+    dist px py ≤ max (5 * δ) (dist x y - dist px x - dist py y + 10 * δ) := by
+  sorry
+-- using proj_along_quasiconvex_contraction[OF quasiconvex_of_geodesic[OF assms(1)] assms(2) assms(3)] by auto
 
-lemma (in Gromov_hyperbolic_space_geodesic) proj_along_geodesic_contraction':
-  assumes "geodesic_segment G" "px∈proj_set x G" "py∈proj_set y G"
-  shows "dist px py ≤ dist x y + 4 * δ"
-using proj_along_quasiconvex_contraction'[OF quasiconvex_of_geodesic[OF assms(1)] assms(2) assms(3)] by auto
+lemma proj_along_geodesic_contraction' (h : geodesic_segment G) (hx : px ∈ proj_set x G)
+    (hy : py ∈ proj_set y G) :
+    dist px py ≤ dist x y + 4 * δ := by
+  sorry
+-- using proj_along_quasiconvex_contraction'[OF quasiconvex_of_geodesic[OF assms(1)] assms(2) assms(3)] by auto
+
+#exit
 
 /-- If one projects a continuous curve on a quasi-convex set, the image does not have to be
 connected (the projection is discontinuous), but since the projections of nearby points are within
