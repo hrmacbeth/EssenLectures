@@ -248,182 +248,184 @@ lemma proj_along_geodesic_contraction' (h : geodesic_segment G) (hx : px ∈ pro
   sorry
 -- using proj_along_quasiconvex_contraction'[OF quasiconvex_of_geodesic[OF assms(1)] assms(2) assms(3)] by auto
 
-#exit
-
 /-- If one projects a continuous curve on a quasi-convex set, the image does not have to be
 connected (the projection is discontinuous), but since the projections of nearby points are within
 uniformly bounded distance one can find in the projection a point with almost prescribed distance
 to the starting point, say. For further applications, we also pick the first such point, i.e.,
 all the previous points are also close to the starting point. -/
-lemma (in Gromov_hyperbolic_space_geodesic) quasi_convex_projection_small_gaps:
-  assumes "continuous_on {a..(b::real)} f"
-          "a ≤ b"
-          "quasiconvex C G"
-          "∧t. t∈{a..b} \<Longrightarrow> p t∈proj_set (f t) G"
-          "delta > δ"
-          "d∈{4 * delta + 2 * C..dist (p a) (p b)}"
-  shows "∃ t∈{a..b}. (dist (p a) (p t)∈{d - 4 * delta - 2 * C .. d})
-                    ∧ (∀ s∈{a..t}. dist (p a) (p s) ≤ d)"
-proof -
-  have "delta > 0"
-    using assms(5) local.delta_nonneg by linarith
-  moreover have "C ≥ 0"
-    using quasiconvexC[OF assms(3)] by simp
-  ultimately have "d ≥ 0" using assms by auto
+-- not sure whether inequalities are sharp or non-sharp
+lemma quasi_convex_projection_small_gaps (f p : ℝ → M) {a b : ℝ}
+    (hf : ContinuousOn f (Set.Icc a b))
+    (hab : a ≤ b)
+    (h : quasiconvex C G)
+    (hfG : ∀ t ∈ Set.Icc a b, p t ∈ proj_set (f t) G)
+    (hdelta : delta > δ)
+    (hd : d ∈ Set.Icc (4 * delta + 2 * C) (dist (p a) (p b))) :
+    ∃ t ∈ Set.Icc a b, (dist (p a) (p t) ∈ Set.Icc (d - 4 * delta - 2 * C) d)
+                    ∧ (∀ s ∈ Set.Icc a t, dist (p a) (p s) ≤ d):= by
+  sorry
+-- proof -
+--   have "delta > 0"
+--     using assms(5) local.delta_nonneg by linarith
+--   moreover have "C ≥ 0"
+--     using quasiconvexC[OF assms(3)] by simp
+--   ultimately have "d ≥ 0" using assms by auto
 
-  /- The idea is to define the desired point as the last point $u$ for which there is a projection
-  at distance at most $d$ of the starting point. Then the projection can not be much closer to
-  the starting point, or one could point another such point further away by almost continuity, giving
-  a contradiction. The technical implementation requires some care, as the "last point" may not
-  satisfy the property, for lack of continuity. If it does, then fine. Otherwise, one should go just
-  a little bit to its left to find the desired point. -/
-  define I where "I = {t∈{a..b}. ∀ s∈{a..t}. dist (p a) (p s) ≤ d}"
-  have "a∈I"
-    using \<open>a ≤ b\<close> \<open>d ≥ 0\<close> unfolding I_def by auto
-  have "bdd_above I"
-    unfolding I_def by auto
-  define u where "u = Sup I"
-  have "a ≤ u"
-    unfolding u_def apply (rule cSup_upper) using \<open>a∈I\<close> \<open>bdd_above I\<close> by auto
-  have "u ≤ b"
-    unfolding u_def apply (rule cSup_least) using \<open>a∈I\<close> apply auto unfolding I_def by auto
-  have A: "dist (p a) (p s) ≤ d" if "s < u" "a ≤ s" for s
-  proof -
-    have "∃ t ∈ I. s < t"
-      unfolding u_def apply (subst less_cSup_iff[symmetric])
-      using \<open>a∈I\<close> \<open>bdd_above I\<close> using \<open>s < u\<close> unfolding u_def by auto
-    then obtain t where t: "t∈I" "s < t" by auto
-    then have "s∈{a..t}" using \<open>a ≤ s\<close> by auto
-    then show ?thesis
-      using t(1) unfolding I_def by auto
-  qed
-  have "continuous (at u within {a..b}) f"
-    using assms(1) by (simp add: \<open>a ≤ u\<close> \<open>u ≤ b\<close> continuous_on_eq_continuous_within)
-  then have "∃ i > 0. ∀ s ∈ {a..b}. dist u s < i \<longrightarrow> dist (f u) (f s) < (delta - δ)"
-    unfolding continuous_within_eps_delta using \<open>δ < delta\<close> by (auto simp add: metric_space_class.dist_commute)
-  then obtain e0 where e0: "e0 > 0" "∧s. s∈{a..b} \<Longrightarrow> dist u s < e0 \<Longrightarrow> dist (f u) (f s) < (delta - δ)"
-    by auto
+--   /- The idea is to define the desired point as the last point $u$ for which there is a projection
+--   at distance at most $d$ of the starting point. Then the projection can not be much closer to
+--   the starting point, or one could point another such point further away by almost continuity, giving
+--   a contradiction. The technical implementation requires some care, as the "last point" may not
+--   satisfy the property, for lack of continuity. If it does, then fine. Otherwise, one should go just
+--   a little bit to its left to find the desired point. -/
+--   define I where "I = {t∈{a..b}. ∀ s∈{a..t}. dist (p a) (p s) ≤ d}"
+--   have "a∈I"
+--     using \<open>a ≤ b\<close> \<open>d ≥ 0\<close> unfolding I_def by auto
+--   have "bdd_above I"
+--     unfolding I_def by auto
+--   define u where "u = Sup I"
+--   have "a ≤ u"
+--     unfolding u_def apply (rule cSup_upper) using \<open>a∈I\<close> \<open>bdd_above I\<close> by auto
+--   have "u ≤ b"
+--     unfolding u_def apply (rule cSup_least) using \<open>a∈I\<close> apply auto unfolding I_def by auto
+--   have A: "dist (p a) (p s) ≤ d" if "s < u" "a ≤ s" for s
+--   proof -
+--     have "∃ t ∈ I. s < t"
+--       unfolding u_def apply (subst less_cSup_iff[symmetric])
+--       using \<open>a∈I\<close> \<open>bdd_above I\<close> using \<open>s < u\<close> unfolding u_def by auto
+--     then obtain t where t: "t∈I" "s < t" by auto
+--     then have "s∈{a..t}" using \<open>a ≤ s\<close> by auto
+--     then show ?thesis
+--       using t(1) unfolding I_def by auto
+--   qed
+--   have "continuous (at u within {a..b}) f"
+--     using assms(1) by (simp add: \<open>a ≤ u\<close> \<open>u ≤ b\<close> continuous_on_eq_continuous_within)
+--   then have "∃ i > 0. ∀ s ∈ {a..b}. dist u s < i \<longrightarrow> dist (f u) (f s) < (delta - δ)"
+--     unfolding continuous_within_eps_delta using \<open>δ < delta\<close> by (auto simp add: metric_space_class.dist_commute)
+--   then obtain e0 where e0: "e0 > 0" "∧s. s∈{a..b} \<Longrightarrow> dist u s < e0 \<Longrightarrow> dist (f u) (f s) < (delta - δ)"
+--     by auto
 
-  show ?thesis
-  proof (cases "dist (p a) (p u) > d")
-    /- First, consider the case where $u$ does not satisfy the defining property. Then the
-    desired point $t$ is taken slightly to its left. -/
-    case True
-    then have "u \<noteq> a"
-      using \<open>d ≥ 0\<close> by auto
-    then have "a < u" using \<open>a ≤ u\<close> by auto
+--   show ?thesis
+--   proof (cases "dist (p a) (p u) > d")
+--     /- First, consider the case where $u$ does not satisfy the defining property. Then the
+--     desired point $t$ is taken slightly to its left. -/
+--     case True
+--     then have "u \<noteq> a"
+--       using \<open>d ≥ 0\<close> by auto
+--     then have "a < u" using \<open>a ≤ u\<close> by auto
 
-    define e::real where "e = min (e0/2) ((u-a)/2)"
-    then have "e > 0" using \<open>a < u\<close> \<open>e0 > 0\<close> by auto
-    define t where "t = u - e"
-    then have "t < u" using \<open>e > 0\<close> by auto
-    have "u - b ≤ e" "e ≤ u - a"
-      using \<open>e > 0\<close> \<open>u ≤ b\<close> unfolding e_def by (auto simp add: min_def)
-    then have "t∈{a..b}" "t∈{a..t}"
-      unfolding t_def by auto
-    have "dist u t < e0"
-      unfolding t_def e_def dist_real_def using \<open>e0 > 0\<close> \<open>a ≤ u\<close> by auto
-    have *: "∀ s∈{a..t}. dist (p a) (p s) ≤ d"
-      using A \<open>t < u\<close> by auto
-    have "dist (p t) (p u) ≤ dist (f t) (f u) + 4 * δ + 2 * C"
-      apply (rule proj_along_quasiconvex_contraction'[OF \<open>quasiconvex C G\<close>])
-      using assms (4) \<open>t∈{a..b}\<close> \<open>a ≤ u\<close> \<open>u ≤ b\<close> by auto
-    also have "... ≤ (delta - δ) + 4 * δ + 2 * C"
-      apply (intro mono_intros)
-      using e0(2)[OF \<open>t∈{a..b}\<close> \<open>dist u t < e0\<close>] by (auto simp add: metric_space_class.dist_commute)
-    finally have I: "dist (p t) (p u) ≤ 4 * delta + 2 * C"
-      using \<open>delta > δ\<close> by simp
+--     define e::real where "e = min (e0/2) ((u-a)/2)"
+--     then have "e > 0" using \<open>a < u\<close> \<open>e0 > 0\<close> by auto
+--     define t where "t = u - e"
+--     then have "t < u" using \<open>e > 0\<close> by auto
+--     have "u - b ≤ e" "e ≤ u - a"
+--       using \<open>e > 0\<close> \<open>u ≤ b\<close> unfolding e_def by (auto simp add: min_def)
+--     then have "t∈{a..b}" "t∈{a..t}"
+--       unfolding t_def by auto
+--     have "dist u t < e0"
+--       unfolding t_def e_def dist_real_def using \<open>e0 > 0\<close> \<open>a ≤ u\<close> by auto
+--     have *: "∀ s∈{a..t}. dist (p a) (p s) ≤ d"
+--       using A \<open>t < u\<close> by auto
+--     have "dist (p t) (p u) ≤ dist (f t) (f u) + 4 * δ + 2 * C"
+--       apply (rule proj_along_quasiconvex_contraction'[OF \<open>quasiconvex C G\<close>])
+--       using assms (4) \<open>t∈{a..b}\<close> \<open>a ≤ u\<close> \<open>u ≤ b\<close> by auto
+--     also have "... ≤ (delta - δ) + 4 * δ + 2 * C"
+--       apply (intro mono_intros)
+--       using e0(2)[OF \<open>t∈{a..b}\<close> \<open>dist u t < e0\<close>] by (auto simp add: metric_space_class.dist_commute)
+--     finally have I: "dist (p t) (p u) ≤ 4 * delta + 2 * C"
+--       using \<open>delta > δ\<close> by simp
 
-    have "d ≤ dist (p a) (p u)"
-      using True by auto
-    also have "... ≤ dist (p a) (p t) + dist (p t) (p u)"
-      by (intro mono_intros)
-    also have "... ≤ dist (p a) (p t) + 4 * delta + 2 * C"
-      using I by simp
-    finally have **: "d - 4 * delta - 2 * C ≤ dist (p a) (p t)"
-      by simp
-    show ?thesis
-      apply (rule bexI[OF _ \<open>t∈{a..b}\<close>]) using * ** \<open>t∈{a..b}\<close> by auto
-  next
-    /- Next, consider the case where $u$ satisfies the defining property. Then we will take $t = u$.
-    The only nontrivial point to check is that the distance of $f(u)$ to the starting point is not
-    too small. For this, we need to separate the case where $u = b$ (in which case one argues directly)
-    and the case where $u < b$, where one can use a point slightly to the right of $u$ which has a
-    projection at distance $ > d$ of the starting point, and use almost continuity. -/
-    case False
-    have B: "dist (p a) (p s) ≤ d" if "s∈{a..u}" for s
-    proof (cases "s = u")
-      case True
-      show ?thesis
-        unfolding True using False by auto
-    next
-      case False
-      then show ?thesis
-        using that A by auto
-    qed
-    have C: "dist (p a) (p u) ≥ d - 4 *delta - 2 * C"
-    proof (cases "u = b")
-      case True
-      have "d ≤ dist (p a) (p b)"
-        using assms by auto
-      also have "... ≤ dist (p a) (p u) + dist (p u) (p b)"
-        by (intro mono_intros)
-      also have "... ≤ dist (p a) (p u) + (dist (f u) (f b) + 4 * deltaG TYPE('a) + 2 * C)"
-        apply (intro mono_intros proj_along_quasiconvex_contraction'[OF \<open>quasiconvex C G\<close>])
-        using assms \<open>a ≤ u\<close> \<open>u ≤ b\<close> by auto
-      finally show ?thesis
-        unfolding True using \<open>δ < delta\<close> by auto
-    next
-      case False
-      then have "u < b"
-        using \<open>u ≤ b\<close> by auto
-      define e::real where "e = min (e0/2) ((b-u)/2)"
-      then have "e > 0" using \<open>u < b\<close> \<open>e0 > 0\<close> by auto
-      define v where "v = u + e"
-      then have "u < v"
-        using \<open>e > 0\<close> by auto
-      have "e ≤ b - u" "a - u ≤ e"
-        using \<open>e > 0\<close> \<open>a ≤ u\<close> unfolding e_def by (auto simp add: min_def)
-      then have "v∈{a..b}"
-        unfolding v_def by auto
-      moreover have "v \<notin> I"
-        using \<open>u < v\<close> \<open>bdd_above I\<close> cSup_upper not_le unfolding u_def by auto
-      ultimately have "∃ w∈{a..v}. dist (p a) (p w) > d"
-        unfolding I_def by force
-      then obtain w where w: "w∈{a..v}" "dist (p a) (p w) > d"
-        by auto
-      then have "w \<notin> {a..u}"
-        using B by force
-      then have "u < w"
-        using w(1) by auto
-      have "w∈{a..b}"
-        using w(1) \<open>v∈{a..b}\<close> by auto
-      have "dist u w = w - u"
-        unfolding dist_real_def using \<open>u < w\<close> by auto
-      also have "... ≤ v - u"
-        using w(1) by auto
-      also have "... < e0"
-        unfolding v_def e_def min_def using \<open>e0 > 0\<close> by auto
-      finally have "dist u w < e0" by simp
-      have "dist (p u) (p w) ≤ dist (f u) (f w) + 4 * δ + 2 * C"
-        apply (rule proj_along_quasiconvex_contraction'[OF \<open>quasiconvex C G\<close>])
-        using assms \<open>a ≤ u\<close> \<open>u ≤ b\<close> \<open>w∈{a..b}\<close> by auto
-      also have "... ≤ (delta - δ) + 4 * δ + 2 * C"
-        apply (intro mono_intros)
-        using e0(2)[OF \<open>w∈{a..b}\<close> \<open>dist u w < e0\<close>] by (auto simp add: metric_space_class.dist_commute)
-      finally have I: "dist (p u) (p w) ≤ 4 * delta + 2 * C"
-        using \<open>delta > δ\<close> by simp
-      have "d ≤ dist (p a) (p u) + dist (p u) (p w)"
-        using w(2) metric_space_class.dist_triangle[of "p a" "p w" "p u"] by auto
-      also have "... ≤ dist (p a) (p u) + 4 * delta + 2 * C"
-        using I by auto
-      finally show ?thesis by simp
-    qed
-    show ?thesis
-      apply (rule bexI[of _ u])
-      using B \<open>a ≤ u\<close> \<open>u ≤ b\<close> C by auto
-  qed
-qed
+--     have "d ≤ dist (p a) (p u)"
+--       using True by auto
+--     also have "... ≤ dist (p a) (p t) + dist (p t) (p u)"
+--       by (intro mono_intros)
+--     also have "... ≤ dist (p a) (p t) + 4 * delta + 2 * C"
+--       using I by simp
+--     finally have **: "d - 4 * delta - 2 * C ≤ dist (p a) (p t)"
+--       by simp
+--     show ?thesis
+--       apply (rule bexI[OF _ \<open>t∈{a..b}\<close>]) using * ** \<open>t∈{a..b}\<close> by auto
+--   next
+--     /- Next, consider the case where $u$ satisfies the defining property. Then we will take $t = u$.
+--     The only nontrivial point to check is that the distance of $f(u)$ to the starting point is not
+--     too small. For this, we need to separate the case where $u = b$ (in which case one argues directly)
+--     and the case where $u < b$, where one can use a point slightly to the right of $u$ which has a
+--     projection at distance $ > d$ of the starting point, and use almost continuity. -/
+--     case False
+--     have B: "dist (p a) (p s) ≤ d" if "s∈{a..u}" for s
+--     proof (cases "s = u")
+--       case True
+--       show ?thesis
+--         unfolding True using False by auto
+--     next
+--       case False
+--       then show ?thesis
+--         using that A by auto
+--     qed
+--     have C: "dist (p a) (p u) ≥ d - 4 *delta - 2 * C"
+--     proof (cases "u = b")
+--       case True
+--       have "d ≤ dist (p a) (p b)"
+--         using assms by auto
+--       also have "... ≤ dist (p a) (p u) + dist (p u) (p b)"
+--         by (intro mono_intros)
+--       also have "... ≤ dist (p a) (p u) + (dist (f u) (f b) + 4 * deltaG TYPE('a) + 2 * C)"
+--         apply (intro mono_intros proj_along_quasiconvex_contraction'[OF \<open>quasiconvex C G\<close>])
+--         using assms \<open>a ≤ u\<close> \<open>u ≤ b\<close> by auto
+--       finally show ?thesis
+--         unfolding True using \<open>δ < delta\<close> by auto
+--     next
+--       case False
+--       then have "u < b"
+--         using \<open>u ≤ b\<close> by auto
+--       define e::real where "e = min (e0/2) ((b-u)/2)"
+--       then have "e > 0" using \<open>u < b\<close> \<open>e0 > 0\<close> by auto
+--       define v where "v = u + e"
+--       then have "u < v"
+--         using \<open>e > 0\<close> by auto
+--       have "e ≤ b - u" "a - u ≤ e"
+--         using \<open>e > 0\<close> \<open>a ≤ u\<close> unfolding e_def by (auto simp add: min_def)
+--       then have "v∈{a..b}"
+--         unfolding v_def by auto
+--       moreover have "v \<notin> I"
+--         using \<open>u < v\<close> \<open>bdd_above I\<close> cSup_upper not_le unfolding u_def by auto
+--       ultimately have "∃ w∈{a..v}. dist (p a) (p w) > d"
+--         unfolding I_def by force
+--       then obtain w where w: "w∈{a..v}" "dist (p a) (p w) > d"
+--         by auto
+--       then have "w \<notin> {a..u}"
+--         using B by force
+--       then have "u < w"
+--         using w(1) by auto
+--       have "w∈{a..b}"
+--         using w(1) \<open>v∈{a..b}\<close> by auto
+--       have "dist u w = w - u"
+--         unfolding dist_real_def using \<open>u < w\<close> by auto
+--       also have "... ≤ v - u"
+--         using w(1) by auto
+--       also have "... < e0"
+--         unfolding v_def e_def min_def using \<open>e0 > 0\<close> by auto
+--       finally have "dist u w < e0" by simp
+--       have "dist (p u) (p w) ≤ dist (f u) (f w) + 4 * δ + 2 * C"
+--         apply (rule proj_along_quasiconvex_contraction'[OF \<open>quasiconvex C G\<close>])
+--         using assms \<open>a ≤ u\<close> \<open>u ≤ b\<close> \<open>w∈{a..b}\<close> by auto
+--       also have "... ≤ (delta - δ) + 4 * δ + 2 * C"
+--         apply (intro mono_intros)
+--         using e0(2)[OF \<open>w∈{a..b}\<close> \<open>dist u w < e0\<close>] by (auto simp add: metric_space_class.dist_commute)
+--       finally have I: "dist (p u) (p w) ≤ 4 * delta + 2 * C"
+--         using \<open>delta > δ\<close> by simp
+--       have "d ≤ dist (p a) (p u) + dist (p u) (p w)"
+--         using w(2) metric_space_class.dist_triangle[of "p a" "p w" "p u"] by auto
+--       also have "... ≤ dist (p a) (p u) + 4 * delta + 2 * C"
+--         using I by auto
+--       finally show ?thesis by simp
+--     qed
+--     show ?thesis
+--       apply (rule bexI[of _ u])
+--       using B \<open>a ≤ u\<close> \<open>u ≤ b\<close> C by auto
+--   qed
+-- qed
+
+#exit
 
 /-- Same lemma, except that one exchanges the roles of the beginning and the end point. -/
 lemma (in Gromov_hyperbolic_space_geodesic) quasi_convex_projection_small_gaps':
