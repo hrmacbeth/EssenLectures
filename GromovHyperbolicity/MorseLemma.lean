@@ -1,8 +1,156 @@
 /-  Author:  Sébastien Gouëzel   sebastien.gouezel@univ-rennes1.fr
     License: BSD -/
-import GromovHyperbolicity.QuantitativeMorseLemma
+import GromovHyperbolicity.GromovHyperbolic
 
 #exit
+
+/-- A central feature of hyperbolic spaces is that a path from $x$ to $y$ can not deviate
+too much from a geodesic from $x$ to $y$ unless it is extremely long (exponentially long in
+terms of the distance from $x$ to $y$). This is useful both to ensure that short paths (for instance
+quasi-geodesics) stay close to geodesics, see the Morse lemme below, and to ensure that paths
+that avoid a given large ball of radius $R$ have to be exponentially long in terms of $R$ (this
+is extremely useful for random walks). This proposition is the first non-trivial result
+on hyperbolic spaces in~\<^cite> "bridson_haefliger" (Proposition III.H.1.6). We follow their proof.
+
+The proof is geometric, and uses the existence of geodesics and the fact that geodesic
+triangles are thin. In fact, the result still holds if the space is not geodesic, as
+it can be deduced by embedding the hyperbolic space in a geodesic hyperbolic space and using
+the result there. -/
+proposition (in Gromov_hyperbolic_space_geodesic) lipschitz_path_close_to_geodesic:
+  fixes c::"real \<Rightarrow> 'a"
+  assumes "M-lipschitz_on {A..B} c"
+          "geodesic_segment_between G (c A) (c B)"
+          "x ∈ G"
+  shows "infDist x (c`{A..B}) ≤ (4/ln 2) * deltaG(TYPE('a)) * max 0 (ln (B-A)) + M"
+proof -
+  have "M ≥ 0" by (rule lipschitz_on_nonneg[OF assms(1)])
+  have Main: "a ∈ {A..B} \<Longrightarrow> b ∈ {A..B} \<Longrightarrow> a ≤ b \<Longrightarrow> b-a ≤ 2^(n+1) \<Longrightarrow> geodesic_segment_between H (c a) (c b)
+        \<Longrightarrow> y ∈ H \<Longrightarrow> infDist y (c`{A..B}) ≤ 4 * deltaG(TYPE('a)) * n + M" for a b H y n
+  proof (induction n arbitrary: a b H y)
+    case 0
+    have "infDist y (c ` {A..B}) ≤ dist y (c b)"
+      apply (rule infDist_le) using \<open>b ∈ {A..B}\<close> by auto
+    moreover have "infDist y (c ` {A..B}) ≤ dist y (c a)"
+      apply (rule infDist_le) using \<open>a ∈ {A..B}\<close> by auto
+    ultimately have "2 * infDist y (c ` {A..B}) ≤ dist (c a) y + dist y (c b)"
+      by (auto simp add: metric_space_class.dist_commute)
+    also have "... = dist (c a) (c b)"
+      by (rule geodesic_segment_dist[OF \<open>geodesic_segment_between H (c a) (c b)\<close> \<open>y ∈ H\<close>])
+    also have "... ≤ M * abs(b - a)"
+      using lipschitz_onD(1)[OF assms(1) \<open>a ∈ {A..B}\<close> \<open>b ∈ {A..B}\<close>] unfolding dist_real_def
+      by (simp add: abs_minus_commute)
+    also have "... ≤ M * 2"
+      using \<open>a ≤ b\<close> \<open>b - a ≤ 2^(0 + 1)\<close> \<open>M ≥ 0\<close> mult_left_mono by auto
+    finally show ?case by simp
+  next
+    case (Suc n)
+    define m where "m = (a + b)/2"
+    have "m ∈ {A..B}" using \<open>a ∈ {A..B}\<close> \<open>b ∈ {A..B}\<close> unfolding m_def by auto
+    define Ha where "Ha = {c m‒c a}"
+    define Hb where "Hb = {c m‒c b}"
+    have I: "geodesic_segment_between Ha (c m) (c a)" "geodesic_segment_between Hb (c m) (c b)"
+      unfolding Ha_def Hb_def by auto
+    then have "Ha \<noteq> {}" "Hb \<noteq> {}" "compact Ha" "compact Hb"
+      by (auto intro: geodesic_segment_topology)
+
+    have *: "infDist y (Ha \<union> Hb) ≤ 4 * deltaG(TYPE('a))"
+      by (rule thin_triangles[OF I \<open>geodesic_segment_between H (c a) (c b)\<close> \<open>y ∈ H\<close>])
+    then have "infDist y Ha ≤ 4 * deltaG(TYPE('a)) \<or> infDist y Hb ≤ 4 * deltaG(TYPE('a))"
+      unfolding infDist_union_min[OF \<open>Ha \<noteq> {}\<close> \<open>Hb \<noteq> {}\<close>] by auto
+    then show ?case
+    proof
+      assume H: "infDist y Ha ≤ 4 * deltaG TYPE('a)"
+      obtain z where z: "z ∈ Ha" "infDist y Ha = dist y z"
+        using infDist_proper_attained[OF proper_of_compact[OF \<open>compact Ha\<close>] \<open>Ha \<noteq> {}\<close>] by auto
+      have Iz: "infDist z (c`{A..B}) ≤ 4 * deltaG(TYPE('a)) * n + M"
+      proof (rule Suc.IH[OF \<open>a ∈ {A..B}\<close> \<open>m ∈ {A..B}\<close>, of Ha])
+        show "a ≤ m" unfolding m_def using \<open>a ≤ b\<close> by auto
+        show "m - a ≤ 2^(n+1)" using \<open>b - a ≤ 2^(Suc n + 1)\<close> \<open>a ≤ b\<close> unfolding m_def by auto
+        show "geodesic_segment_between Ha (c a) (c m)" by (simp add: I(1) geodesic_segment_commute)
+        show "z ∈ Ha" using z by auto
+      qed
+      have "infDist y (c`{A..B}) ≤ dist y z + infDist z (c`{A..B})"
+        by (metis add.commute infDist_triangle)
+      also have "... ≤ 4 * deltaG TYPE('a) + (4 * deltaG(TYPE('a)) * n + M)"
+        using H z Iz by (auto intro: add_mono)
+      finally show "infDist y (c ` {A..B}) ≤ 4 * deltaG TYPE('a) * real (Suc n) + M"
+        by (auto simp add: algebra_simps)
+    next
+      assume H: "infDist y Hb ≤ 4 * deltaG TYPE('a)"
+      obtain z where z: "z ∈ Hb" "infDist y Hb = dist y z"
+        using infDist_proper_attained[OF proper_of_compact[OF \<open>compact Hb\<close>] \<open>Hb \<noteq> {}\<close>] by auto
+      have Iz: "infDist z (c`{A..B}) ≤ 4 * deltaG(TYPE('a)) * n + M"
+      proof (rule Suc.IH[OF \<open>m ∈ {A..B}\<close> \<open>b ∈ {A..B}\<close>, of Hb])
+        show "m ≤ b" unfolding m_def using \<open>a ≤ b\<close> by auto
+        show "b - m ≤ 2^(n+1)" using \<open>b - a ≤ 2^(Suc n + 1)\<close> \<open>a ≤ b\<close>
+          unfolding m_def by (auto simp add: divide_simps)
+        show "geodesic_segment_between Hb (c m) (c b)" by (simp add: I(2))
+        show "z ∈ Hb" using z by auto
+      qed
+      have "infDist y (c`{A..B}) ≤ dist y z + infDist z (c`{A..B})"
+        by (metis add.commute infDist_triangle)
+      also have "... ≤ 4 * deltaG TYPE('a) + (4 * deltaG(TYPE('a)) * n + M)"
+        using H z Iz by (auto intro: add_mono)
+      finally show "infDist y (c ` {A..B}) ≤ 4 * deltaG TYPE('a) * real (Suc n) + M"
+        by (auto simp add: algebra_simps)
+    qed
+  qed
+  consider "B-A <0" | "B-A ≥ 0 \<and> B-A ≤ 2" | "B-A > 2" by linarith
+  then show ?thesis
+  proof (cases)
+    case 1
+    then have "c`{A..B} = {}" by auto
+    then show ?thesis unfolding infDist_def using \<open>M ≥ 0\<close> by auto
+  next
+    case 2
+    have "infDist x (c`{A..B}) ≤ 4 * deltaG(TYPE('a)) * real 0 + M"
+      apply (rule Main[OF _ _ _ _ \<open>geodesic_segment_between G (c A) (c B)\<close> \<open>x ∈ G\<close>])
+      using 2 by auto
+    also have "... ≤ (4/ln 2) * deltaG(TYPE('a)) * max 0 (ln (B-A)) + M"
+      using delta_nonneg by auto
+    finally show ?thesis by auto
+  next
+    case 3
+    define n::nat where "n = nat(floor (log 2 (B-A)))"
+    have "log 2 (B-A) > 0" using 3 by auto
+    then have n: "n ≤ log 2 (B-A)" "log 2 (B-A) < n+1"
+      unfolding n_def by (auto simp add: floor_less_cancel)
+    then have *: "B-A ≤ 2^(n+1)"
+      by (meson le_log_of_power linear not_less one_less_numeral_iff semiring_norm(76))
+    have "n ≤ ln (B-A) * (1/ln 2)" using n unfolding log_def by auto
+    then have "n ≤ (1/ln 2) * max 0 (ln (B-A))"
+      using 3 by (auto simp add: algebra_simps divide_simps)
+    have "infDist x (c`{A..B}) ≤ 4 * deltaG(TYPE('a)) * n + M"
+      apply (rule Main[OF _ _ _ _ \<open>geodesic_segment_between G (c A) (c B)\<close> \<open>x ∈ G\<close>])
+      using * 3 by auto
+    also have "... ≤ 4 * deltaG(TYPE('a)) * ((1/ln 2) * max 0 (ln (B-A))) + M"
+      apply (intro mono_intros) using \<open>n ≤ (1/ln 2) * max 0 (ln (B-A))\<close> delta_nonneg by auto
+    finally show ?thesis by auto
+  qed
+qed
+
+/-- By rescaling coordinates at the origin, one obtains a variation around the previous
+statement. -/
+proposition (in Gromov_hyperbolic_space_geodesic) lipschitz_path_close_to_geodesic':
+  fixes c::"real \<Rightarrow> 'a"
+  assumes "M-lipschitz_on {A..B} c"
+          "geodesic_segment_between G (c A) (c B)"
+          "x ∈ G"
+          "a > 0"
+  shows "infDist x (c`{A..B}) ≤ (4/ln 2) * deltaG(TYPE('a)) * max 0 (ln (a * (B-A))) + M/a"
+proof -
+  define d where "d = c o (\<lambda>t. (1/a) * t)"
+  have *: "(M * ((1/a)* 1))-lipschitz_on {a * A..a * B} d"
+    unfolding d_def apply (rule lipschitz_on_compose, intro lipschitz_intros) using assms by auto
+  have "d`{a * A..a * B} = c`{A..B}"
+    unfolding d_def image_comp[symmetric]
+    apply (rule arg_cong[where ?f = "image c"]) using \<open>a > 0\<close> by auto
+  then have "infDist x (c`{A..B}) = infDist x (d`{a * A..a * B})" by auto
+  also have "... ≤ (4/ln 2) * deltaG(TYPE('a)) * max 0 (ln ((a * B)- (a * A))) + M/a"
+    apply (rule lipschitz_path_close_to_geodesic[OF _ _ \<open>x ∈ G\<close>])
+    using * assms unfolding d_def by auto
+  finally show ?thesis by (auto simp add: algebra_simps)
+qed
 
 /-- We can now give another proof of the Morse-Gromov Theorem, as described
 in~\<^cite> "bridson_haefliger". It is more direct than the one we have given above, but it gives
