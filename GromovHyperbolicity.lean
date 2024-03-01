@@ -1,5 +1,6 @@
-import GromovHyperbolicity.GromovHyperbolicity
+import GromovHyperbolicity.GromovHyperbolic
 import GromovHyperbolicity.MetricTree
 import GromovHyperbolicity.MorseLemma
+import GromovHyperbolicity.Prereqs
 import GromovHyperbolicity.QuantitativeMorseLemma
-import GromovHyperbolicity.Quasiconvexity
+import GromovHyperbolicity.Quasiconvex

@@ -1,6 +1,6 @@
 /-  Author:  Sébastien Gouëzel   sebastien.gouezel@univ-rennes1.fr
     License: BSD -/
-import GromovHyperbolicity.Quasiconvexity
+import GromovHyperbolicity.Quasiconvex
 
 /-! # The Morse-Gromov Theorem
 
