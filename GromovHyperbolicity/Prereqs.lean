@@ -18,6 +18,8 @@ theorem UniformSpace.Completion.induction_on₄ [UniformSpace α] [UniformSpace 
 
 def proj_set {X : Type*} [MetricSpace X] (x : X) (s : Set X) : Set X := sorry
 
+lemma proj_setD [MetricSpace X] {x y : X} {s : Set X} (hxy : x ∈ proj_set y s) : x ∈ s := sorry
+
 def geodesic_segment {X : Type*} [MetricSpace X] (s : Set X) : Prop := sorry
 
 def geodesic_segment_between {X : Type*} [MetricSpace X] (s : Set X) (x y : X) : Prop := sorry

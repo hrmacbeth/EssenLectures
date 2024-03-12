@@ -1,6 +1,7 @@
 /-  Author:  Sébastien Gouëzel   sebastien.gouezel@univ-rennes1.fr
     License: BSD -/
 import GromovHyperbolicity.GromovHyperbolic
+import Mathlib.Tactic.Peel
 
 -- imports "HOL-Decision_Procs.Approximation"
 -- hide_const (open) Approximation.Min
@@ -38,7 +39,7 @@ lemma quasiconvexI (hC : C ≥ 0)
   aesop (add norm unfold quasiconvex)
 -- using assms unfolding quasiconvex_def by auto
 
-lemma quasiconvex_of_geodesic {G : Set X} (hG : geodesic_segment G) : quasiconvex 0 G := by
+lemma quasiconvex_of_geodesic {G : Set M} (hG : geodesic_segment G) : quasiconvex 0 G := by
   sorry
 -- proof (rule quasiconvexI, simp)
 --   fix x y assume *: "x∈G" "y∈G"
@@ -55,7 +56,10 @@ lemma quasiconvex_empty (hC : C ≥ 0) : quasiconvex C (∅ : Set M) := by
 -- unfolding quasiconvex_def using assms by auto
 
 lemma quasiconvex_mono (hCD : C ≤ D) (hC : quasiconvex C G) : quasiconvex D G := by
-  sorry
+  obtain ⟨h1, h2⟩ := hC
+  refine ⟨by linarith, ?_⟩
+  peel h2
+  linarith
 -- using assms unfolding quasiconvex_def by (auto, fastforce)
 
 variable [Gromov_hyperbolic_space M] [GeodesicSpace M]
@@ -212,7 +216,25 @@ lemma proj_along_quasiconvex_contraction (h : quasiconvex C G) (hx : px ∈ proj
 lemma proj_along_quasiconvex_contraction' (h : quasiconvex C G) (hx : px ∈ proj_set x G)
     (hy : py ∈ proj_set y G) :
     dist px py ≤ dist x y + 4 * δ + 2 * C := by
-  sorry
+  by_cases hxy : dist y py ≤ dist x px
+  · have :=
+    calc dist x px + dist px py ≤ dist x py + 4 * δ + 2 * C :=
+          dist_along_quasiconvex h hx <| proj_setD hy
+      _ ≤ (dist x y + dist y py) + 4 * δ + 2 * C := by
+          gcongr
+          exact dist_triangle x y py
+      _ ≤ (dist x y + dist x px) + 4 * δ + 2 * C := by gcongr
+    linarith
+  · push_neg at hxy
+    have :=
+    calc dist y py + dist py px ≤ dist y px + 4 * δ + 2 * C :=
+          dist_along_quasiconvex h hy <| proj_setD hx
+      _ ≤ (dist y x + dist x px) + 4 * δ + 2 * C := by
+          gcongr
+          exact dist_triangle y x px
+      _ < (dist y x + dist y py) + 4 * δ + 2 * C := by gcongr
+    simp only [dist_comm] at this ⊢
+    linarith
 -- proof (cases "dist y py ≤ dist x px")
 --   case True
 --   have "dist x px + dist px py ≤ dist x py + 4 * δ + 2 * C"
@@ -233,19 +255,25 @@ lemma proj_along_quasiconvex_contraction' (h : quasiconvex C G) (hx : px ∈ pro
 $0$-quasi-convex. -/
 lemma dist_along_geodesic (h : geodesic_segment G) (hx : p ∈ proj_set x G) (hy : y ∈ G) :
     dist x p + dist p y ≤ dist x y + 4 * δ := by
-  sorry
+  have H := dist_along_quasiconvex (quasiconvex_of_geodesic h) hx hy
+  ring_nf at H ⊢
+  exact H
 -- using dist_along_quasiconvex[OF quasiconvex_of_geodesic[OF assms(1)] assms(2) assms(3)] by auto
 
 lemma proj_along_geodesic_contraction (h : geodesic_segment G) (hx : px ∈ proj_set x G)
     (hy : py ∈ proj_set y G) :
     dist px py ≤ max (5 * δ) (dist x y - dist px x - dist py y + 10 * δ) := by
-  sorry
+  have H := proj_along_quasiconvex_contraction (quasiconvex_of_geodesic h) hx hy
+  ring_nf at H ⊢
+  exact H
 -- using proj_along_quasiconvex_contraction[OF quasiconvex_of_geodesic[OF assms(1)] assms(2) assms(3)] by auto
 
 lemma proj_along_geodesic_contraction' (h : geodesic_segment G) (hx : px ∈ proj_set x G)
     (hy : py ∈ proj_set y G) :
     dist px py ≤ dist x y + 4 * δ := by
-  sorry
+  have H := proj_along_quasiconvex_contraction' (quasiconvex_of_geodesic h) hx hy
+  ring_nf at H ⊢
+  exact H
 -- using proj_along_quasiconvex_contraction'[OF quasiconvex_of_geodesic[OF assms(1)] assms(2) assms(3)] by auto
 
 /-- If one projects a continuous curve on a quasi-convex set, the image does not have to be
