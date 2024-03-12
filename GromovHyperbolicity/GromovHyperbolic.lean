@@ -3,7 +3,6 @@
 import Mathlib.Topology.MetricSpace.Isometry
 import Mathlib.Topology.MetricSpace.Completion
 import Mathlib.Topology.MetricSpace.HausdorffDistance
-import Duper
 import GromovHyperbolicity.Prereqs
 
 /-!
