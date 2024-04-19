@@ -147,32 +147,26 @@ to $x$ go close to $p$, i.e., the triangular inequality $d(x,y) \leq d(x,p) + d(
 an equality, up to an additive constant. -/
 lemma dist_along_quasiconvex (hCG : quasiconvex C G) (hp : p ∈ proj_set x G) (hy : y ∈ G) :
     dist x p + dist p y ≤ dist x y + 4 * δ + 2 * C := by
-  sorry
--- proof -
---   have *: "p∈G"
---     using assms proj_setD by auto
---   obtain H where H: "geodesic_segment_between H p y" "∧q. q∈H \<Longrightarrow> infDist q G ≤ C"
+  have : p ∈ G := sorry
+    -- using assms proj_setD by auto
+  obtain ⟨H, hH₁, hH₂⟩ : ∃ H, geodesic_segment_between H p y ∧ ∀ q ∈ H, infDist q G ≤ C := sorry
 --     using quasiconvexD[OF assms(1) * assms(3)] by auto
---   have "∃ m ∈ H. infDist x H = dist x m"
+  obtain ⟨m, hm₁, hm₂⟩ : ∃ m ∈ H, infDist x H = dist x m := sorry
 --     apply (rule infDist_proper_attained[of H x]) using geodesic_segment_topology[OF geodesic_segmentI[OF H(1)]] by auto
---   then obtain m where m: "m∈H" "infDist x H = dist x m" by auto
---   then have I: "dist x m ≤ Gromov_product_at x p y + 2 * δ"
+  have I : dist x m ≤ Gromov_product_at x p y + 2 * δ := sorry
 --     using infDist_triangle_side[OF H(1), of x] by auto
---   have "dist x p - dist x m - C ≤ e" if "e > 0" for e
---   proof -
---     have "∃ r ∈ G. dist m r < infDist m G + e"
---       apply (rule infDist_almost_attained) using \<open>e > 0\<close> assms(3) by auto
---     then obtain r where r: "r∈G" "dist m r < infDist m G + e"
---       by auto
---     then have *: "dist m r ≤ C + e" using H(2)[OF \<open>m∈H\<close>] by auto
---     have "dist x p ≤ dist x r"
---       using \<open>r∈G\<close> assms(2) proj_set_dist_le by blast
---     also have "... ≤ dist x m + dist m r"
---       by (intro mono_intros)
+  have : ∀ e > 0, dist x p - dist x m - C ≤ e := by
+    intro e he
+    obtain ⟨r, hrG, hrm⟩ : ∃ r ∈ G, dist m r < infDist m G + e := sorry
+--       apply (rule infDist_almost_attained) using he assms(3) by auto
+    have : dist m r ≤ C + e := by sorry -- invoke hH₂ _ hm₁ in  auto
+    have :=
+    calc dist x p ≤ dist x r := sorry -- using hrG assms(2) proj_set_dist_le by blast
+      _ ≤ dist x m + dist m r := sorry -- by (intro mono_intros)
 --     finally show ?thesis using * by (auto simp add: metric_space_class.dist_commute)
---   qed
---   then have "dist x p - dist x m - C ≤ 0"
---     using dense_ge by blast
+    sorry
+  have : dist x p - dist x m - C ≤ 0 := le_of_forall_le_of_dense this
+  sorry
 --   then show ?thesis
 --     using I unfolding Gromov_product_at_def by (auto simp add: algebra_simps divide_simps)
 -- qed
