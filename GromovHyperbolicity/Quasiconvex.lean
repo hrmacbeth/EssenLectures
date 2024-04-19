@@ -262,12 +262,12 @@ lemma quasi_convex_projection_small_gaps {f p : ℝ → M} {a b : ℝ}
 --     using quasiconvexC[OF assms(3)] by simp
 --   ultimately have "d ≥ 0" using assms by auto
 
---   /- The idea is to define the desired point as the last point $u$ for which there is a projection
---   at distance at most $d$ of the starting point. Then the projection can not be much closer to
---   the starting point, or one could point another such point further away by almost continuity, giving
---   a contradiction. The technical implementation requires some care, as the "last point" may not
---   satisfy the property, for lack of continuity. If it does, then fine. Otherwise, one should go just
---   a little bit to its left to find the desired point. -/
+  /- The idea is to define the desired point as the last point $u$ for which there is a projection
+  at distance at most $d$ of the starting point. Then the projection can not be much closer to
+  the starting point, or one could point another such point further away by almost continuity, giving
+  a contradiction. The technical implementation requires some care, as the "last point" may not
+  satisfy the property, for lack of continuity. If it does, then fine. Otherwise, one should go just
+  a little bit to its left to find the desired point. -/
 --   define I where "I = {t∈{a..b}. ∀ s∈{a..t}. dist (p a) (p s) ≤ d}"
 --   have "a∈I"
 --     using \<open>a ≤ b\<close> \<open>d ≥ 0\<close> unfolding I_def by auto
@@ -336,11 +336,11 @@ lemma quasi_convex_projection_small_gaps {f p : ℝ → M} {a b : ℝ}
 --     show ?thesis
 --       apply (rule bexI[OF _ \<open>t∈{a..b}\<close>]) using * ** \<open>t∈{a..b}\<close> by auto
 --   next
---     /- Next, consider the case where $u$ satisfies the defining property. Then we will take $t = u$.
---     The only nontrivial point to check is that the distance of $f(u)$ to the starting point is not
---     too small. For this, we need to separate the case where $u = b$ (in which case one argues directly)
---     and the case where $u < b$, where one can use a point slightly to the right of $u$ which has a
---     projection at distance $ > d$ of the starting point, and use almost continuity. -/
+    /- Next, consider the case where $u$ satisfies the defining property. Then we will take $t = u$.
+    The only nontrivial point to check is that the distance of $f(u)$ to the starting point is not
+    too small. For this, we need to separate the case where $u = b$ (in which case one argues directly)
+    and the case where $u < b$, where one can use a point slightly to the right of $u$ which has a
+    projection at distance $ > d$ of the starting point, and use almost continuity. -/
 --     case False
 --     have B: "dist (p a) (p s) ≤ d" if "s∈{a..u}" for s
 --     proof (cases "s = u")
@@ -416,6 +416,9 @@ lemma quasi_convex_projection_small_gaps {f p : ℝ → M} {a b : ℝ}
 --   qed
 -- qed
 
+-- FIXME decide whether this should be global
+attribute [simp] le_neg neg_le
+
 /-- Same lemma, except that one exchanges the roles of the beginning and the end point. -/
 -- not sure whether inequalities are sharp or non-sharp
 lemma quasi_convex_projection_small_gaps' {f p : ℝ → M} {a b : ℝ}
@@ -429,16 +432,16 @@ lemma quasi_convex_projection_small_gaps' {f p : ℝ → M} {a b : ℝ}
                     ∧ (∀ s ∈ Icc t b, dist (p b) (p s) ≤ d) := by
   have hf_neg : ContinuousOn (fun t : ℝ => f (- t)) (Icc (-b) (-a)) := by
     refine hf.comp continuousOn_neg ?_
-    aesop (add norm unfold MapsTo, norm [le_neg, neg_le])
+    aesop (add norm unfold MapsTo)
   let q := fun t ↦ p (-t)
   obtain ⟨t, htab, htq, htq'⟩ :
       ∃ t ∈ Icc (-b) (-a), dist (q (-b)) (q t) ∈ Icc (d - 4 * delta - 2 * C) d
                     ∧ ∀ s ∈ Icc (-b) t, dist (q (-b)) (q s) ≤ d := by
     refine quasi_convex_projection_small_gaps hf_neg ?_ h ?_ hdelta ?_ <;>
-    aesop (add norm [le_neg, neg_le, dist_comm])
+    aesop (add norm [dist_comm])
   refine ⟨-t, ?_, ?_, ?_⟩
-  · aesop (add norm [le_neg, neg_le])
+  · aesop
   · simpa using htq
   · intro s hs
     convert htq' (-s) _ using 2 <;>
-    aesop (add norm [le_neg, neg_le])
+    aesop
