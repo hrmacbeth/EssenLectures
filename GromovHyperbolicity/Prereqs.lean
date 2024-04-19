@@ -57,3 +57,8 @@ class GeodesicSpace (X : Type*) [MetricSpace X]
 
 -- **Lemma 2.1**
 -- `quasi_geodesic_made_lipschitz`
+
+-- `infDist_almost_attained`
+-- `infDist_proper_attained`
+-- `proj_set_dist_le`
+-- `geodesic_segment_topology`

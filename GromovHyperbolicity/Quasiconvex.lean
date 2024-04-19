@@ -143,30 +143,31 @@ lemma quasiconvex_thickening [Inhabited M] (h : quasiconvex C X) (hr : r ≥ 0) 
 -- qed
 
 /-- If $x$ has a projection $p$ on a quasi-convex set $G$, then all segments from a point in $G$
-to $x$ go close to $p$, i.e., the triangular inequality $d(x,y) \leq d(x,p) + d(p,y)$ is essentially
+to $x$ go close to $p$, i.e., the triangular inequality $d(x,y) ≤ d(x,p) + d(p,y)$ is essentially
 an equality, up to an additive constant. -/
 lemma dist_along_quasiconvex (hCG : quasiconvex C G) (hp : p ∈ proj_set x G) (hy : y ∈ G) :
     dist x p + dist p y ≤ dist x y + 4 * δ + 2 * C := by
-  have : p ∈ G := sorry
-    -- using assms proj_setD by auto
-  obtain ⟨H, hH₁, hH₂⟩ : ∃ H, geodesic_segment_between H p y ∧ ∀ q ∈ H, infDist q G ≤ C := sorry
---     using quasiconvexD[OF assms(1) * assms(3)] by auto
+  have : p ∈ G := proj_setD hp
+  obtain ⟨H, hH₁, hH₂⟩ : ∃ H, geodesic_segment_between H p y ∧ ∀ q ∈ H, infDist q G ≤ C :=
+    quasiconvexD hCG this hy
   obtain ⟨m, hm₁, hm₂⟩ : ∃ m ∈ H, infDist x H = dist x m := sorry
---     apply (rule infDist_proper_attained[of H x]) using geodesic_segment_topology[OF geodesic_segmentI[OF H(1)]] by auto
-  have I : dist x m ≤ Gromov_product_at x p y + 2 * δ := sorry
---     using infDist_triangle_side[OF H(1), of x] by auto
+--     apply (rule `infDist_proper_attained` [of H x]) using `geodesic_segment_topology` [OF geodesic_segmentI[OF H(1)]] by auto
+  have I : dist x m ≤ Gromov_product_at x p y + 2 * δ := by
+    rw [← hm₂]
+    apply infDist_triangle_side x hH₁
   have : ∀ e > 0, dist x p - dist x m - C ≤ e := by
     intro e he
     obtain ⟨r, hrG, hrm⟩ : ∃ r ∈ G, dist m r < infDist m G + e := sorry
---       apply (rule infDist_almost_attained) using he assms(3) by auto
-    have : dist m r ≤ C + e := by sorry -- invoke hH₂ _ hm₁ in  auto
+--       apply (rule `infDist_almost_attained`) using he assms(3) by auto
+    have : infDist m G ≤ C := hH₂ _ hm₁
     have :=
-    calc dist x p ≤ dist x r := sorry -- using hrG assms(2) proj_set_dist_le by blast
-      _ ≤ dist x m + dist m r := sorry -- by (intro mono_intros)
+    calc dist x p ≤ dist x r := sorry -- using hrG assms(2) `proj_set_dist_le` by blast
+      _ ≤ dist x m + dist m r := dist_triangle ..
 --     finally show ?thesis using * by (auto simp add: metric_space_class.dist_commute)
-    sorry
+    linarith
   have : dist x p - dist x m - C ≤ 0 := le_of_forall_le_of_dense this
-  sorry
+  rw [Gromov_product_at] at I
+  linarith
 --   then show ?thesis
 --     using I unfolding Gromov_product_at_def by (auto simp add: algebra_simps divide_simps)
 -- qed
