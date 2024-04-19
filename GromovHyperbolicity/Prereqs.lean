@@ -16,6 +16,8 @@ theorem UniformSpace.Completion.induction_on₄ [UniformSpace α] [UniformSpace 
     (ih : ∀ (a : α) (b : β) (c : γ) (d : δ), p a b c d) : p a b c d :=
   sorry
 
+def quasi_isometry_on (lambda C : ℝ) {X Y : Type*} [MetricSpace X] [MetricSpace Y] (s : Set X) (f : X → Y) : Prop := sorry
+
 def proj_set {X : Type*} [MetricSpace X] (x : X) (s : Set X) : Set X := sorry
 
 lemma proj_setD [MetricSpace X] {x y : X} {s : Set X} (hxy : x ∈ proj_set y s) : x ∈ s := sorry

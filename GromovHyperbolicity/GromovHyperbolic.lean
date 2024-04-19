@@ -241,8 +241,8 @@ class Gromov_hyperbolic_space (X : Type*) [MetricSpace X] where
 
 variable {X : Type*} [MetricSpace X] [Gromov_hyperbolic_space X]
 
-set_option quotPrecheck false in
-notation "δ" => Gromov_hyperbolic_space.deltaG X
+-- set_option quotPrecheck false in
+local notation "δ" => Gromov_hyperbolic_space.deltaG X
 
 -- [mono_intros]
 lemma Gromov_hyperbolic_space.hyperb_quad_ineq (x y z t : X) :

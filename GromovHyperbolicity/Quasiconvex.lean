@@ -64,8 +64,7 @@ lemma quasiconvex_mono (hCD : C ≤ D) (hC : quasiconvex C G) : quasiconvex D G 
 
 variable [Gromov_hyperbolic_space M] [GeodesicSpace M]
 
-set_option quotPrecheck false in
-notation "δ" => Gromov_hyperbolic_space.deltaG M
+local notation "δ" => Gromov_hyperbolic_space.deltaG M
 
 /-- The $r$-neighborhood of a quasi-convex set is still quasi-convex in a hyperbolic space,
 for a constant that does not depend on $r$. -/
