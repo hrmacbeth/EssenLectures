@@ -183,37 +183,21 @@ lemma proj_along_quasiconvex_contraction (h : quasiconvex C G) (hx : px ∈ proj
   have := dist_along_quasiconvex h hx <| proj_setD hy
   have := dist_along_quasiconvex h hy <| proj_setD hx
   have := Gromov_hyperbolic_space.hyperb_quad_ineq x py y px
-  rw [le_max_iff]
   simp only [dist_comm] at *
-  obtain ⟨H1, _⟩ | ⟨H2, _⟩ := max_cases (dist x y + dist px py) (dist px x + dist py y)
-  · right
-    linarith
-  · left
-    linarith
+  obtain _ | _ := max_cases (5 * δ + 2 * C) (dist x y - dist px x - dist py y + 10 * δ + 4 * C) <;>
+  obtain _ | _ := max_cases (dist x y + dist px py) (dist px x + dist py y) <;>
+  linarith
 
 /-- The projection on a quasi-convex set is $1$-Lipschitz up to an additive error. -/
 lemma proj_along_quasiconvex_contraction' (h : quasiconvex C G) (hx : px ∈ proj_set x G)
     (hy : py ∈ proj_set y G) :
     dist px py ≤ dist x y + 4 * δ + 2 * C := by
-  by_cases hxy : dist y py ≤ dist x px
-  · have :=
-    calc dist x px + dist px py ≤ dist x py + 4 * δ + 2 * C :=
-          dist_along_quasiconvex h hx <| proj_setD hy
-      _ ≤ (dist x y + dist y py) + 4 * δ + 2 * C := by
-          gcongr
-          exact dist_triangle x y py
-      _ ≤ (dist x y + dist x px) + 4 * δ + 2 * C := by gcongr
-    linarith
-  · push_neg at hxy
-    have :=
-    calc dist y py + dist py px ≤ dist y px + 4 * δ + 2 * C :=
-          dist_along_quasiconvex h hy <| proj_setD hx
-      _ ≤ (dist y x + dist x px) + 4 * δ + 2 * C := by
-          gcongr
-          exact dist_triangle y x px
-      _ < (dist y x + dist y py) + 4 * δ + 2 * C := by gcongr
-    simp only [dist_comm] at this ⊢
-    linarith
+  have := dist_along_quasiconvex h hx <| proj_setD hy
+  have := dist_along_quasiconvex h hy <| proj_setD hx
+  have := dist_triangle x y py
+  have := dist_triangle y x px
+  simp only [dist_comm] at *
+  linarith
 -- proof (cases "dist y py ≤ dist x px")
 --   case True
 --   have "dist x px + dist px py ≤ dist x py + 4 * δ + 2 * C"
