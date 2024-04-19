@@ -181,6 +181,7 @@ lemma dist_along_quasiconvex (hCG : quasiconvex C G) (hp : p ∈ proj_set x G) (
 constants. It states that the distance between the projections
 on a quasi-convex set is controlled by the distance of the original points, with a gain given by the
 distances of the points to the set. -/
+-- **Lemma 2.4**
 lemma proj_along_quasiconvex_contraction (h : quasiconvex C G) (hx : px ∈ proj_set x G)
     (hy : py ∈ proj_set y G) :
     dist px py ≤ max (5 * δ + 2 * C) (dist x y - dist px x - dist py y + 10 * δ + 4 * C) := by
@@ -280,6 +281,7 @@ connected (the projection is discontinuous), but since the projections of nearby
 uniformly bounded distance one can find in the projection a point with almost prescribed distance
 to the starting point, say. For further applications, we also pick the first such point, i.e.,
 all the previous points are also close to the starting point. -/
+-- **Lemma 2.2** in article.
 -- not sure whether inequalities are sharp or non-sharp
 lemma quasi_convex_projection_small_gaps {f p : ℝ → M} {a b : ℝ}
     (hf : ContinuousOn f (Set.Icc a b))

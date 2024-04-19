@@ -505,6 +505,7 @@ exponentially contracting. To do this, one uses the contraction of a projection 
 one adds up the additional errors due to the quasi-convexity. In particular, the projections on the
 original quasiconvex set or the geodesic do not have to coincide, but they are within distance at
 most $C + 8 δ$. -/
+-- **Lemma 2.5**
 -- (in Gromov_hyperbolic_space_geodesic)
 lemma quasiconvex_projection_exp_contracting
     (hKG : quasiconvex K G) {f : ℝ → X}

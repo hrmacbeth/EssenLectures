@@ -54,3 +54,6 @@ notation "{" x "‒" y "}" => some_geodesic_segment_between_UNIV x y
 def geodesic_segment_param {X : Type*} [MetricSpace X] (G : Set X) (x : X) (t : ℝ) : X := sorry
 
 class GeodesicSpace (X : Type*) [MetricSpace X]
+
+-- **Lemma 2.1**
+-- `quasi_geodesic_made_lipschitz`
