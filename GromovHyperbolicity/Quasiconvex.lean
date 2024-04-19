@@ -180,32 +180,16 @@ distances of the points to the set. -/
 lemma proj_along_quasiconvex_contraction (h : quasiconvex C G) (hx : px ∈ proj_set x G)
     (hy : py ∈ proj_set y G) :
     dist px py ≤ max (5 * δ + 2 * C) (dist x y - dist px x - dist py y + 10 * δ + 4 * C) := by
-  sorry
--- proof -
---   have "px∈G" "py∈G"
---     using assms proj_setD by auto
---   have "(dist x px + dist px py - 4 * δ - 2 * C) + (dist y py + dist py px - 4 *δ - 2 * C)
---         ≤ dist x py + dist y px"
---     apply (intro mono_intros)
---     using dist_along_quasiconvex[OF assms(1) assms(2) \<open>py∈G\<close>] dist_along_quasiconvex[OF assms(1) assms(3) \<open>px∈G\<close>] by auto
---   also have "... ≤ max (dist x y + dist py px) (dist x px + dist py y) + 2 * δ"
---     by (rule hyperb_quad_ineq)
---   finally have *: "dist x px + dist y py + 2 * dist px py
---           ≤ max (dist x y + dist py px) (dist x px + dist py y) + 10 * δ + 4 * C"
---     by (auto simp add: metric_space_class.dist_commute)
---   show ?thesis
---   proof (cases "dist x y + dist py px ≥ dist x px + dist py y")
---     case True
---     then have "dist x px + dist y py + 2 * dist px py ≤ dist x y + dist py px + 10 * δ + 4 * C"
---       using * by auto
---     then show ?thesis by (auto simp add: metric_space_class.dist_commute)
---   next
---     case False
---     then have "dist x px + dist y py + 2 * dist px py ≤ dist x px + dist py y + 10 * δ + 4 * C"
---       using * by auto
---     then show ?thesis by (simp add: metric_space_class.dist_commute)
---   qed
--- qed
+  have := dist_along_quasiconvex h hx <| proj_setD hy
+  have := dist_along_quasiconvex h hy <| proj_setD hx
+  have := Gromov_hyperbolic_space.hyperb_quad_ineq x py y px
+  rw [le_max_iff]
+  simp only [dist_comm] at *
+  obtain ⟨H1, _⟩ | ⟨H2, _⟩ := max_cases (dist x y + dist px py) (dist px x + dist py y)
+  · right
+    linarith
+  · left
+    linarith
 
 /-- The projection on a quasi-convex set is $1$-Lipschitz up to an additive error. -/
 lemma proj_along_quasiconvex_contraction' (h : quasiconvex C G) (hx : px ∈ proj_set x G)
