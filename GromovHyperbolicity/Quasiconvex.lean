@@ -429,16 +429,16 @@ lemma quasi_convex_projection_small_gaps' {f p : ℝ → M} {a b : ℝ}
                     ∧ (∀ s ∈ Icc t b, dist (p b) (p s) ≤ d) := by
   have hf_neg : ContinuousOn (fun t : ℝ => f (- t)) (Icc (-b) (-a)) := by
     refine hf.comp continuousOn_neg ?_
-    aesop (add norm unfold MapsTo, norm le_neg, norm neg_le)
+    aesop (add norm unfold MapsTo, norm [le_neg, neg_le])
   let q := fun t ↦ p (-t)
   obtain ⟨t, htab, htq, htq'⟩ :
       ∃ t ∈ Icc (-b) (-a), dist (q (-b)) (q t) ∈ Icc (d - 4 * delta - 2 * C) d
                     ∧ ∀ s ∈ Icc (-b) t, dist (q (-b)) (q s) ≤ d := by
     refine quasi_convex_projection_small_gaps hf_neg ?_ h ?_ hdelta ?_ <;>
-    aesop (add norm le_neg, norm neg_le, norm dist_comm)
+    aesop (add norm [le_neg, neg_le, dist_comm])
   refine ⟨-t, ?_, ?_, ?_⟩
-  · aesop (add norm le_neg, norm neg_le)
+  · aesop (add norm [le_neg, neg_le])
   · simpa using htq
   · intro s hs
     convert htq' (-s) _ using 2 <;>
-    aesop (add norm le_neg, norm neg_le)
+    aesop (add norm [le_neg, neg_le])
