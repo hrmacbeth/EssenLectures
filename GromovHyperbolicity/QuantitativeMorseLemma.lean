@@ -67,7 +67,7 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
 --   define x' where "x' = geodesic_segment_param {px‒x} px M"
 --   define y' where "y' = geodesic_segment_param {py‒y} py M"
 
---   text \<open>First step: the distance between $px$ and $py$ is at most $5δ$.\<close>
+  /- First step: the distance between $px$ and $py$ is at most $5δ$. -/
 --   have := calc dist px py ≤ max (5 * Gromov_hyperbolic_space.deltaG X) (dist x y - dist px x - dist py y + 10 * Gromov_hyperbolic_space.deltaG X)"
 --     by (rule proj_along_geodesic_contraction[OF assms(1) assms(2) assms(3)])
 --   _ ≤ max (5 * Gromov_hyperbolic_space.deltaG X) (5 * Gromov_hyperbolic_space.deltaG X)"
@@ -75,7 +75,7 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
 --   finally have "dist px py ≤ 5 * δ"
 --     using \<open>delta ≥ Gromov_hyperbolic_space.deltaG X\<close> by auto
 
---   text \<open>Second step: show that all the interesting Gromov products at bounded below by $M$.\<close>
+  /- Second step: show that all the interesting Gromov products at bounded below by $M$. -/
 --   have *: "x' ∈ {px‒x}" unfolding x'_def
 --     by (simp add: geodesic_segment_param_in_segment)
 --   have "px ∈ proj_set x' G"
@@ -133,7 +133,7 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
 --   finally have Iy: "Gromov_product_at py x y ≥ M"
 --     by auto
 
---   text \<open>Third step: prove the estimate\<close>
+  /- Third step: prove the estimate -/
 --   have := calc M - 2 * δ ≤ Min {Gromov_product_at px x' x, Gromov_product_at px x y, Gromov_product_at px y y'} - 2 * Gromov_hyperbolic_space.deltaG X"
 --     using Ixx Ixy Ix \<open>δ ≥ Gromov_hyperbolic_space.deltaG X\<close> by auto
 --   _ ≤ Gromov_product_at px x' y'"
