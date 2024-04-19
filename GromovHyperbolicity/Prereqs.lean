@@ -62,3 +62,4 @@ class GeodesicSpace (X : Type*) [MetricSpace X]
 -- `infDist_proper_attained`
 -- `proj_set_dist_le`
 -- `geodesic_segment_topology`
+-- `geodesic_subsegment_exists`

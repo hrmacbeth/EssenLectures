@@ -9,7 +9,7 @@ import Mathlib.Tactic.Peel
 
 /-! # Quasiconvexity -/
 
-open Metric
+open Metric Set
 
 variable {M : Type*} [MetricSpace M]
 
@@ -40,16 +40,15 @@ lemma quasiconvexI (hC : C ≥ 0)
 -- using assms unfolding quasiconvex_def by auto
 
 lemma quasiconvex_of_geodesic {G : Set M} (hG : geodesic_segment G) : quasiconvex 0 G := by
-  sorry
--- proof (rule quasiconvexI, simp)
---   fix x y assume *: "x∈G" "y∈G"
---   obtain H where H: "H \<subseteq> G" "geodesic_segment_between H x y"
---     using geodesic_subsegment_exists[OF assms(1) *] by auto
---   have "infDist z G ≤ 0" if "z∈H" for z
---     using H(1) that by auto
---   then show "∃ H. geodesic_segment_between H x y ∧ (∀ z ∈ H. infDist z G ≤ 0)"
---     using H(2) by auto
--- qed
+  apply quasiconvexI
+  · simp
+  intro x y hx hy
+  obtain ⟨H, hHG, hHxy⟩ : ∃ H, H ⊆ G ∧ geodesic_segment_between H x y := sorry
+--     using `geodesic_subsegment_exists` [OF assms(1) *] by auto
+  refine ⟨H, hHxy, ?_⟩
+  intro _ _
+  rw [infDist_zero_of_mem]
+  aesop
 
 lemma quasiconvex_empty (hC : C ≥ 0) : quasiconvex C (∅ : Set M) := by
   aesop (add norm unfold quasiconvex)
@@ -247,14 +246,14 @@ all the previous points are also close to the starting point. -/
 -- **Lemma 2.2** in article.
 -- not sure whether inequalities are sharp or non-sharp
 lemma quasi_convex_projection_small_gaps {f p : ℝ → M} {a b : ℝ}
-    (hf : ContinuousOn f (Set.Icc a b))
+    (hf : ContinuousOn f (Icc a b))
     (hab : a ≤ b)
     (h : quasiconvex C G)
-    (hfG : ∀ t ∈ Set.Icc a b, p t ∈ proj_set (f t) G)
+    (hfG : ∀ t ∈ Icc a b, p t ∈ proj_set (f t) G)
     (hdelta : delta > δ)
-    (hd : d ∈ Set.Icc (4 * delta + 2 * C) (dist (p a) (p b))) :
-    ∃ t ∈ Set.Icc a b, (dist (p a) (p t) ∈ Set.Icc (d - 4 * delta - 2 * C) d)
-                    ∧ (∀ s ∈ Set.Icc a t, dist (p a) (p s) ≤ d) := by
+    (hd : d ∈ Icc (4 * delta + 2 * C) (dist (p a) (p b))) :
+    ∃ t ∈ Icc a b, (dist (p a) (p t) ∈ Icc (d - 4 * delta - 2 * C) d)
+                    ∧ (∀ s ∈ Icc a t, dist (p a) (p s) ≤ d) := by
   sorry
 -- proof -
 --   have "delta > 0"
@@ -420,27 +419,26 @@ lemma quasi_convex_projection_small_gaps {f p : ℝ → M} {a b : ℝ}
 /-- Same lemma, except that one exchanges the roles of the beginning and the end point. -/
 -- not sure whether inequalities are sharp or non-sharp
 lemma quasi_convex_projection_small_gaps' {f p : ℝ → M} {a b : ℝ}
-    (hf : ContinuousOn f (Set.Icc a b))
+    (hf : ContinuousOn f (Icc a b))
     (hab : a ≤ b)
     (h : quasiconvex C G)
-    (hfG : ∀ t ∈ Set.Icc a b, p t ∈ proj_set (f t) G)
+    (hfG : ∀ t ∈ Icc a b, p t ∈ proj_set (f t) G)
     (hdelta : delta > δ)
-    (hd : d ∈ Set.Icc (4 * delta + 2 * C) (dist (p a) (p b))) :
-    ∃ t ∈ Set.Icc a b, (dist (p a) (p t) ∈ Set.Icc (d - 4 * delta - 2 * C) d)
-                    ∧ (∀ s ∈ Set.Icc t b, dist (p b) (p s) ≤ d) := by
-  sorry
---   have *: "continuous_on {-b..-a} (\<lambda>t. f(-t))"
---     using continuous_on_compose[of "{-b..-a}" "\<lambda>t. -t" f] using assms(1) continuous_on_minus[OF continuous_on_id] by auto
---   define q where "q = (\<lambda>t. p(-t))"
---   have "∃ t∈{-b..-a}. (dist (q (-b)) (q t)∈{d - 4 * delta - 2 * C .. d})
---                     ∧ (∀ s∈{-b..t}. dist (q (-b)) (q s) ≤ d)"
---     apply (rule quasi_convex_projection_small_gaps[where ?f = "\<lambda>t. f(-t)" and ?G = G])
---     unfolding q_def using assms * by (auto simp add: metric_space_class.dist_commute)
---   then obtain t where t: "t∈{-b..-a}" "dist (q (-b)) (q t)∈{d - 4 * delta - 2 * C .. d}"
---                       "∧s. s∈{-b..t} \<Longrightarrow> dist (q (-b)) (q s) ≤ d"
---     by blast
---   have *: "dist (p b) (p s) ≤ d" if "s∈{-t..b}" for s
---     using t(3)[of "-s"] that q_def by auto
---   show ?thesis
---     apply (rule bexI[of _ "-t"]) using t * q_def by auto
--- qed
+    (hd : d ∈ Icc (4 * delta + 2 * C) (dist (p a) (p b))) :
+    ∃ t ∈ Icc a b, (dist (p b) (p t) ∈ Icc (d - 4 * delta - 2 * C) d)
+                    ∧ (∀ s ∈ Icc t b, dist (p b) (p s) ≤ d) := by
+  have hf_neg : ContinuousOn (fun t : ℝ => f (- t)) (Icc (-b) (-a)) := by
+    refine hf.comp continuousOn_neg ?_
+    aesop (add norm unfold MapsTo, norm le_neg, norm neg_le)
+  let q := fun t ↦ p (-t)
+  obtain ⟨t, htab, htq, htq'⟩ :
+      ∃ t ∈ Icc (-b) (-a), dist (q (-b)) (q t) ∈ Icc (d - 4 * delta - 2 * C) d
+                    ∧ ∀ s ∈ Icc (-b) t, dist (q (-b)) (q s) ≤ d := by
+    refine quasi_convex_projection_small_gaps hf_neg ?_ h ?_ hdelta ?_ <;>
+    aesop (add norm le_neg, norm neg_le, norm dist_comm)
+  refine ⟨-t, ?_, ?_, ?_⟩
+  · aesop (add norm le_neg, norm neg_le)
+  · simpa using htq
+  · intro s hs
+    convert htq' (-s) _ using 2 <;>
+    aesop (add norm le_neg, norm neg_le)
