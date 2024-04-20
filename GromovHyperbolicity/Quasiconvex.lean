@@ -290,42 +290,29 @@ a little bit to its left to find the desired point. -/
       ∃ e0 > 0, ∀ s ∈ Icc a b, dist u s < e0 → dist (f u) (f s) < delta - δ := by
     simpa [dist_comm] using this (delta - δ) hdeltaδ
 
-  obtain ⟨e1, he1_pos, he1⟩ : ∃ e1, 0 < e1 ∧ e1 < e0 := exists_between he0
 
   by_cases hdp : dist (p a) (p u) > d
 /- First, consider the case where `u` does not satisfy the defining property. Then the
 desired point `t` is taken slightly to its left. -/
-  · have : u ≠ a := by
-      clear_value u
-      rintro rfl
-      linarith [dist_self (p u)]
-    have : a < u := lt_of_le_of_ne hau this.symm
-    have : 0 < u - a := by linarith
+  · obtain ⟨t, htu, htab, htue0⟩ : ∃ t, t < u ∧ t ∈ Icc a b ∧ dist u t < e0 := by
+      have : a ≠ u := by
+        clear_value u
+        rintro rfl
+        linarith [dist_self (p a)]
+      have H1 : a < u := lt_of_le_of_ne hau this
+      have H2 : u - e0 < u := by linarith only [he0]
+      obtain ⟨t, ht, htu⟩ := exists_between (max_lt H1 H2)
+      rw [max_lt_iff] at ht
+      obtain ⟨hta, htue0⟩ := ht
+      have htb : t ≤ b := by linarith only [htu, hub]
+      refine ⟨t, htu, ⟨hta.le, htb⟩, ?_⟩
+      show |u - t| < e0
+      rw [abs_of_nonneg]
+      · linarith only [htue0]
+      · linarith only [htu]
 
-    obtain ⟨ua', hua_pos, hua⟩ := exists_between this
-
-    let e : ℝ := min e1 ua'
-    have : 0 < e := by positivity
-    have : u - b ≤ e ∧ e ≤ u - a := by
-      show _ ≤ min _ _ ∧ min _ _ ≤ _
-      obtain _ | _ := min_cases e1 ua'
-      constructor
-      · linarith
-      · linarith
-      constructor <;> linarith
---       using \<open>e > 0\<close> \<open>u ≤ b\<close> unfolding e_def by (auto simp add: min_def)
-    let t := u - e
-    have htu : t < u := by dsimp [t]; linarith
-    have htab : t ∈ Icc a b := by
-      show _ ≤ u - e ∧ u - e ≤ _
-      constructor <;> linarith
     have htat : t ∈ Icc a t := right_mem_Icc.mpr htab.1
-    have htue0 : dist u t < e0 := by
-      show |u - (u - min _ _)| < e0
-      rw [sub_sub_cancel, abs_of_nonneg]
-      · exact min_lt_of_left_lt he1
-      · positivity
---       unfolding t_def e_def dist_real_def using \<open>e0 > 0\<close> \<open>a ≤ u\<close> by auto
+
     have H1 : ∀ s ∈ Icc a t, dist (p a) (p s) ≤ d := by
       intro s hs
       apply A s
