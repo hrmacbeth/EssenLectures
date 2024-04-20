@@ -238,6 +238,8 @@ lemma proj_along_geodesic_contraction' (h : geodesic_segment G) (hx : px ∈ pro
   exact H
 -- using proj_along_quasiconvex_contraction'[OF quasiconvex_of_geodesic[OF assms(1)] assms(2) assms(3)] by auto
 
+open Topology
+
 /-- If one projects a continuous curve on a quasi-convex set, the image does not have to be
 connected (the projection is discontinuous), but since the projections of nearby points are within
 uniformly bounded distance one can find in the projection a point with almost prescribed distance
@@ -252,18 +254,18 @@ lemma quasi_convex_projection_small_gaps [Inhabited M] {f p : ℝ → M} {a b : 
     (hfG : ∀ t ∈ Icc a b, p t ∈ proj_set (f t) G)
     (hdelta : delta > δ)
     (hd : d ∈ Icc (4 * delta + 2 * C) (dist (p a) (p b))) :
-    ∃ t ∈ Icc a b, (dist (p a) (p t) ∈ Icc (d - 4 * delta - 2 * C) d)
-                    ∧ (∀ s ∈ Icc a t, dist (p a) (p s) ≤ d) := by
+    ∃ t ∈ Icc a b, dist (p a) (p t) ∈ Icc (d - 4 * delta - 2 * C) d
+                    ∧ ∀ s ∈ Icc a t, dist (p a) (p s) ≤ d := by
   have : 0 ≤ δ := delta_nonneg M
   have : 0 ≤ C := quasiconvexC h
-  have : 0 ≤ d := by linarith [hd.1]
+  have hd0 : 0 ≤ d := by linarith [hd.1]
 
-  /- The idea is to define the desired point as the last point $u$ for which there is a projection
-  at distance at most $d$ of the starting point. Then the projection can not be much closer to
-  the starting point, or one could point another such point further away by almost continuity, giving
-  a contradiction. The technical implementation requires some care, as the "last point" may not
-  satisfy the property, for lack of continuity. If it does, then fine. Otherwise, one should go just
-  a little bit to its left to find the desired point. -/
+/- The idea is to define the desired point as the last point `u` for which there is a projection
+at distance at most `d` of the starting point. Then the projection can not be much closer to
+the starting point, or one could point another such point further away by almost continuity, giving
+a contradiction. The technical implementation requires some care, as the "last point" may not
+satisfy the property, for lack of continuity. If it does, then fine. Otherwise, one should go just
+a little bit to its left to find the desired point. -/
   let I : Set ℝ := Icc a b ∩ {t | ∀ s ∈ Icc a t, dist (p a) (p s) ≤ d}
   have haI : a ∈ I := by
     refine ⟨by aesop, ?_⟩
@@ -274,73 +276,87 @@ lemma quasi_convex_projection_small_gaps [Inhabited M] {f p : ℝ → M} {a b : 
   have : BddAbove I := BddAbove.inter_of_left bddAbove_Icc
 --     unfolding I_def by auto
   let u := sSup I
-  have : a ≤ u := le_csSup this haI
-  have : u ≤ b := csSup_le ⟨_, haI⟩ <| by aesop
+  have hau : a ≤ u := le_csSup this haI
+  have hub : u ≤ b := csSup_le ⟨_, haI⟩ <| by aesop
 --     unfolding u_def apply (rule cSup_least) using \<open>a∈I\<close> apply auto unfolding I_def by auto
-  sorry
---   have A: "dist (p a) (p s) ≤ d" if "s < u" "a ≤ s" for s
---   proof -
---     have "∃ t ∈ I. s < t"
---       unfolding u_def apply (subst less_cSup_iff[symmetric])
---       using \<open>a∈I\<close> \<open>bdd_above I\<close> using \<open>s < u\<close> unfolding u_def by auto
---     then obtain t where t: "t∈I" "s < t" by auto
---     then have "s∈{a..t}" using \<open>a ≤ s\<close> by auto
---     then show ?thesis
---       using t(1) unfolding I_def by auto
---   qed
---   have "continuous (at u within {a..b}) f"
---     using assms(1) by (simp add: \<open>a ≤ u\<close> \<open>u ≤ b\<close> continuous_on_eq_continuous_within)
---   then have "∃ i > 0. ∀ s ∈ {a..b}. dist u s < i \<longrightarrow> dist (f u) (f s) < (delta - δ)"
---     unfolding continuous_within_eps_delta using \<open>δ < delta\<close> by (auto simp add: metric_space_class.dist_commute)
---   then obtain e0 where e0: "e0 > 0" "∧s. s∈{a..b} \<Longrightarrow> dist u s < e0 \<Longrightarrow> dist (f u) (f s) < (delta - δ)"
---     by auto
+  have A : ∀ s ∈ Ico a u, dist (p a) (p s) ≤ d := by
+    intro s hs
+    obtain ⟨t, htI, hts⟩ : ∃ t ∈ I, s < t := exists_lt_of_lt_csSup ⟨_, haI⟩ hs.2
+    exact htI.2 _ ⟨hs.1, hts.le⟩
+  have : ContinuousWithinAt f (Icc a b) u := hf.continuousWithinAt ⟨hau, hub⟩
+  rw [continuousWithinAt_iff] at this
+  have hdeltaδ : 0 < delta - δ := by linarith
+  obtain ⟨e0, he0, he0f⟩ :
+      ∃ e0 > 0, ∀ s ∈ Icc a b, dist u s < e0 → dist (f u) (f s) < delta - δ := by
+    simpa [dist_comm] using this (delta - δ) hdeltaδ
 
---   show ?thesis
---   proof (cases "dist (p a) (p u) > d")
---     /- First, consider the case where $u$ does not satisfy the defining property. Then the
---     desired point $t$ is taken slightly to its left. -/
---     case True
---     then have "u \<noteq> a"
---       using \<open>d ≥ 0\<close> by auto
---     then have "a < u" using \<open>a ≤ u\<close> by auto
+  obtain ⟨e1, he1_pos, he1⟩ : ∃ e1, 0 < e1 ∧ e1 < e0 := exists_between he0
 
---     define e::real where "e = min (e0/2) ((u-a)/2)"
---     then have "e > 0" using \<open>a < u\<close> \<open>e0 > 0\<close> by auto
---     define t where "t = u - e"
---     then have "t < u" using \<open>e > 0\<close> by auto
---     have "u - b ≤ e" "e ≤ u - a"
+  by_cases hdp : dist (p a) (p u) > d
+/- First, consider the case where `u` does not satisfy the defining property. Then the
+desired point `t` is taken slightly to its left. -/
+  · have : u ≠ a := by
+      clear_value u
+      rintro rfl
+      linarith [dist_self (p u)]
+    have : a < u := lt_of_le_of_ne hau this.symm
+    have : 0 < u - a := by linarith
+
+    obtain ⟨ua', hua_pos, hua⟩ := exists_between this
+
+    let e : ℝ := min e1 ua'
+    have : 0 < e := by positivity
+    have : u - b ≤ e ∧ e ≤ u - a := by
+      show _ ≤ min _ _ ∧ min _ _ ≤ _
+      obtain _ | _ := min_cases e1 ua'
+      constructor
+      · linarith
+      · linarith
+      constructor <;> linarith
 --       using \<open>e > 0\<close> \<open>u ≤ b\<close> unfolding e_def by (auto simp add: min_def)
---     then have "t∈{a..b}" "t∈{a..t}"
---       unfolding t_def by auto
---     have "dist u t < e0"
+    let t := u - e
+    have htu : t < u := by dsimp [t]; linarith
+    have htab : t ∈ Icc a b := by
+      show _ ≤ u - e ∧ u - e ≤ _
+      constructor <;> linarith
+    have htat : t ∈ Icc a t := right_mem_Icc.mpr htab.1
+    have htue0 : dist u t < e0 := by
+      show |u - (u - min _ _)| < e0
+      rw [sub_sub_cancel, abs_of_nonneg]
+      · exact min_lt_of_left_lt he1
+      · positivity
 --       unfolding t_def e_def dist_real_def using \<open>e0 > 0\<close> \<open>a ≤ u\<close> by auto
---     have *: "∀ s∈{a..t}. dist (p a) (p s) ≤ d"
+    have H1 : ∀ s ∈ Icc a t, dist (p a) (p s) ≤ d := by
+      intro s hs
+      apply A s
+      exact ⟨hs.1, lt_of_le_of_lt hs.2 htu⟩
 --       using A \<open>t < u\<close> by auto
---     have "dist (p t) (p u) ≤ dist (f t) (f u) + 4 * δ + 2 * C"
+    have H2 :=
+    calc dist (p t) (p u) ≤ dist (f t) (f u) + 4 * δ + 2 * C :=
+          proj_along_quasiconvex_contraction' h (hfG t htab) (hfG u ⟨hau, hub⟩)
 --       apply (rule proj_along_quasiconvex_contraction'[OF \<open>quasiconvex C G\<close>])
 --       using assms (4) \<open>t∈{a..b}\<close> \<open>a ≤ u\<close> \<open>u ≤ b\<close> by auto
---     also have "... ≤ (delta - δ) + 4 * δ + 2 * C"
+      _ ≤ (delta - δ) + 4 * δ + 2 * C := by
+          have := he0f t htab htue0
+          rw [dist_comm]
+          gcongr
 --       apply (intro mono_intros)
 --       using e0(2)[OF \<open>t∈{a..b}\<close> \<open>dist u t < e0\<close>] by (auto simp add: metric_space_class.dist_commute)
---     finally have I: "dist (p t) (p u) ≤ 4 * delta + 2 * C"
+      _ ≤ 4 * delta + 2 * C := by linarith
 --       using \<open>delta > δ\<close> by simp
 
---     have "d ≤ dist (p a) (p u)"
---       using True by auto
---     also have "... ≤ dist (p a) (p t) + dist (p t) (p u)"
---       by (intro mono_intros)
---     also have "... ≤ dist (p a) (p t) + 4 * delta + 2 * C"
---       using I by simp
---     finally have **: "d - 4 * delta - 2 * C ≤ dist (p a) (p t)"
---       by simp
---     show ?thesis
---       apply (rule bexI[OF _ \<open>t∈{a..b}\<close>]) using * ** \<open>t∈{a..b}\<close> by auto
---   next
-    /- Next, consider the case where $u$ satisfies the defining property. Then we will take $t = u$.
-    The only nontrivial point to check is that the distance of $f(u)$ to the starting point is not
-    too small. For this, we need to separate the case where $u = b$ (in which case one argues directly)
-    and the case where $u < b$, where one can use a point slightly to the right of $u$ which has a
-    projection at distance $ > d$ of the starting point, and use almost continuity. -/
+    have :=
+      calc d ≤ dist (p a) (p u) := hdp.le
+        _ ≤ dist (p a) (p t) + dist (p t) (p u) := dist_triangle ..
+        _ ≤ dist (p a) (p t) + (4 * delta + 2 * C) := by gcongr
+    have H3 : d - 4 * delta - 2 * C ≤ dist (p a) (p t) := by linarith
+    exact ⟨t, htab, ⟨H3, H1 _ htat⟩, H1⟩
+/- Next, consider the case where $u$ satisfies the defining property. Then we will take `t = u`.
+The only nontrivial point to check is that the distance of `f u` to the starting point is not
+too small. For this, we need to separate the case where `u = b` (in which case one argues directly)
+and the case where `u < b`, where one can use a point slightly to the right of `u` which has a
+projection at distance > `d` of the starting point, and use almost continuity. -/
+  · sorry
 --     case False
 --     have B: "dist (p a) (p s) ≤ d" if "s∈{a..u}" for s
 --     proof (cases "s = u")
