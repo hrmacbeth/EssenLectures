@@ -314,8 +314,7 @@ desired point `t` is taken slightly to its left. -/
 
     have H1 : ∀ s ∈ Icc a t, dist (p a) (p s) ≤ d := by
       intro s hs
-      apply A s
-      exact ⟨hs.1, lt_of_le_of_lt hs.2 htu⟩
+      exact A s ⟨hs.1, trans hs.2 htu⟩
 
     refine ⟨⟨?_, H1 _ ?_⟩, H1⟩
     · have : dist (p t) (p u) ≤ dist (f t) (f u) + 4 * δ + 2 * C :=
