@@ -279,7 +279,7 @@ open Gromov_hyperbolic_space
 -- begin
 
 --  [mono_intros]
-variable (X) in
+variable (X) in -- TODO `positivity` attribute
 @[simp] lemma delta_nonneg [Inhabited X] : δ ≥ 0 := by
   let x : X := default
   have := hyperb_quad_ineq x x x x

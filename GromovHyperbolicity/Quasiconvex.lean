@@ -245,7 +245,7 @@ to the starting point, say. For further applications, we also pick the first suc
 all the previous points are also close to the starting point. -/
 -- **Lemma 2.2** in article.
 -- not sure whether inequalities are sharp or non-sharp
-lemma quasi_convex_projection_small_gaps {f p : ℝ → M} {a b : ℝ}
+lemma quasi_convex_projection_small_gaps [Inhabited M] {f p : ℝ → M} {a b : ℝ}
     (hf : ContinuousOn f (Icc a b))
     (hab : a ≤ b)
     (h : quasiconvex C G)
@@ -254,13 +254,9 @@ lemma quasi_convex_projection_small_gaps {f p : ℝ → M} {a b : ℝ}
     (hd : d ∈ Icc (4 * delta + 2 * C) (dist (p a) (p b))) :
     ∃ t ∈ Icc a b, (dist (p a) (p t) ∈ Icc (d - 4 * delta - 2 * C) d)
                     ∧ (∀ s ∈ Icc a t, dist (p a) (p s) ≤ d) := by
-  sorry
--- proof -
---   have "delta > 0"
---     using assms(5) local.delta_nonneg by linarith
---   moreover have "C ≥ 0"
---     using quasiconvexC[OF assms(3)] by simp
---   ultimately have "d ≥ 0" using assms by auto
+  have : 0 ≤ δ := delta_nonneg M
+  have : 0 ≤ C := quasiconvexC h
+  have : 0 ≤ d := by linarith [hd.1]
 
   /- The idea is to define the desired point as the last point $u$ for which there is a projection
   at distance at most $d$ of the starting point. Then the projection can not be much closer to
@@ -268,16 +264,20 @@ lemma quasi_convex_projection_small_gaps {f p : ℝ → M} {a b : ℝ}
   a contradiction. The technical implementation requires some care, as the "last point" may not
   satisfy the property, for lack of continuity. If it does, then fine. Otherwise, one should go just
   a little bit to its left to find the desired point. -/
---   define I where "I = {t∈{a..b}. ∀ s∈{a..t}. dist (p a) (p s) ≤ d}"
---   have "a∈I"
+  let I : Set ℝ := Icc a b ∩ {t | ∀ s ∈ Icc a t, dist (p a) (p s) ≤ d}
+  have haI : a ∈ I := by
+    refine ⟨by aesop, ?_⟩
+    intro s hs
+    obtain rfl : s = a := by simpa using hs
+    aesop
 --     using \<open>a ≤ b\<close> \<open>d ≥ 0\<close> unfolding I_def by auto
---   have "bdd_above I"
+  have : BddAbove I := BddAbove.inter_of_left bddAbove_Icc
 --     unfolding I_def by auto
---   define u where "u = Sup I"
---   have "a ≤ u"
---     unfolding u_def apply (rule cSup_upper) using \<open>a∈I\<close> \<open>bdd_above I\<close> by auto
---   have "u ≤ b"
+  let u := sSup I
+  have : a ≤ u := le_csSup this haI
+  have : u ≤ b := csSup_le ⟨_, haI⟩ <| by aesop
 --     unfolding u_def apply (rule cSup_least) using \<open>a∈I\<close> apply auto unfolding I_def by auto
+  sorry
 --   have A: "dist (p a) (p s) ≤ d" if "s < u" "a ≤ s" for s
 --   proof -
 --     have "∃ t ∈ I. s < t"
@@ -421,7 +421,7 @@ attribute [simp] le_neg neg_le
 
 /-- Same lemma, except that one exchanges the roles of the beginning and the end point. -/
 -- not sure whether inequalities are sharp or non-sharp
-lemma quasi_convex_projection_small_gaps' {f p : ℝ → M} {a b : ℝ}
+lemma quasi_convex_projection_small_gaps' [Inhabited M] {f p : ℝ → M} {a b : ℝ}
     (hf : ContinuousOn f (Icc a b))
     (hab : a ≤ b)
     (h : quasiconvex C G)
