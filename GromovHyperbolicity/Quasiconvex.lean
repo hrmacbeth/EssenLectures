@@ -310,17 +310,19 @@ desired point `t` is taken slightly to its left. -/
       exact (H2.and this).exists
 
     have htab : t ∈ Icc a b := ⟨hta, htu.le.trans hub⟩
-    have htat : t ∈ Icc a t := right_mem_Icc.mpr hta
+    refine ⟨t, htab, ?_⟩
 
     have H1 : ∀ s ∈ Icc a t, dist (p a) (p s) ≤ d := by
       intro s hs
       apply A s
       exact ⟨hs.1, lt_of_le_of_lt hs.2 htu⟩
-    have : dist (p t) (p u) ≤ dist (f t) (f u) + 4 * δ + 2 * C :=
+
+    refine ⟨⟨?_, H1 _ ?_⟩, H1⟩
+    · have : dist (p t) (p u) ≤ dist (f t) (f u) + 4 * δ + 2 * C :=
             proj_along_quasiconvex_contraction' h (hfG t htab) (hfG u ⟨hau, hub⟩)
-    have : dist (p a) (p u)  ≤ dist (p a) (p t) + dist (p t) (p u) := dist_triangle ..
-    have H3 : d - 4 * delta - 2 * C ≤ dist (p a) (p t) := by linarith
-    exact ⟨t, htab, ⟨H3, H1 _ htat⟩, H1⟩
+      have : dist (p a) (p u)  ≤ dist (p a) (p t) + dist (p t) (p u) := dist_triangle ..
+      linarith
+    · rwa [right_mem_Icc]
 /- Next, consider the case where `u` satisfies the defining property. Then we will take `t = u`.
 The only nontrivial point to check is that the distance of `f u` to the starting point is not
 too small. For this, we need to separate the case where `u = b` (in which case one argues directly)
