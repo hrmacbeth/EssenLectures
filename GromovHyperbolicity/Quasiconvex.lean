@@ -283,54 +283,45 @@ a little bit to its left to find the desired point. -/
     intro s hs
     obtain ⟨t, htI, hts⟩ : ∃ t ∈ I, s < t := exists_lt_of_lt_csSup ⟨_, haI⟩ hs.2
     exact htI.2 _ ⟨hs.1, hts.le⟩
-  have : ContinuousWithinAt f (Icc a b) u := hf.continuousWithinAt ⟨hau, hub⟩
-  rw [continuousWithinAt_iff] at this
+  have hf2 : ContinuousWithinAt f (Icc a b) u := hf.continuousWithinAt ⟨hau, hub⟩
   have hdeltaδ : 0 < delta - δ := by linarith
   obtain ⟨e0, he0, he0f⟩ :
       ∃ e0 > 0, ∀ s ∈ Icc a b, dist u s < e0 → dist (f u) (f s) < delta - δ := by
-    simpa [dist_comm] using this (delta - δ) hdeltaδ
+    rw [continuousWithinAt_iff] at hf2
+    simpa [dist_comm] using hf2 (delta - δ) hdeltaδ
 
 
   by_cases hdp : dist (p a) (p u) > d
 /- First, consider the case where `u` does not satisfy the defining property. Then the
 desired point `t` is taken slightly to its left. -/
-  · obtain ⟨t, htu, htab, htue0⟩ : ∃ t, t < u ∧ t ∈ Icc a b ∧ dist u t < e0 := by
-      have : a ≠ u := by
-        clear_value u
-        rintro rfl
-        linarith [dist_self (p a)]
-      have H1 : a < u := lt_of_le_of_ne hau this
-      have H2 : u - e0 < u := by linarith only [he0]
-      obtain ⟨t, ht, htu⟩ := exists_between (max_lt H1 H2)
-      rw [max_lt_iff] at ht
-      obtain ⟨hta, htue0⟩ := ht
-      have htb : t ≤ b := by linarith only [htu, hub]
-      refine ⟨t, htu, ⟨hta.le, htb⟩, ?_⟩
-      show |u - t| < e0
-      rw [abs_of_nonneg]
-      · linarith only [htue0]
-      · linarith only [htu]
+  · obtain ⟨t, htau, htue0⟩ : ∃ t ∈ Ico a u, dist (f t) (f u) < delta - δ := by
+      have H1 : ∀ᶠ s in 𝓝[Icc a b] u, dist (f s) (f u) < delta - δ := by
+        have : Metric.ball (f u) (delta - δ) ∈ 𝓝 (f u) := ball_mem_nhds (f u) hdeltaδ
+        exact hf2.tendsto this
+      have : (𝓝[Ico a u] u).NeBot := by
+        rw [← mem_closure_iff_nhdsWithin_neBot, closure_Ico, right_mem_Icc]
+        · exact hau
+        · clear_value u
+          rintro rfl
+          linarith [dist_self (p a)]
+      have H2 : ∀ᶠ s in 𝓝[Ico a u] u, s ∈ Ico a u := eventually_mem_nhdsWithin
+      have : Ico a u ⊆ Icc a b := Ico_subset_Icc_self.trans <| Icc_subset_Icc_right hub
+      have := H1.filter_mono (nhdsWithin_mono _ this)
+      exact (H2.and this).exists
 
+    have htu : t < u := htau.2
+    have htab : t ∈ Icc a b := ⟨htau.1, htau.2.le.trans hub⟩
     have htat : t ∈ Icc a t := right_mem_Icc.mpr htab.1
 
     have H1 : ∀ s ∈ Icc a t, dist (p a) (p s) ≤ d := by
       intro s hs
       apply A s
       exact ⟨hs.1, lt_of_le_of_lt hs.2 htu⟩
---       using A \<open>t < u\<close> by auto
     have H2 :=
     calc dist (p t) (p u) ≤ dist (f t) (f u) + 4 * δ + 2 * C :=
           proj_along_quasiconvex_contraction' h (hfG t htab) (hfG u ⟨hau, hub⟩)
---       apply (rule proj_along_quasiconvex_contraction'[OF \<open>quasiconvex C G\<close>])
---       using assms (4) \<open>t∈{a..b}\<close> \<open>a ≤ u\<close> \<open>u ≤ b\<close> by auto
-      _ ≤ (delta - δ) + 4 * δ + 2 * C := by
-          have := he0f t htab htue0
-          rw [dist_comm]
-          gcongr
---       apply (intro mono_intros)
---       using e0(2)[OF \<open>t∈{a..b}\<close> \<open>dist u t < e0\<close>] by (auto simp add: metric_space_class.dist_commute)
+      _ ≤ (delta - δ) + 4 * δ + 2 * C := by gcongr
       _ ≤ 4 * delta + 2 * C := by linarith
---       using \<open>delta > δ\<close> by simp
 
     have :=
       calc d ≤ dist (p a) (p u) := hdp.le
