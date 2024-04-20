@@ -294,7 +294,7 @@ a little bit to its left to find the desired point. -/
   by_cases hdp : dist (p a) (p u) > d
 /- First, consider the case where `u` does not satisfy the defining property. Then the
 desired point `t` is taken slightly to its left. -/
-  · obtain ⟨t, htau, htue0⟩ : ∃ t ∈ Ico a u, dist (f t) (f u) < delta - δ := by
+  · obtain ⟨t, ⟨hta, htu⟩, htue0⟩ : ∃ t ∈ Ico a u, dist (f t) (f u) < delta - δ := by
       have H1 : ∀ᶠ s in 𝓝[Icc a b] u, dist (f s) (f u) < delta - δ := by
         have : Metric.ball (f u) (delta - δ) ∈ 𝓝 (f u) := ball_mem_nhds (f u) hdeltaδ
         exact hf2.tendsto this
@@ -309,27 +309,19 @@ desired point `t` is taken slightly to its left. -/
       have := H1.filter_mono (nhdsWithin_mono _ this)
       exact (H2.and this).exists
 
-    have htu : t < u := htau.2
-    have htab : t ∈ Icc a b := ⟨htau.1, htau.2.le.trans hub⟩
-    have htat : t ∈ Icc a t := right_mem_Icc.mpr htab.1
+    have htab : t ∈ Icc a b := ⟨hta, htu.le.trans hub⟩
+    have htat : t ∈ Icc a t := right_mem_Icc.mpr hta
 
     have H1 : ∀ s ∈ Icc a t, dist (p a) (p s) ≤ d := by
       intro s hs
       apply A s
       exact ⟨hs.1, lt_of_le_of_lt hs.2 htu⟩
-    have H2 :=
-    calc dist (p t) (p u) ≤ dist (f t) (f u) + 4 * δ + 2 * C :=
-          proj_along_quasiconvex_contraction' h (hfG t htab) (hfG u ⟨hau, hub⟩)
-      _ ≤ (delta - δ) + 4 * δ + 2 * C := by gcongr
-      _ ≤ 4 * delta + 2 * C := by linarith
-
-    have :=
-      calc d ≤ dist (p a) (p u) := hdp.le
-        _ ≤ dist (p a) (p t) + dist (p t) (p u) := dist_triangle ..
-        _ ≤ dist (p a) (p t) + (4 * delta + 2 * C) := by gcongr
+    have : dist (p t) (p u) ≤ dist (f t) (f u) + 4 * δ + 2 * C :=
+            proj_along_quasiconvex_contraction' h (hfG t htab) (hfG u ⟨hau, hub⟩)
+    have : dist (p a) (p u)  ≤ dist (p a) (p t) + dist (p t) (p u) := dist_triangle ..
     have H3 : d - 4 * delta - 2 * C ≤ dist (p a) (p t) := by linarith
     exact ⟨t, htab, ⟨H3, H1 _ htat⟩, H1⟩
-/- Next, consider the case where $u$ satisfies the defining property. Then we will take `t = u`.
+/- Next, consider the case where `u` satisfies the defining property. Then we will take `t = u`.
 The only nontrivial point to check is that the distance of `f u` to the starting point is not
 too small. For this, we need to separate the case where `u = b` (in which case one argues directly)
 and the case where `u < b`, where one can use a point slightly to the right of `u` which has a
