@@ -342,6 +342,7 @@ lemma thin_triangles1 {x y z : X}
 --     using I unfolding Gromov_product_at_def A B by auto
 -- qed
 
+-- needed later in this file
 theorem thin_triangles {x y z w : X}
     (hxy : geodesic_segment_between Gxy x y)
     (hxz : geodesic_segment_between Gxz x z)
@@ -380,6 +381,7 @@ theorem thin_triangles {x y z w : X}
 
 /-- The distance of a vertex of a triangle to the opposite side is essentially given by the
 Gromov product, up to $2\delta$. -/
+-- needed later in this file
 lemma dist_triangle_side_middle {x y : X} (z : X) (hxy : geodesic_segment_between G x y) :
     dist z (geodesic_segment_param G x (Gromov_product_at x z y))
     ≤ Gromov_product_at z x y + 2 * δ := by
@@ -405,6 +407,7 @@ lemma dist_triangle_side_middle {x y : X} (z : X) (hxy : geodesic_segment_betwee
 -- qed
 
 -- [mono_intros]
+-- needed for `dist_along_quasiconvex`
 lemma infDist_triangle_side {x y : X} (z : X) (hxy : geodesic_segment_between G x y) :
     infDist z G ≤ Gromov_product_at z x y + 2 * δ := by
   sorry
@@ -417,6 +420,7 @@ lemma infDist_triangle_side {x y : X} (z : X) (hxy : geodesic_segment_between G 
 
 /-- The distance of a point on a side of triangle to the opposite vertex is controlled by
 the length of the opposite sides, up to $\delta$. -/
+-- needed for `Morse_Gromov_theorem_aux2`
 lemma dist_le_max_dist_triangle {x y m : X} (hxy : geodesic_segment_between G x y) (hm : m ∈ G) :
     dist m z ≤ max (dist x z) (dist y z) + δ := by
   sorry
@@ -473,6 +477,7 @@ to $t$ remains within distance $8\delta$ of the union of these 3 geodesics. We f
 statement in geodesic hyperbolic spaces as the proof requires the construction of an additional
 geodesic, but in fact the statement is true without this assumption, thanks to the Bonk-Schramm
 extension theorem. -/
+-- needed for `quasiconvex_thickening`
 lemma thin_quadrilaterals [GeodesicSpace X] {x y z t w : X}
     (hxy : geodesic_segment_between Gxy x y)
     (hyz : geodesic_segment_between Gyz y z)
