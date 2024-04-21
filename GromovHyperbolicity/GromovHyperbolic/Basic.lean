@@ -37,7 +37,6 @@ def Gromov_hyperbolic_subset (δ : ℝ) (A : Set X) : Prop :=
 
 variable {δ : ℝ} {A : Set X}
 
-set_option maxHeartbeats 5000 in
 lemma Gromov_hyperbolic_subsetI
     (h : ∀ x y z t, x ∈ A → y ∈ A → z ∈ A → t ∈ A → dist x y + dist z t ≤ max (dist x z + dist y t) (dist x t + dist y z) + 2 * δ) :
     Gromov_hyperbolic_subset δ A := by
@@ -71,7 +70,9 @@ lemma Gromov_hyperbolic_closure (h : Gromov_hyperbolic_subset δ A) :
   rintro ⟨x, y, z, t⟩ ⟨hx, hy, hz, ht⟩
   exact h x hx y hy z hz t ht
 
-/-- A good formulation of hyperbolicity is in terms of Gromov products. Intuitively, the
+/-! ## The Gromov product -/
+
+/-- A good formulation of hyperbolicity will be in terms of Gromov products. Intuitively, the
 Gromov product of `x` and `y` based at `e` is the distance between `e` and the geodesic between
 `x` and `y`. It is also the time after which the geodesics from `e` to `x` and from `e` to `y`
 stop travelling together. -/
@@ -135,7 +136,6 @@ lemma Gromov_product_at_diff3 (e x y z : X) :
   have := Gromov_product_at_diff e x y e x z
   aesop
 
-open Filter Topology in
 /-- The Gromov product is continuous in its three variables. -/
 -- never used?
 @[fun_prop] lemma Gromov_product_at_continuous :
