@@ -425,13 +425,9 @@ lemma dist_triangle_side_middle {x y : X} (z : X) (hxy : geodesic_segment_betwee
 -- needed for `dist_along_quasiconvex`
 lemma infDist_triangle_side {x y : X} (z : X) (hxy : geodesic_segment_between G x y) :
     infDist z G ≤ Gromov_product_at z x y + 2 * δ := by
-  sorry
--- proof -
---   have "infDist z G ≤ dist z (geodesic_segment_param G x (Gromov_product_at x z y))"
---     using assms by (auto intro!: infDist_le)
---   then show ?thesis
---     using dist_triangle_side_middle[OF assms, of z] by auto
--- qed
+  refine le_trans ?_ <| dist_triangle_side_middle z hxy
+  apply infDist_le_dist_of_mem
+  exact geodesic_segment_param_mem G x (Gromov_product_at x z y)
 
 /-- The distance of a point on a side of triangle to the opposite vertex is controlled by
 the length of the opposite sides, up to $\delta$. -/
