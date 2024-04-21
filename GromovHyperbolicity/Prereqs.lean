@@ -53,6 +53,11 @@ notation "{" x "‒" y "}" => some_geodesic_segment_between_UNIV x y
 
 def geodesic_segment_param {X : Type*} [MetricSpace X] (G : Set X) (x : X) (t : ℝ) : X := sorry
 
+-- note: made up this name, it was recorded as geodesic_segment_param(6)
+theorem dist_geodesic_segment_param {X : Type*} [MetricSpace X] (G : Set X) (x : X) (t : ℝ) :
+    dist x (geodesic_segment_param G x t) ≤ t :=
+  sorry
+
 class GeodesicSpace (X : Type*) [MetricSpace X]
 
 -- **Lemma 2.1**

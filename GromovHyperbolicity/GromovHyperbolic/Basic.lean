@@ -96,8 +96,8 @@ lemma Gromov_hyperbolic_closure (h : Gromov_hyperbolic_subset δ A) :
 -- qed
 
 /-- A good formulation of hyperbolicity is in terms of Gromov products. Intuitively, the
-Gromov product of $x$ and $y$ based at $e$ is the distance between $e$ and the geodesic between
-$x$ and $y$. It is also the time after which the geodesics from $e$ to $x$ and from $e$ to $y$
+Gromov product of `x` and `y` based at `e` is the distance between `e` and the geodesic between
+`x` and `y`. It is also the time after which the geodesics from `e` to `x` and from `e` to `y`
 stop travelling together. -/
 def Gromov_product_at (e x y : X) : ℝ := (dist e x + dist e y - dist x y) / 2
 
@@ -302,45 +302,51 @@ lemma hyperb_ineq_4_points' [Inhabited X] (e x y z t : X) :
 
 /-- In Gromov-hyperbolic spaces, geodesic triangles are thin, i.e., a point on one side of a
 geodesic triangle is close to the union of the two other sides (where the constant in "close"
-is $4\delta$, independent of the size of the triangle). We prove this basic property
+is `4 * δ`, independent of the size of the triangle). We prove this basic property
 (which, in fact, is a characterization of Gromov-hyperbolic spaces: a geodesic space in which
 triangles are thin is hyperbolic). -/
-lemma thin_triangles1 {x y z : X}
+lemma thin_triangles1 [Inhabited X] {x y z : X}
     (hxy : geodesic_segment_between G x y) (hxz : geodesic_segment_between H x z)
     -- not sure whether inequalities are sharp or non-sharp
     {t : ℝ} (ht₀ : 0 ≤ t) (ht : t ≤ Gromov_product_at x y z) :
     dist (geodesic_segment_param G x t) (geodesic_segment_param H x t) ≤ 4 * δ := by
-  sorry
--- proof -
---   have *: "Gromov_product_at x z (geodesic_segment_param H x t) = t"
---     apply (rule Gromov_product_geodesic_segment[OF assms(2)]) using assms(3) Gromov_product_le_dist(2)
---     by (metis atLeastatMost_subset_iff subset_iff)
---   have "Gromov_product_at x y (geodesic_segment_param H x t)
---         ≥ min (Gromov_product_at x y z) (Gromov_product_at x z (geodesic_segment_param H x t)) - δ"
---     by (rule hyperb_ineq)
---   then have I: "Gromov_product_at x y (geodesic_segment_param H x t) ≥ t - δ"
---     using assms(3) unfolding * by auto
-
---   have *: "Gromov_product_at x (geodesic_segment_param G x t) y = t"
---     apply (subst Gromov_product_commute)
---     apply (rule Gromov_product_geodesic_segment[OF assms(1)]) using assms(3) Gromov_product_le_dist(1)
---     by (metis atLeastatMost_subset_iff subset_iff)
---   have "t - 2 * δ = min t (t- δ) - δ"
---     unfolding min_def using antisym by fastforce
---   also have "... ≤ min (Gromov_product_at x (geodesic_segment_param G x t) y) (Gromov_product_at x y (geodesic_segment_param H x t)) - δ"
---     using I * by (simp add: algebra_simps)
---   also have "... ≤ Gromov_product_at x (geodesic_segment_param G x t) (geodesic_segment_param H x t)"
---     by (rule hyperb_ineq)
---   finally have I: "Gromov_product_at x (geodesic_segment_param G x t) (geodesic_segment_param H x t) ≥ t - 2 * δ"
---     by simp
-
---   have A: "dist x (geodesic_segment_param G x t) = t"
---     by (meson assms(1) assms(3) atLeastatMost_subset_iff geodesic_segment_param(6) Gromov_product_le_dist(1) subset_eq)
---   have B: "dist x (geodesic_segment_param H x t) = t"
---     by (meson assms(2) assms(3) atLeastatMost_subset_iff geodesic_segment_param(6) Gromov_product_le_dist(2) subset_eq)
---   show ?thesis
---     using I unfolding Gromov_product_at_def A B by auto
--- qed
+  have h1 : Gromov_product_at x z (geodesic_segment_param H x t) = t := by
+    apply Gromov_product_geodesic_segment hxz ht₀
+    have := Gromov_product_le_dist x y z
+    linarith
+  have : min (Gromov_product_at x y z) (Gromov_product_at x z (geodesic_segment_param H x t)) - δ
+      ≤ Gromov_product_at x y (geodesic_segment_param H x t) := hyperb_ineq ..
+  have I : t - δ ≤ Gromov_product_at x y (geodesic_segment_param H x t) := by
+    rwa [h1, min_eq_right ht] at this
+  have h2 : Gromov_product_at x (geodesic_segment_param G x t) y = t := by
+    rw [Gromov_product_commute]
+    apply Gromov_product_geodesic_segment hxy ht₀
+    have := Gromov_product_le_dist x y z
+    linarith
+  have I :=
+  calc t - 2 * δ = min t (t- δ) - δ := by
+        rw [min_eq_right]
+        · ring
+        · have : 0 ≤ δ := delta_nonneg X
+          linarith
+    _ ≤ min (Gromov_product_at x (geodesic_segment_param G x t) y)
+          (Gromov_product_at x y (geodesic_segment_param H x t)) - δ := by
+        rw [h2]
+        gcongr
+    _ ≤ Gromov_product_at x (geodesic_segment_param G x t) (geodesic_segment_param H x t) :=
+        hyperb_ineq ..
+  have A : dist x (geodesic_segment_param G x t) = t := by
+    apply le_antisymm
+    · apply dist_geodesic_segment_param
+    conv_lhs => rw [← h2]
+    exact (Gromov_product_le_dist _ _ _).1
+  have B : dist x (geodesic_segment_param H x t) = t := by
+    apply le_antisymm
+    · apply dist_geodesic_segment_param
+    conv_lhs => rw [← h2]
+    exact (Gromov_product_le_dist _ _ _).1
+  rw [Gromov_product_at] at I
+  linarith
 
 -- needed later in this file
 theorem thin_triangles {x y z w : X}
@@ -472,7 +478,7 @@ lemma dist_le_max_dist_triangle {x y m : X} (hxy : geodesic_segment_between G x 
 -- qed
 
 /-- A useful variation around the previous properties is that quadrilaterals are thin, in the
-following sense: if one has a union of three geodesics from $x$ to $t$, then a geodesic from $x$
+following sense: if one has a union of three geodesics from `x` to $t$, then a geodesic from `x`
 to $t$ remains within distance $8\delta$ of the union of these 3 geodesics. We formulate the
 statement in geodesic hyperbolic spaces as the proof requires the construction of an additional
 geodesic, but in fact the statement is true without this assumption, thanks to the Bonk-Schramm
