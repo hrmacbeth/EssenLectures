@@ -317,9 +317,7 @@ lemma dist_triangle_side_middle {x y : X} (z : X) (hxy : geodesic_segment_betwee
     -- something involving `dist_geodesic_segment_param`
 --     unfolding m_def by (rule geodesic_segment_param(6)[OF assms(1)], auto)
     sorry
-  have B : dist y m = dist x y - dist x m := by
-    sorry
---     using `geodesic_segment_dist`[OF assms \<open>m ∈ G -/] by (auto simp add: metric_space_class.dist_commute)
+  have B : dist x m + dist m y = dist x y := sorry -- `geodesic_segment_dist`
   have hxzym : dist x z + dist y m = Gromov_product_at z x y + dist x y := by
     clear_value m
     simp only [dist_comm, Gromov_product_at] at A B ⊢
@@ -347,53 +345,37 @@ the length of the opposite sides, up to `δ`. -/
 -- needed for `Morse_Gromov_theorem_aux2`
 lemma dist_le_max_dist_triangle {x y m : X} (hxy : geodesic_segment_between G x y) (hm : m ∈ G) :
     dist m z ≤ max (dist x z) (dist y z) + δ := by
-  sorry
--- proof -
---   consider "dist m x ≤ δ" | "dist m y ≤ δ" |
---            "dist m x ≥ δ ∧ dist m y ≥ δ ∧ Gromov_product_at z x m ≤ Gromov_product_at z m y" |
---            "dist m x ≥ δ ∧ dist m y ≥ δ ∧ Gromov_product_at z m y ≤ Gromov_product_at z x m"
---     by linarith
---   then show ?thesis
---   proof (cases)
---     case 1
---     have "dist m z ≤ dist m x + dist x z"
---       by (intro mono_intros)
---     then show ?thesis using 1 by auto
---   next
---     case 2
---     have "dist m z ≤ dist m y + dist y z"
---       by (intro mono_intros)
---     then show ?thesis using 2 by auto
---   next
---     case 3
---     then have "Gromov_product_at z x m = min (Gromov_product_at z x m) (Gromov_product_at z m y)"
---       by auto
---     also have "... ≤ Gromov_product_at z x y + δ"
---       by (intro mono_intros)
---     finally have "dist z m ≤ dist z y + dist x m - dist x y + 2 * δ"
---       unfolding Gromov_product_at_def by (auto simp add: divide_simps algebra_simps)
---     also have "... = dist z y - dist m y + 2 * δ"
---       using geodesic_segment_dist[OF assms] by auto
---     also have "... ≤ dist z y + δ"
---       using 3 by auto
---     finally show ?thesis
---       by (simp add: metric_space_class.dist_commute)
---   next
---     case 4
---     then have "Gromov_product_at z m y = min (Gromov_product_at z x m) (Gromov_product_at z m y)"
---       by auto
---     also have "... ≤ Gromov_product_at z x y + δ"
---       by (intro mono_intros)
---     finally have "dist z m ≤ dist z x + dist m y - dist x y + 2 * δ"
---       unfolding Gromov_product_at_def by (auto simp add: divide_simps algebra_simps)
---     also have "... = dist z x - dist x m + 2 * δ"
---       using geodesic_segment_dist[OF assms] by auto
---     also have "... ≤ dist z x + δ"
---       using 4 by (simp add: metric_space_class.dist_commute)
---     finally show ?thesis
---       by (simp add: metric_space_class.dist_commute)
---   qed
--- qed
+  obtain hmx | hmx := le_or_lt (dist m x) δ
+  · have : dist m z ≤ dist m x + dist x z := dist_triangle ..
+    refine this.trans ?_
+    rw [add_comm]
+    gcongr
+    exact le_max_left ..
+  obtain hmy | hmy := le_or_lt (dist m y) δ
+  · have : dist m z ≤ dist m y + dist y z := dist_triangle ..
+    refine this.trans ?_
+    rw [add_comm]
+    gcongr
+    exact le_max_right ..
+  obtain hzxmy | hzxmy := le_or_lt (Gromov_product_at z x m) (Gromov_product_at z m y)
+  · have :=
+    calc Gromov_product_at z x m = min (Gromov_product_at z x m) (Gromov_product_at z m y) :=
+          min_eq_left hzxmy |>.symm
+      _ ≤ Gromov_product_at z x y + δ := hyperb_ineq' z x m y
+    dsimp [Gromov_product_at] at this
+    have : dist x m + dist m y = dist x y := sorry -- `geodesic_segment_dist`
+    have := le_max_right (dist x z) (dist y z)
+    simp only [dist_comm] at *
+    linarith
+  · have :=
+    calc Gromov_product_at z y m = min (Gromov_product_at z x m) (Gromov_product_at z m y) :=
+          by simpa [Gromov_product_commute] using min_eq_right hzxmy.le |>.symm
+      _ ≤ Gromov_product_at z x y + δ := hyperb_ineq' z x m y
+    dsimp [Gromov_product_at] at this
+    have : dist x m + dist m y = dist x y := sorry -- `geodesic_segment_dist`
+    have := le_max_left (dist x z) (dist y z)
+    simp only [dist_comm] at *
+    linarith
 
 /-- A useful variation around the previous properties is that quadrilaterals are thin, in the
 following sense: if one has a union of three geodesics from `x` to `t`, then a geodesic from `x`
