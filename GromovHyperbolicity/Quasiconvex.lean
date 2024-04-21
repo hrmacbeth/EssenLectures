@@ -283,12 +283,12 @@ a little bit to its left to find the desired point. -/
     intro s hs
     obtain ⟨t, htI, hts⟩ : ∃ t ∈ I, s < t := exists_lt_of_lt_csSup ⟨_, haI⟩ hs.2
     exact htI.2 _ ⟨hs.1, hts.le⟩
-  have H3 : u < b → dist (p a) (p u) ≤ d → ∃ᶠ s in 𝓝[Ioc u b] u, d < dist (p a) (p s) := by
-    intro hub hpau
-    rw [nhdsWithin_Ioc_eq_nhdsWithin_Ioi hub]
+  have H3 : u < b → ∃ᶠ s in 𝓝[Icc u b] u, d < dist (p a) (p s) := by
+    intro hub
+    rw [nhdsWithin_Icc_eq_nhdsWithin_Ici hub]
     rw [Filter.frequently_iff]
     intro s hs
-    rw [mem_nhdsWithin_Ioi_iff_exists_Ioc_subset] at hs
+    rw [mem_nhdsWithin_Ici_iff_exists_Icc_subset] at hs
     obtain ⟨e, he, heus⟩ := hs
     have hu_lt : u < min b e := lt_min hub he
     have hmin_mem : min b e ∈ Icc a b := ⟨hau.trans hu_lt.le, min_le_left _ _⟩
@@ -298,8 +298,6 @@ a little bit to its left to find the desired point. -/
     obtain ⟨x, hx1, hx2⟩ := h hmin_mem
     refine ⟨x, heus ⟨?_, hx1.2.trans (min_le_right ..)⟩, hx2⟩
     by_contra! hxu
-    obtain rfl | hxu := eq_or_lt_of_le hxu
-    · linarith only [hpau, hx2]
     have := A x ⟨hx1.1, hxu⟩
     linarith only [this, hx2]
   clear_value u
@@ -351,18 +349,18 @@ projection at distance > `d` of the starting point, and use almost continuity. -
     obtain rfl | hub := eq_or_lt_of_le hub
     · linarith [hd.2]
     obtain ⟨w, hwp, ⟨hwu, hwb⟩, hwf⟩ :
-        ∃ w, d < dist (p a) (p w) ∧ w ∈ Ioc u b ∧ dist (f w) (f u) < delta - δ := by
-      have : (𝓝[Ioc u b] u).NeBot := by
-        rw [nhdsWithin_Ioc_eq_nhdsWithin_Ioi hub]
-        apply nhdsWithin_Ioi_self_neBot
-      have H2 : ∀ᶠ s in 𝓝[Ioc u b] u, s ∈ Ioc u b := eventually_mem_nhdsWithin
-      have : Ioc u b ⊆ Icc a b := Ioc_subset_Icc_self.trans <| Icc_subset_Icc_left hau
+        ∃ w, d < dist (p a) (p w) ∧ w ∈ Icc u b ∧ dist (f w) (f u) < delta - δ := by
+      have : (𝓝[Icc u b] u).NeBot := by
+        rw [nhdsWithin_Icc_eq_nhdsWithin_Ici hub]
+        apply nhdsWithin_Ici_self_neBot
+      have H2 : ∀ᶠ s in 𝓝[Icc u b] u, s ∈ Icc u b := eventually_mem_nhdsWithin
+      have : Icc u b ⊆ Icc a b := Icc_subset_Icc_left hau
       have := H1.filter_mono (nhdsWithin_mono _ this)
-      exact (H3 hub hdp).and_eventually (H2.and this) |>.exists
+      exact (H3 hub).and_eventually (H2.and this) |>.exists
     rw [dist_comm] at hwf
     have : dist (p u) (p w) ≤ dist (f u) (f w) + 4 * δ + 2 * C := by
       apply proj_along_quasiconvex_contraction' h (hfG _ ⟨hau, hub.le⟩) (hfG _ _)
-      exact ⟨hau.trans hwu.le, hwb⟩
+      exact ⟨hau.trans hwu, hwb⟩
     have : dist (p a) (p w) ≤ dist (p a) (p u) + dist (p u) (p w) := dist_triangle ..
     linarith
 
