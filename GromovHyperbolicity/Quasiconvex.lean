@@ -267,7 +267,7 @@ a contradiction. The technical implementation requires some care, as the "last p
 satisfy the property, for lack of continuity. If it does, then fine. Otherwise, one should go just
 a little bit to its left to find the desired point. -/
   obtain ⟨u, ⟨hau, hub⟩, A, H3⟩ : ∃ u ∈ Icc a b, (∀ s ∈ Ico a u, dist (p a) (p s) ≤ d)
-      ∧ (u < b → ∃ᶠ s in 𝓝[Icc u b] u, ¬ dist (p a) (p s) ≤ d) :=
+      ∧ (u < b → ∃ᶠ s in 𝓝[≥] u, ¬ dist (p a) (p s) ≤ d) :=
     method_of_continuity hab (P := fun s ↦ dist (p a) (p s) ≤ d) (by simpa)
 
   have hf2 : ContinuousWithinAt f (Icc a b) u := hf.continuousWithinAt ⟨hau, hub⟩
@@ -279,13 +279,12 @@ a little bit to its left to find the desired point. -/
 /- First, consider the case where `u` does not satisfy the defining property. Then the
 desired point `t` is taken slightly to its left. -/
   · obtain ⟨t, ⟨hta, htu⟩, htue0⟩ : ∃ t ∈ Ico a u, dist (f t) (f u) < delta - δ := by
-      have : (𝓝[Ico a u] u).NeBot := by
-        have hau : a < u := lt_of_le_of_ne hau <| by rintro rfl; linarith [dist_self (p a)]
-        rw [nhdsWithin_Ico_eq_nhdsWithin_Iio hau]
-        apply nhdsWithin_Iio_self_neBot
-      have H2 : ∀ᶠ s in 𝓝[Ico a u] u, s ∈ Ico a u := eventually_mem_nhdsWithin
+      have hau : a < u := lt_of_le_of_ne hau <| by rintro rfl; linarith [dist_self (p a)]
+      have : (𝓝[<] u).NeBot := nhdsWithin_Iio_self_neBot _
+      have H2 : ∀ᶠ s in 𝓝[<] u, s ∈ Ico a u := Ico_mem_nhdsWithin_Iio' hau
       have : Ico a u ⊆ Icc a b := Ico_subset_Icc_self.trans <| Icc_subset_Icc_right hub
       have := H1.filter_mono (nhdsWithin_mono _ this)
+      rw [nhdsWithin_Ico_eq_nhdsWithin_Iio hau] at this
       exact (H2.and this).exists
 
     have htab : t ∈ Icc a b := ⟨hta, htu.le.trans hub⟩
@@ -318,12 +317,11 @@ projection at distance > `d` of the starting point, and use almost continuity. -
     · linarith [hd.2]
     obtain ⟨w, hwp, ⟨hwu, hwb⟩, hwf⟩ :
         ∃ w, d < dist (p a) (p w) ∧ w ∈ Icc u b ∧ dist (f w) (f u) < delta - δ := by
-      have : (𝓝[Icc u b] u).NeBot := by
-        rw [nhdsWithin_Icc_eq_nhdsWithin_Ici hub]
-        apply nhdsWithin_Ici_self_neBot
-      have H2 : ∀ᶠ s in 𝓝[Icc u b] u, s ∈ Icc u b := eventually_mem_nhdsWithin
+      have : (𝓝[≥] u).NeBot := nhdsWithin_Ici_self_neBot u
+      have H2 : ∀ᶠ s in 𝓝[≥] u, s ∈ Icc u b := Icc_mem_nhdsWithin_Ici' hub
       have : Icc u b ⊆ Icc a b := Icc_subset_Icc_left hau
       have := H1.filter_mono (nhdsWithin_mono _ this)
+      rw [nhdsWithin_Icc_eq_nhdsWithin_Ici hub] at this
       exact (H3 hub).and_eventually (H2.and this) |>.exists
     rw [dist_comm] at hwf
     have : dist (p u) (p w) ≤ dist (f u) (f w) + 4 * δ + 2 * C := by

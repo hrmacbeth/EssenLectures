@@ -65,8 +65,9 @@ class GeodesicSpace (X : Type*) [MetricSpace X]
 -- `geodesic_subsegment_exists`
 
 open Set Topology in
+-- there must be a better way! check the library
 theorem method_of_continuity {a b : ℝ} (hab : a ≤ b) {P : ℝ → Prop} (hPa : P a) :
-    ∃ u ∈ Icc a b, (∀ s ∈ Ico a u, P s) ∧ (u < b → ∃ᶠ s in 𝓝[Icc u b] u, ¬ P s) := by
+    ∃ u ∈ Icc a b, (∀ s ∈ Ico a u, P s) ∧ (u < b → ∃ᶠ s in 𝓝[≥] u, ¬ P s) := by
   let I : Set ℝ := Icc a b ∩ {t | ∀ s ∈ Icc a t, P s}
   have haI : a ∈ I := by
     refine ⟨by aesop, ?_⟩
@@ -82,7 +83,7 @@ theorem method_of_continuity {a b : ℝ} (hab : a ≤ b) {P : ℝ → Prop} (hPa
     exact htI.2 _ ⟨hs.1, hts.le⟩
   refine ⟨u, ⟨hau, csSup_le ⟨_, haI⟩ <| by aesop⟩, A, ?_⟩
   intro hub
-  rw [nhdsWithin_Icc_eq_nhdsWithin_Ici hub, Filter.frequently_iff]
+  rw [Filter.frequently_iff]
   intro s hs
   rw [mem_nhdsWithin_Ici_iff_exists_Icc_subset] at hs
   obtain ⟨e, he, heus⟩ := hs
