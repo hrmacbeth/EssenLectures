@@ -281,9 +281,10 @@ lemma hyperb_ineq' (e x y z : X) :
 -- using hyperb_ineq[of e x y z] by auto
 
 -- [mono_intros]
-lemma hyperb_ineq_4_points [Inhabited X] (e x y z t : X) :
+lemma hyperb_ineq_4_points (e x y z t : X) :
     min (Gromov_product_at e x y) (min (Gromov_product_at e y z) (Gromov_product_at e z t)) - 2 * δ
     ≤ Gromov_product_at e x t := by
+  have : Inhabited X := ⟨e⟩
   have h1 := hyperb_ineq e x y z
   have h2 := hyperb_ineq e x z t
   have := delta_nonneg X
@@ -293,7 +294,7 @@ lemma hyperb_ineq_4_points [Inhabited X] (e x y z t : X) :
 -- using hyperb_ineq[of e x y z] hyperb_ineq[of e x z t] apply auto using delta_nonneg by linarith
 
 -- [mono_intros]
-lemma hyperb_ineq_4_points' [Inhabited X] (e x y z t : X) :
+lemma hyperb_ineq_4_points' (e x y z t : X) :
     min (Gromov_product_at e x y) (min (Gromov_product_at e y z) (Gromov_product_at e z t))
     ≤ Gromov_product_at e x t + 2 * δ := by
   have := hyperb_ineq_4_points e x y z t
@@ -305,11 +306,12 @@ geodesic triangle is close to the union of the two other sides (where the consta
 is `4 * δ`, independent of the size of the triangle). We prove this basic property
 (which, in fact, is a characterization of Gromov-hyperbolic spaces: a geodesic space in which
 triangles are thin is hyperbolic). -/
-lemma thin_triangles1 [Inhabited X] {x y z : X}
+lemma thin_triangles1 {x y z : X}
     (hxy : geodesic_segment_between G x y) (hxz : geodesic_segment_between H x z)
     -- not sure whether inequalities are sharp or non-sharp
     {t : ℝ} (ht₀ : 0 ≤ t) (ht : t ≤ Gromov_product_at x y z) :
     dist (geodesic_segment_param G x t) (geodesic_segment_param H x t) ≤ 4 * δ := by
+  have : Inhabited X := ⟨x⟩
   have h1 : Gromov_product_at x z (geodesic_segment_param H x t) = t := by
     apply Gromov_product_geodesic_segment hxz ht₀
     have := Gromov_product_le_dist x y z
@@ -348,6 +350,8 @@ lemma thin_triangles1 [Inhabited X] {x y z : X}
   rw [Gromov_product_at] at I
   linarith
 
+open Set
+
 -- needed later in this file
 theorem thin_triangles {x y z w : X}
     (hxy : geodesic_segment_between Gxy x y)
@@ -355,35 +359,36 @@ theorem thin_triangles {x y z w : X}
     (hyz : geodesic_segment_between Gyz y z)
     (hw : w ∈ Gyz) :
     infDist w (Gxy ∪ Gxz) ≤ 4 * δ := by
-  sorry
--- proof -
---   obtain t where w: "t ∈ {0..dist y z}" "w = geodesic_segment_param Gyz y t"
---     using geodesic_segment_param[OF assms(3)] assms(4) by (metis imageE)
---   show ?thesis
---   proof (cases "t ≤ Gromov_product_at y x z")
---     case True
---     have *: "dist w (geodesic_segment_param Gxy y t) ≤ 4 * δ" unfolding w(2)
---       apply (rule thin_triangles1[of _ _ z _ x])
---       using True assms(1) assms(3) w(1) by (auto simp add: geodesic_segment_commute Gromov_product_commute)
---     show ?thesis
---       apply (rule infDist_le2[OF _ *])
---       by (metis True assms(1) box_real(2) geodesic_segment_commute geodesic_segment_param(3) Gromov_product_le_dist(1) mem_box_real(2) order_trans subset_eq sup.cobounded1 w(1))
---   next
---     case False
---     define s where "s = dist y z - t"
---     have s: "s ∈ {0..Gromov_product_at z y x}"
---       unfolding s_def using Gromov_product_add[of y z x] w(1) False by (auto simp add: Gromov_product_commute)
---     have w2: "w = geodesic_segment_param Gyz z s"
---       unfolding s_def w(2) apply (rule geodesic_segment_reverse_param[symmetric]) using assms(3) w(1) by auto
---     have *: "dist w (geodesic_segment_param Gxz z s) ≤ 4 * δ" unfolding w2
---       apply (rule thin_triangles1[of _ _ y _ x])
---       using s assms by (auto simp add: geodesic_segment_commute)
---     show ?thesis
---       apply (rule infDist_le2[OF _ *])
---       by (metis Un_iff assms(2) atLeastAtMost_iff geodesic_segment_commute geodesic_segment_param(3) Gromov_product_commute Gromov_product_le_dist(1) order_trans s)
---   qed
--- qed
-
+  obtain ⟨t, ht0, htw⟩ : ∃ t ∈ Icc 0 (dist y z), w = geodesic_segment_param Gyz y t :=
+    geodesic_segment_param_geodesic hyz hw
+  by_cases ht : t ≤ Gromov_product_at y x z
+  · have : dist w (geodesic_segment_param Gxy y t) ≤ 4 * δ := by
+      rw [htw]
+      refine thin_triangles1 hyz (z := x) ?_ ht0.1 ?_
+      · rwa [geodesic_segment_commute]
+      · rwa [Gromov_product_commute]
+    refine le_trans ?_ this
+    apply infDist_le_dist_of_mem
+    apply mem_union_left
+    apply geodesic_segment_param_mem
+  · let s := dist y z - t
+    have hs : s ∈ Ico 0 (Gromov_product_at z y x) := by
+      dsimp [Ico, Icc] at ht0 ⊢
+      push_neg at ht
+      have := Gromov_product_add y z x
+      have := Gromov_product_commute y x z
+      constructor <;>
+      linarith
+    have w2 : w = geodesic_segment_param Gyz z s := by sorry
+--       unfolding s_def w(2) apply (rule `geodesic_segment_reverse_param`[symmetric]) using assms(3) w(1) by auto
+    have : dist w (geodesic_segment_param Gxz z s) ≤ 4 * δ := by
+      rw [w2]
+      rw [geodesic_segment_commute] at hxz hyz
+      exact thin_triangles1 hyz hxz hs.1 hs.2.le
+    refine le_trans ?_ this
+    apply infDist_le_dist_of_mem
+    apply mem_union_right
+    apply geodesic_segment_param_mem
 
 /-- The distance of a vertex of a triangle to the opposite side is essentially given by the
 Gromov product, up to $2\delta$. -/

@@ -247,7 +247,7 @@ to the starting point, say. For further applications, we also pick the first suc
 all the previous points are also close to the starting point. -/
 -- **Lemma 2.2** in article.
 -- not sure whether inequalities are sharp or non-sharp
-lemma quasi_convex_projection_small_gaps [Inhabited M] {f p : ℝ → M} {a b : ℝ}
+lemma quasi_convex_projection_small_gaps {f p : ℝ → M} {a b : ℝ}
     (hf : ContinuousOn f (Icc a b))
     (hab : a ≤ b)
     (h : quasiconvex C G)
@@ -256,6 +256,7 @@ lemma quasi_convex_projection_small_gaps [Inhabited M] {f p : ℝ → M} {a b : 
     (hd : d ∈ Icc (4 * delta + 2 * C) (dist (p a) (p b))) :
     ∃ t ∈ Icc a b, dist (p a) (p t) ∈ Icc (d - 4 * delta - 2 * C) d
                     ∧ ∀ s ∈ Icc a t, dist (p a) (p s) ≤ d := by
+  have : Inhabited M := ⟨f 0⟩
   have : 0 ≤ δ := delta_nonneg M
   have : 0 ≤ C := quasiconvexC h
   have hd0 : 0 ≤ d := by linarith [hd.1]
@@ -335,7 +336,7 @@ attribute [simp] le_neg neg_le
 
 /-- Same lemma, except that one exchanges the roles of the beginning and the end point. -/
 -- not sure whether inequalities are sharp or non-sharp
-lemma quasi_convex_projection_small_gaps' [Inhabited M] {f p : ℝ → M} {a b : ℝ}
+lemma quasi_convex_projection_small_gaps' {f p : ℝ → M} {a b : ℝ}
     (hf : ContinuousOn f (Icc a b))
     (hab : a ≤ b)
     (h : quasiconvex C G)
