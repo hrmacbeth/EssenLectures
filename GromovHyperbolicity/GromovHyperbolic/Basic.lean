@@ -9,7 +9,7 @@ import GromovHyperbolicity.Prereqs
 # Gromov hyperbolic spaces
 -/
 
-open Metric
+open Metric Set
 
 noncomputable section
 
@@ -268,8 +268,6 @@ lemma thin_triangles1 {x y z : X}
   rw [Gromov_product_at] at I
   linarith
 
-open Set
-
 theorem thin_triangles {x y z w : X}
     (hxy : geodesic_segment_between Gxy x y)
     (hxz : geodesic_segment_between Gxz x z)
@@ -345,7 +343,7 @@ lemma infDist_triangle_side {x y : X} (z : X) (hxy : geodesic_segment_between G 
   exact geodesic_segment_param_mem G x (Gromov_product_at x z y)
 
 /-- The distance of a point on a side of triangle to the opposite vertex is controlled by
-the length of the opposite sides, up to $\delta$. -/
+the length of the opposite sides, up to `δ`. -/
 -- needed for `Morse_Gromov_theorem_aux2`
 lemma dist_le_max_dist_triangle {x y m : X} (hxy : geodesic_segment_between G x y) (hm : m ∈ G) :
     dist m z ≤ max (dist x z) (dist y z) + δ := by
@@ -398,8 +396,8 @@ lemma dist_le_max_dist_triangle {x y m : X} (hxy : geodesic_segment_between G x 
 -- qed
 
 /-- A useful variation around the previous properties is that quadrilaterals are thin, in the
-following sense: if one has a union of three geodesics from `x` to $t$, then a geodesic from `x`
-to $t$ remains within distance $8\delta$ of the union of these 3 geodesics. We formulate the
+following sense: if one has a union of three geodesics from `x` to `t`, then a geodesic from `x`
+to `t` remains within distance `8 * δ` of the union of these 3 geodesics. We formulate the
 statement in geodesic hyperbolic spaces as the proof requires the construction of an additional
 geodesic, but in fact the statement is true without this assumption, thanks to the Bonk-Schramm
 extension theorem. -/
