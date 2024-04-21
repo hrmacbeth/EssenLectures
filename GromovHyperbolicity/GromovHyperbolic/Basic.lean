@@ -37,13 +37,11 @@ def Gromov_hyperbolic_subset (δ : ℝ) (A : Set X) : Prop :=
 
 variable {δ : ℝ} {A : Set X}
 
--- [intro]
 set_option maxHeartbeats 5000 in
 lemma Gromov_hyperbolic_subsetI
     (h : ∀ x y z t, x ∈ A → y ∈ A → z ∈ A → t ∈ A → dist x y + dist z t ≤ max (dist x z + dist y t) (dist x t + dist y z) + 2 * δ) :
     Gromov_hyperbolic_subset δ A := by
   aesop (add unfold safe Gromov_hyperbolic_subset)
--- using assms unfolding Gromov_hyperbolic_subset_def by auto
 
 /-- When the four points are not all distinct, the above inequality is always satisfied for δ = 0.-/
 lemma Gromov_hyperbolic_ineq_not_distinct {x y z t : X}
@@ -52,7 +50,6 @@ lemma Gromov_hyperbolic_ineq_not_distinct {x y z t : X}
   have := dist_triangle z x t
   have := dist_triangle x z y
   aesop (add simp [dist_comm, add_comm])
--- using assms by (auto simp add: dist_commute, simp add: dist_triangle add.commute, simp add: dist_triangle3)
 
 /-- It readily follows from the definition that hyperbolicity passes to the closure of the set. -/
 lemma Gromov_hyperbolic_closure (h : Gromov_hyperbolic_subset δ A) :
@@ -73,27 +70,6 @@ lemma Gromov_hyperbolic_closure (h : Gromov_hyperbolic_subset δ A) :
   refine le_on_closure (f := f) (g := g) ?_ hf.continuousOn hg.continuousOn hxyzt
   rintro ⟨x, y, z, t⟩ ⟨hx, hy, hz, ht⟩
   exact h x hx y hy z hz t ht
--- unfolding Gromov_hyperbolic_subset_def proof (auto)
---   fix x y z t assume H: "x \∈ closure A" "y \∈ closure A" "z \∈ closure A" "t \∈ closure A"
---   obtain X::"nat \<Rightarrow> 'a" where X: "∧n. X n \∈ A" "X \<longlonglongrightarrow> x"
---     using H closure_sequential by blast
---   obtain Y::"nat \<Rightarrow> 'a" where Y: "∧n. Y n \∈ A" "Y \<longlonglongrightarrow> y"
---     using H closure_sequential by blast
---   obtain Z::"nat \<Rightarrow> 'a" where Z: "∧n. Z n \∈ A" "Z \<longlonglongrightarrow> z"
---     using H closure_sequential by blast
---   obtain T::"nat \<Rightarrow> 'a" where T: "∧n. T n \∈ A" "T \<longlonglongrightarrow> t"
---     using H closure_sequential by blast
---   have *: "max (dist (X n) (Z n) + dist (Y n) (T n)) (dist (X n) (T n) + dist (Y n) (Z n)) + 2 * delta - dist (X n) (Y n) - dist (Z n) (T n) ≥ 0" for n
---     using assms X(1)[of n] Y(1)[of n] Z(1)[of n] T(1)[of n] unfolding Gromov_hyperbolic_subset_def
---     by (auto simp add: algebra_simps)
---   have **: "(\<lambda>n. max (dist (X n) (Z n) + dist (Y n) (T n)) (dist (X n) (T n) + dist (Y n) (Z n)) + 2 * delta - dist (X n) (Y n) - dist (Z n) (T n))
---     \<longlonglongrightarrow> max (dist x z + dist y t) (dist x t + dist y z) + 2 * delta - dist x y - dist z t"
---     apply (auto intro!: tendsto_intros) using X Y Z T by auto
---   have "max (dist x z + dist y t) (dist x t + dist y z) + 2 * delta - dist x y - dist z t ≥ 0"
---     apply (rule LIMSEQ_le_const[OF **]) using * by auto
---   then show "dist x y + dist z t ≤ max (dist x z + dist y t) (dist x t + dist y z) + 2 * delta"
---     by auto
--- qed
 
 /-- A good formulation of hyperbolicity is in terms of Gromov products. Intuitively, the
 Gromov product of `x` and `y` based at `e` is the distance between `e` and the geodesic between
@@ -101,32 +77,26 @@ Gromov product of `x` and `y` based at `e` is the distance between `e` and the g
 stop travelling together. -/
 def Gromov_product_at (e x y : X) : ℝ := (dist e x + dist e y - dist x y) / 2
 
--- [mono_intros]
 @[simp] lemma Gromov_product_nonneg (e x y : X) : Gromov_product_at e x y ≥ 0 := by
   have := dist_triangle x e y
   simp only [Gromov_product_at, ge_iff_le]
   cancel_denoms
   simpa [dist_comm, add_comm] using this
--- unfolding Gromov_product_at_def by (simp add: dist_triangle3)
 
 lemma Gromov_product_commute (e x y : X) : Gromov_product_at e x y = Gromov_product_at e y x := by
   simp only [Gromov_product_at, dist_comm, add_comm]
--- unfolding Gromov_product_at_def by (auto simp add: dist_commute)
 
--- [mono_intros]
 @[simp] lemma Gromov_product_le_dist (e x y : X) :
     Gromov_product_at e x y ≤ dist e x ∧ Gromov_product_at e x y ≤ dist e y := by
   have := dist_triangle e x y
   have := dist_triangle e y x
   simp only [Gromov_product_at, dist_comm] at *
   constructor <;> linarith
--- unfolding Gromov_product_at_def by (auto simp add: diff_le_eq dist_triangle dist_triangle2)
 
 lemma Gromov_product_add (e x y : X) :
     Gromov_product_at e x y + Gromov_product_at x e y = dist e x := by
   simp only [Gromov_product_at, dist_comm]
   ring
--- unfolding Gromov_product_at_def by (auto simp add: algebra_simps divide_simps dist_commute)
 
 -- not sure whether inequalities are sharp or non-sharp
 lemma Gromov_product_geodesic_segment {x y : X}
@@ -143,7 +113,6 @@ lemma Gromov_product_geodesic_segment {x y : X}
 
 @[simp] lemma Gromov_product_e_x_x (e x : X) : Gromov_product_at e x x = dist e x := by
   simp [Gromov_product_at]
--- unfolding Gromov_product_at_def by auto
 
 lemma Gromov_product_at_diff (x y z a b c : X) :
     |Gromov_product_at x y z - Gromov_product_at a b c| ≤ dist x a + dist y b + dist z c := by
@@ -155,70 +124,46 @@ lemma Gromov_product_at_diff1 (x y a b : X) :
     |Gromov_product_at a x y - Gromov_product_at b x y| ≤ dist a b := by
   have := Gromov_product_at_diff a x y b x y
   aesop
--- using Gromov_product_at_diff[of a x y b x y] by auto
 
 lemma Gromov_product_at_diff2 (e x y z : X) :
     |Gromov_product_at e x z - Gromov_product_at e y z| ≤ dist x y := by
   have := Gromov_product_at_diff e x z e y z
   aesop
--- using Gromov_product_at_diff[of e x z e y z] by auto
 
 lemma Gromov_product_at_diff3 (e x y z : X) :
     |Gromov_product_at e x y - Gromov_product_at e x z| ≤ dist y z := by
   have := Gromov_product_at_diff e x y e x z
   aesop
--- using Gromov_product_at_diff[of e x y e x z] by auto
 
 open Filter Topology in
-/-- The Gromov product is continuous in its three variables. We formulate it in terms of sequences,
-as it is the way it will be used below (and moreover continuity for functions of several variables
-is very poor in the library). -/
+/-- The Gromov product is continuous in its three variables. -/
+-- never used?
 @[fun_prop] lemma Gromov_product_at_continuous :
-    -- {u v w : ι → X} (l : Filter ι)
-    -- (h1 : Tendsto u l (𝓝 x)) (h2 : Tendsto v l (𝓝 y)) (h3 : Tendsto w l (𝓝 z)) :
-    -- Tendsto (fun n ↦ Gromov_product_at (u n) (v n) (w n)) l (𝓝 (Gromov_product_at x y z)) := by
     Continuous (fun (p : X × X × X) ↦ Gromov_product_at p.1 p.2.1 p.2.2) := by
-    -- Continuous (fun ((x, y, z) : X × X × X) ↦ Gromov_product_at x y z) := by
   simp only [Gromov_product_at]
   fun_prop (disch := norm_num)
--- proof -
---   have "((\<lambda>n. abs(Gromov_product_at (u n) (v n) (w n) - Gromov_product_at x y z)) \<longlongrightarrow> 0 + 0 + 0) F"
---     apply (rule tendsto_sandwich[of "\<lambda>n. 0" _ _ "\<lambda>n. dist (u n) x + dist (v n) y + dist (w n) z", OF always_eventually always_eventually])
---     apply (simp, simp add: Gromov_product_at_diff, simp, intro tendsto_intros)
---     using assms tendsto_dist_iff by auto
---   then show ?thesis
---     apply (subst tendsto_dist_iff) unfolding dist_real_def by auto
--- qed
 
 end
 
-/-! ## Typeclass for Gromov hyperbolic spaces -/
+/-! ## Typeclass for Gromov hyperbolic spaces
 
--- We could (should?) just derive `Gromov_hyperbolic_space` from `metric_space`.
--- However, in this case, properties of metric spaces are not available when working in the locale!
--- It is more efficient to ensure that we have a metric space by putting a type class restriction
--- in the definition. The δ in Gromov-hyperbolicity type class is called `deltaG` to
--- avoid name clashes.
-
--- class metric_space_with_deltaG = metric_space +
---   fixes deltaG::"('a::metric_space) itself \<Rightarrow> real"
+We could (should?) just derive `Gromov_hyperbolic_space` from `metric_space`.
+However, in this case, properties of metric spaces are not available when working in the locale!
+It is more efficient to ensure that we have a metric space by putting a type class restriction
+in the definition. The δ in Gromov-hyperbolicity type class is called `deltaG` to
+avoid name clashes. -/
 
 class Gromov_hyperbolic_space (X : Type*) [MetricSpace X] where
   deltaG : ℝ
   hyperb_quad_ineq0 : Gromov_hyperbolic_subset deltaG (Set.univ : Set X)
 
--- class Gromov_hyperbolic_space_geodesic = Gromov_hyperbolic_space + geodesic_space
-
 variable {X : Type*} [MetricSpace X] [Gromov_hyperbolic_space X]
 
--- set_option quotPrecheck false in
 local notation "δ" => Gromov_hyperbolic_space.deltaG X
 
--- [mono_intros]
 lemma Gromov_hyperbolic_space.hyperb_quad_ineq (x y z t : X) :
     dist x y + dist z t ≤ max (dist x z + dist y t) (dist x t + dist y z) + 2 * δ := by
   apply Gromov_hyperbolic_space.hyperb_quad_ineq0 <;> aesop
--- using hyperb_quad_ineq0 unfolding Gromov_hyperbolic_subset_def by auto
 
 /-- It readily follows from the definition that the completion of a δ-hyperbolic
 space is still δ-hyperbolic. -/
@@ -232,34 +177,15 @@ instance deltaG_metric_completion : Gromov_hyperbolic_space (UniformSpace.Comple
     · apply isClosed_le <;> fun_prop
     · simp only [UniformSpace.Completion.dist_eq]
       apply Gromov_hyperbolic_space.hyperb_quad_ineq
--- instance proof (standard, rule Gromov_hyperbolic_subsetI)
---   have "Gromov_hyperbolic_subset δ (range (to_metric_completion::'a \<Rightarrow> _))"
---     unfolding Gromov_hyperbolic_subset_def
---     apply (auto simp add: isometry_onD[OF to_metric_completion_isometry])
---     by (metis hyperb_quad_ineq)
---   then have "Gromov_hyperbolic_subset (deltaG TYPE('a metric_completion)) (UNIV::'a metric_completion set)"
---     unfolding deltaG_metric_completion_def to_metric_completion_dense'[symmetric]
---     using Gromov_hyperbolic_closure by auto
---   then show "dist x y + dist z t ≤ max (dist x z + dist y t) (dist x t + dist y z) + 2 * deltaG TYPE('a metric_completion)"
---       for x y z t::"'a metric_completion"
---     unfolding Gromov_hyperbolic_subset_def by auto
--- qed
 
 open Gromov_hyperbolic_space
--- begin
 
---  [mono_intros]
 variable (X) in -- TODO `positivity` attribute
 @[simp] lemma delta_nonneg [Inhabited X] : δ ≥ 0 := by
   let x : X := default
   have := hyperb_quad_ineq x x x x
   aesop
--- proof -
---   obtain x::'a where True by auto
---   show ?thesis using hyperb_quad_ineq[of x x x x] by auto
--- qed
 
--- [mono_intros]
 lemma hyperb_ineq (e x y z : X) :
     Gromov_product_at e x z ≥ min (Gromov_product_at e x y) (Gromov_product_at e y z) - δ := by
   have H := hyperb_quad_ineq e y x z
@@ -270,17 +196,12 @@ lemma hyperb_ineq (e x y z : X) :
     rw [← sub_nonpos] at *
     abel_nf at *
     assumption
--- using hyperb_quad_ineq[of e y x z] unfolding Gromov_product_at_def min_def max_def
--- by (auto simp add: divide_simps algebra_simps metric_space_class.dist_commute)
 
--- [mono_intros]
 lemma hyperb_ineq' (e x y z : X) :
     Gromov_product_at e x z + δ ≥ min (Gromov_product_at e x y) (Gromov_product_at e y z) := by
   have := hyperb_ineq e x y z
   aesop
--- using hyperb_ineq[of e x y z] by auto
 
--- [mono_intros]
 lemma hyperb_ineq_4_points (e x y z t : X) :
     min (Gromov_product_at e x y) (min (Gromov_product_at e y z) (Gromov_product_at e z t)) - 2 * δ
     ≤ Gromov_product_at e x t := by
@@ -291,15 +212,12 @@ lemma hyperb_ineq_4_points (e x y z t : X) :
   simp only [← min_sub_sub_right, min_le_iff] at *
   by_contra!
   obtain h1a | h1b := h1 <;> obtain h2a | h2b := h2 <;> linarith
--- using hyperb_ineq[of e x y z] hyperb_ineq[of e x z t] apply auto using delta_nonneg by linarith
 
--- [mono_intros]
 lemma hyperb_ineq_4_points' (e x y z t : X) :
     min (Gromov_product_at e x y) (min (Gromov_product_at e y z) (Gromov_product_at e z t))
     ≤ Gromov_product_at e x t + 2 * δ := by
   have := hyperb_ineq_4_points e x y z t
   aesop
--- using hyperb_ineq_4_points[of e x y z t] by auto
 
 /-- In Gromov-hyperbolic spaces, geodesic triangles are thin, i.e., a point on one side of a
 geodesic triangle is close to the union of the two other sides (where the constant in "close"
@@ -352,7 +270,6 @@ lemma thin_triangles1 {x y z : X}
 
 open Set
 
--- needed later in this file
 theorem thin_triangles {x y z w : X}
     (hxy : geodesic_segment_between Gxy x y)
     (hxz : geodesic_segment_between Gxz x z)
@@ -392,7 +309,6 @@ theorem thin_triangles {x y z w : X}
 
 /-- The distance of a vertex of a triangle to the opposite side is essentially given by the
 Gromov product, up to `2 * δ`. -/
--- needed later in this file
 lemma dist_triangle_side_middle {x y : X} (z : X) (hxy : geodesic_segment_between G x y) :
     dist z (geodesic_segment_param G x (Gromov_product_at x z y))
       ≤ Gromov_product_at z x y + 2 * δ := by
@@ -421,7 +337,6 @@ lemma dist_triangle_side_middle {x y : X} (z : X) (hxy : geodesic_segment_betwee
     linarith
   exact this
 
--- [mono_intros]
 -- needed for `dist_along_quasiconvex`
 lemma infDist_triangle_side {x y : X} (z : X) (hxy : geodesic_segment_between G x y) :
     infDist z G ≤ Gromov_product_at z x y + 2 * δ := by
