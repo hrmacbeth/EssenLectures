@@ -75,6 +75,7 @@ theorem geodesic_segment_param_geodesic {X : Type*} [inst : MetricSpace X] {G : 
 -- `geodesic_segment_reverse_param`
 -- `geodesic_segment_topology`
 -- `geodesic_subsegment_exists`
+-- `geodesic_segment_dist`
 
 class GeodesicSpace (X : Type*) [MetricSpace X]
 

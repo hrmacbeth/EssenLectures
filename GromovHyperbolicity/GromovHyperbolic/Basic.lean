@@ -391,31 +391,35 @@ theorem thin_triangles {x y z w : X}
     apply geodesic_segment_param_mem
 
 /-- The distance of a vertex of a triangle to the opposite side is essentially given by the
-Gromov product, up to $2\delta$. -/
+Gromov product, up to `2 * δ`. -/
 -- needed later in this file
 lemma dist_triangle_side_middle {x y : X} (z : X) (hxy : geodesic_segment_between G x y) :
     dist z (geodesic_segment_param G x (Gromov_product_at x z y))
-    ≤ Gromov_product_at z x y + 2 * δ := by
-  sorry
--- proof -
---   define m where "m = geodesic_segment_param G x (Gromov_product_at x z y)"
---   have "m ∈ G"
---     unfolding m_def using assms(1) by auto
---   have A: "dist x m = Gromov_product_at x z y"
+      ≤ Gromov_product_at z x y + 2 * δ := by
+  let m := geodesic_segment_param G x (Gromov_product_at x z y)
+  have : m ∈ G := geodesic_segment_param_mem ..
+  have A : dist x m = Gromov_product_at x z y := by
+    dsimp [m]
+    -- something involving `dist_geodesic_segment_param`
 --     unfolding m_def by (rule geodesic_segment_param(6)[OF assms(1)], auto)
---   have B: "dist y m = dist x y - dist x m"
---     using geodesic_segment_dist[OF assms \<open>m ∈ G -/] by (auto simp add: metric_space_class.dist_commute)
---   have *: "dist x z + dist y m = Gromov_product_at z x y + dist x y"
---           "dist x m + dist y z = Gromov_product_at z x y + dist x y"
---     unfolding B A Gromov_product_at_def by (auto simp add: metric_space_class.dist_commute divide_simps)
-
---   have "dist x y + dist z m ≤ max (dist x z + dist y m) (dist x m + dist y z) + 2 * δ"
---     by (rule hyperb_quad_ineq)
---   then have "dist z m ≤ Gromov_product_at z x y + 2 * δ"
---     unfolding * by auto
---   then show ?thesis
---     unfolding m_def by auto
--- qed
+    sorry
+  have B : dist y m = dist x y - dist x m := by
+    sorry
+--     using `geodesic_segment_dist`[OF assms \<open>m ∈ G -/] by (auto simp add: metric_space_class.dist_commute)
+  have hxzym : dist x z + dist y m = Gromov_product_at z x y + dist x y := by
+    clear_value m
+    simp only [dist_comm, Gromov_product_at] at A B ⊢
+    linarith
+  have hxmyz : dist x m + dist y z = Gromov_product_at z x y + dist x y := by
+    clear_value m
+    simp only [dist_comm, Gromov_product_at] at A B ⊢
+    linarith
+  have : dist x y + dist z m ≤ max (dist x z + dist y m) (dist x m + dist y z) + 2 * δ :=
+    hyperb_quad_ineq ..
+  have : dist z m ≤ Gromov_product_at z x y + 2 * δ := by
+    rw [hxzym, hxmyz, max_self] at this
+    linarith
+  exact this
 
 -- [mono_intros]
 -- needed for `dist_along_quasiconvex`
