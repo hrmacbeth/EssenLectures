@@ -266,27 +266,24 @@ the starting point, or one could point another such point further away by almost
 a contradiction. The technical implementation requires some care, as the "last point" may not
 satisfy the property, for lack of continuity. If it does, then fine. Otherwise, one should go just
 a little bit to its left to find the desired point. -/
-  let I : Set ℝ := Icc a b ∩ {t | ∀ s ∈ Icc a t, dist (p a) (p s) ≤ d}
-  have haI : a ∈ I := by
-    refine ⟨by aesop, ?_⟩
-    intro s hs
-    obtain rfl : s = a := by simpa using hs
-    aesop
---     using \<open>a ≤ b\<close> \<open>d ≥ 0\<close> unfolding I_def by auto
-  have : BddAbove I := BddAbove.inter_of_left bddAbove_Icc
---     unfolding I_def by auto
-  let u := sSup I
-  have hau : a ≤ u := le_csSup this haI
-  have hub : u ≤ b := csSup_le ⟨_, haI⟩ <| by aesop
---     unfolding u_def apply (rule cSup_least) using \<open>a∈I\<close> apply auto unfolding I_def by auto
-  have A : ∀ s ∈ Ico a u, dist (p a) (p s) ≤ d := by
-    intro s hs
-    obtain ⟨t, htI, hts⟩ : ∃ t ∈ I, s < t := exists_lt_of_lt_csSup ⟨_, haI⟩ hs.2
-    exact htI.2 _ ⟨hs.1, hts.le⟩
-  have H3 : u < b → ∃ᶠ s in 𝓝[Icc u b] u, d < dist (p a) (p s) := by
+  obtain ⟨u, ⟨hau, hub⟩, A, H3⟩ : ∃ u ∈ Icc a b, (∀ s ∈ Ico a u, dist (p a) (p s) ≤ d)
+      ∧ (u < b → ∃ᶠ s in 𝓝[Icc u b] u, d < dist (p a) (p s)) := by
+    let I : Set ℝ := Icc a b ∩ {t | ∀ s ∈ Icc a t, dist (p a) (p s) ≤ d}
+    have haI : a ∈ I := by
+      refine ⟨by aesop, ?_⟩
+      intro s hs
+      obtain rfl : s = a := by simpa using hs
+      aesop
+    have : BddAbove I := BddAbove.inter_of_left bddAbove_Icc
+    let u := sSup I
+    have hau : a ≤ u := le_csSup this haI
+    have A : ∀ s ∈ Ico a u, dist (p a) (p s) ≤ d := by
+      intro s hs
+      obtain ⟨t, htI, hts⟩ : ∃ t ∈ I, s < t := exists_lt_of_lt_csSup ⟨_, haI⟩ hs.2
+      exact htI.2 _ ⟨hs.1, hts.le⟩
+    refine ⟨u, ⟨hau, csSup_le ⟨_, haI⟩ <| by aesop⟩, A, ?_⟩
     intro hub
-    rw [nhdsWithin_Icc_eq_nhdsWithin_Ici hub]
-    rw [Filter.frequently_iff]
+    rw [nhdsWithin_Icc_eq_nhdsWithin_Ici hub, Filter.frequently_iff]
     intro s hs
     rw [mem_nhdsWithin_Ici_iff_exists_Icc_subset] at hs
     obtain ⟨e, he, heus⟩ := hs
@@ -300,12 +297,11 @@ a little bit to its left to find the desired point. -/
     by_contra! hxu
     have := A x ⟨hx1.1, hxu⟩
     linarith only [this, hx2]
-  clear_value u
+
   have hf2 : ContinuousWithinAt f (Icc a b) u := hf.continuousWithinAt ⟨hau, hub⟩
   have hdeltaδ : 0 < delta - δ := by linarith
   have H1 : ∀ᶠ s in 𝓝[Icc a b] u, dist (f s) (f u) < delta - δ :=
     hf2.tendsto <| ball_mem_nhds (f u) hdeltaδ
-
 
   by_cases hdp : dist (p a) (p u) > d
 /- First, consider the case where `u` does not satisfy the defining property. Then the
