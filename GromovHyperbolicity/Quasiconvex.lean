@@ -283,27 +283,40 @@ a little bit to its left to find the desired point. -/
     intro s hs
     obtain ⟨t, htI, hts⟩ : ∃ t ∈ I, s < t := exists_lt_of_lt_csSup ⟨_, haI⟩ hs.2
     exact htI.2 _ ⟨hs.1, hts.le⟩
+  have H3 : u < b → dist (p a) (p u) ≤ d → ∃ᶠ s in 𝓝[Ioc u b] u, d < dist (p a) (p s) := by
+    intro hub hpau
+    rw [nhdsWithin_Ioc_eq_nhdsWithin_Ioi hub]
+    rw [Filter.frequently_iff]
+    intro s hs
+    rw [mem_nhdsWithin_Ioi_iff_exists_Ioc_subset] at hs
+    obtain ⟨e, he, heus⟩ := hs
+    have hu_lt : u < min b e := lt_min hub he
+    have hmin_mem : min b e ∈ Icc a b := ⟨hau.trans hu_lt.le, min_le_left _ _⟩
+    have h := not_mem_of_csSup_lt hu_lt (by assumption)
+    change ¬ (_ ∧ ∀ _, _) at h
+    push_neg at h
+    obtain ⟨x, hx1, hx2⟩ := h hmin_mem
+    refine ⟨x, heus ⟨?_, hx1.2.trans (min_le_right ..)⟩, hx2⟩
+    by_contra! hxu
+    obtain rfl | hxu := eq_or_lt_of_le hxu
+    · linarith only [hpau, hx2]
+    have := A x ⟨hx1.1, hxu⟩
+    linarith only [this, hx2]
+  clear_value u
   have hf2 : ContinuousWithinAt f (Icc a b) u := hf.continuousWithinAt ⟨hau, hub⟩
   have hdeltaδ : 0 < delta - δ := by linarith
-  obtain ⟨e0, he0, he0f⟩ :
-      ∃ e0 > 0, ∀ s ∈ Icc a b, dist u s < e0 → dist (f u) (f s) < delta - δ := by
-    rw [continuousWithinAt_iff] at hf2
-    simpa [dist_comm] using hf2 (delta - δ) hdeltaδ
+  have H1 : ∀ᶠ s in 𝓝[Icc a b] u, dist (f s) (f u) < delta - δ :=
+    hf2.tendsto <| ball_mem_nhds (f u) hdeltaδ
 
 
   by_cases hdp : dist (p a) (p u) > d
 /- First, consider the case where `u` does not satisfy the defining property. Then the
 desired point `t` is taken slightly to its left. -/
   · obtain ⟨t, ⟨hta, htu⟩, htue0⟩ : ∃ t ∈ Ico a u, dist (f t) (f u) < delta - δ := by
-      have H1 : ∀ᶠ s in 𝓝[Icc a b] u, dist (f s) (f u) < delta - δ := by
-        have : Metric.ball (f u) (delta - δ) ∈ 𝓝 (f u) := ball_mem_nhds (f u) hdeltaδ
-        exact hf2.tendsto this
       have : (𝓝[Ico a u] u).NeBot := by
-        rw [← mem_closure_iff_nhdsWithin_neBot, closure_Ico, right_mem_Icc]
-        · exact hau
-        · clear_value u
-          rintro rfl
-          linarith [dist_self (p a)]
+        have hau : a < u := lt_of_le_of_ne hau <| by rintro rfl; linarith [dist_self (p a)]
+        rw [nhdsWithin_Ico_eq_nhdsWithin_Iio hau]
+        apply nhdsWithin_Iio_self_neBot
       have H2 : ∀ᶠ s in 𝓝[Ico a u] u, s ∈ Ico a u := eventually_mem_nhdsWithin
       have : Ico a u ⊆ Icc a b := Ico_subset_Icc_self.trans <| Icc_subset_Icc_right hub
       have := H1.filter_mono (nhdsWithin_mono _ this)
@@ -327,81 +340,31 @@ The only nontrivial point to check is that the distance of `f u` to the starting
 too small. For this, we need to separate the case where `u = b` (in which case one argues directly)
 and the case where `u < b`, where one can use a point slightly to the right of `u` which has a
 projection at distance > `d` of the starting point, and use almost continuity. -/
-  · sorry
---     case False
---     have B: "dist (p a) (p s) ≤ d" if "s∈{a..u}" for s
---     proof (cases "s = u")
---       case True
---       show ?thesis
---         unfolding True using False by auto
---     next
---       case False
---       then show ?thesis
---         using that A by auto
---     qed
---     have C: "dist (p a) (p u) ≥ d - 4 *delta - 2 * C"
---     proof (cases "u = b")
---       case True
---       have "d ≤ dist (p a) (p b)"
---         using assms by auto
---       also have "... ≤ dist (p a) (p u) + dist (p u) (p b)"
---         by (intro mono_intros)
---       also have "... ≤ dist (p a) (p u) + (dist (f u) (f b) + 4 * deltaG TYPE('a) + 2 * C)"
---         apply (intro mono_intros proj_along_quasiconvex_contraction'[OF \<open>quasiconvex C G\<close>])
---         using assms \<open>a ≤ u\<close> \<open>u ≤ b\<close> by auto
---       finally show ?thesis
---         unfolding True using \<open>δ < delta\<close> by auto
---     next
---       case False
---       then have "u < b"
---         using \<open>u ≤ b\<close> by auto
---       define e::real where "e = min (e0/2) ((b-u)/2)"
---       then have "e > 0" using \<open>u < b\<close> \<open>e0 > 0\<close> by auto
---       define v where "v = u + e"
---       then have "u < v"
---         using \<open>e > 0\<close> by auto
---       have "e ≤ b - u" "a - u ≤ e"
---         using \<open>e > 0\<close> \<open>a ≤ u\<close> unfolding e_def by (auto simp add: min_def)
---       then have "v∈{a..b}"
---         unfolding v_def by auto
---       moreover have "v \<notin> I"
---         using \<open>u < v\<close> \<open>bdd_above I\<close> cSup_upper not_le unfolding u_def by auto
---       ultimately have "∃ w∈{a..v}. dist (p a) (p w) > d"
---         unfolding I_def by force
---       then obtain w where w: "w∈{a..v}" "dist (p a) (p w) > d"
---         by auto
---       then have "w \<notin> {a..u}"
---         using B by force
---       then have "u < w"
---         using w(1) by auto
---       have "w∈{a..b}"
---         using w(1) \<open>v∈{a..b}\<close> by auto
---       have "dist u w = w - u"
---         unfolding dist_real_def using \<open>u < w\<close> by auto
---       also have "... ≤ v - u"
---         using w(1) by auto
---       also have "... < e0"
---         unfolding v_def e_def min_def using \<open>e0 > 0\<close> by auto
---       finally have "dist u w < e0" by simp
---       have "dist (p u) (p w) ≤ dist (f u) (f w) + 4 * δ + 2 * C"
---         apply (rule proj_along_quasiconvex_contraction'[OF \<open>quasiconvex C G\<close>])
---         using assms \<open>a ≤ u\<close> \<open>u ≤ b\<close> \<open>w∈{a..b}\<close> by auto
---       also have "... ≤ (delta - δ) + 4 * δ + 2 * C"
---         apply (intro mono_intros)
---         using e0(2)[OF \<open>w∈{a..b}\<close> \<open>dist u w < e0\<close>] by (auto simp add: metric_space_class.dist_commute)
---       finally have I: "dist (p u) (p w) ≤ 4 * delta + 2 * C"
---         using \<open>delta > δ\<close> by simp
---       have "d ≤ dist (p a) (p u) + dist (p u) (p w)"
---         using w(2) metric_space_class.dist_triangle[of "p a" "p w" "p u"] by auto
---       also have "... ≤ dist (p a) (p u) + 4 * delta + 2 * C"
---         using I by auto
---       finally show ?thesis by simp
---     qed
---     show ?thesis
---       apply (rule bexI[of _ u])
---       using B \<open>a ≤ u\<close> \<open>u ≤ b\<close> C by auto
---   qed
--- qed
+  · push_neg at hdp
+    have B : ∀ s ∈ Icc a u, dist (p a) (p s) ≤ d := by
+      intro s hs
+      obtain rfl | hsu := eq_or_lt_of_le hs.2
+      · exact hdp
+      · exact A _ ⟨hs.1, hsu⟩
+    have huau : u ∈ Icc a u := by rwa [right_mem_Icc]
+    refine ⟨u, ⟨hau, hub⟩, ⟨?_, B _ huau⟩, B⟩
+    obtain rfl | hub := eq_or_lt_of_le hub
+    · linarith [hd.2]
+    obtain ⟨w, hwp, ⟨hwu, hwb⟩, hwf⟩ :
+        ∃ w, d < dist (p a) (p w) ∧ w ∈ Ioc u b ∧ dist (f w) (f u) < delta - δ := by
+      have : (𝓝[Ioc u b] u).NeBot := by
+        rw [nhdsWithin_Ioc_eq_nhdsWithin_Ioi hub]
+        apply nhdsWithin_Ioi_self_neBot
+      have H2 : ∀ᶠ s in 𝓝[Ioc u b] u, s ∈ Ioc u b := eventually_mem_nhdsWithin
+      have : Ioc u b ⊆ Icc a b := Ioc_subset_Icc_self.trans <| Icc_subset_Icc_left hau
+      have := H1.filter_mono (nhdsWithin_mono _ this)
+      exact (H3 hub hdp).and_eventually (H2.and this) |>.exists
+    rw [dist_comm] at hwf
+    have : dist (p u) (p w) ≤ dist (f u) (f w) + 4 * δ + 2 * C := by
+      apply proj_along_quasiconvex_contraction' h (hfG _ ⟨hau, hub.le⟩) (hfG _ _)
+      exact ⟨hau.trans hwu.le, hwb⟩
+    have : dist (p a) (p w) ≤ dist (p a) (p u) + dist (p u) (p w) := dist_triangle ..
+    linarith
 
 -- FIXME decide whether this should be global
 attribute [simp] le_neg neg_le
