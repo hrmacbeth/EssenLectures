@@ -1,5 +1,6 @@
 /-  Author:  Sébastien Gouëzel   sebastien.gouezel@univ-rennes1.fr
     License: BSD -/
+import GromovHyperbolicity.GromovHyperbolic.Lemmas
 import GromovHyperbolicity.QuantitativeMorseLemma
 
 /-! # We deduce from the Morse lemma that hyperbolicity is invariant under quasi-isometry. -/
