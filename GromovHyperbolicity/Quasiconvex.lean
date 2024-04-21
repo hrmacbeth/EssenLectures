@@ -267,36 +267,8 @@ a contradiction. The technical implementation requires some care, as the "last p
 satisfy the property, for lack of continuity. If it does, then fine. Otherwise, one should go just
 a little bit to its left to find the desired point. -/
   obtain ⟨u, ⟨hau, hub⟩, A, H3⟩ : ∃ u ∈ Icc a b, (∀ s ∈ Ico a u, dist (p a) (p s) ≤ d)
-      ∧ (u < b → ∃ᶠ s in 𝓝[Icc u b] u, d < dist (p a) (p s)) := by
-    let I : Set ℝ := Icc a b ∩ {t | ∀ s ∈ Icc a t, dist (p a) (p s) ≤ d}
-    have haI : a ∈ I := by
-      refine ⟨by aesop, ?_⟩
-      intro s hs
-      obtain rfl : s = a := by simpa using hs
-      aesop
-    have : BddAbove I := BddAbove.inter_of_left bddAbove_Icc
-    let u := sSup I
-    have hau : a ≤ u := le_csSup this haI
-    have A : ∀ s ∈ Ico a u, dist (p a) (p s) ≤ d := by
-      intro s hs
-      obtain ⟨t, htI, hts⟩ : ∃ t ∈ I, s < t := exists_lt_of_lt_csSup ⟨_, haI⟩ hs.2
-      exact htI.2 _ ⟨hs.1, hts.le⟩
-    refine ⟨u, ⟨hau, csSup_le ⟨_, haI⟩ <| by aesop⟩, A, ?_⟩
-    intro hub
-    rw [nhdsWithin_Icc_eq_nhdsWithin_Ici hub, Filter.frequently_iff]
-    intro s hs
-    rw [mem_nhdsWithin_Ici_iff_exists_Icc_subset] at hs
-    obtain ⟨e, he, heus⟩ := hs
-    have hu_lt : u < min b e := lt_min hub he
-    have hmin_mem : min b e ∈ Icc a b := ⟨hau.trans hu_lt.le, min_le_left _ _⟩
-    have h := not_mem_of_csSup_lt hu_lt (by assumption)
-    change ¬ (_ ∧ ∀ _, _) at h
-    push_neg at h
-    obtain ⟨x, hx1, hx2⟩ := h hmin_mem
-    refine ⟨x, heus ⟨?_, hx1.2.trans (min_le_right ..)⟩, hx2⟩
-    by_contra! hxu
-    have := A x ⟨hx1.1, hxu⟩
-    linarith only [this, hx2]
+      ∧ (u < b → ∃ᶠ s in 𝓝[Icc u b] u, ¬ dist (p a) (p s) ≤ d) :=
+    method_of_continuity hab (P := fun s ↦ dist (p a) (p s) ≤ d) (by simpa)
 
   have hf2 : ContinuousWithinAt f (Icc a b) u := hf.continuousWithinAt ⟨hau, hub⟩
   have hdeltaδ : 0 < delta - δ := by linarith
@@ -334,7 +306,7 @@ The only nontrivial point to check is that the distance of `f u` to the starting
 too small. For this, we need to separate the case where `u = b` (in which case one argues directly)
 and the case where `u < b`, where one can use a point slightly to the right of `u` which has a
 projection at distance > `d` of the starting point, and use almost continuity. -/
-  · push_neg at hdp
+  · push_neg at hdp H3
     have B : ∀ s ∈ Icc a u, dist (p a) (p s) ≤ d := by
       intro s hs
       obtain rfl | hsu := eq_or_lt_of_le hs.2
