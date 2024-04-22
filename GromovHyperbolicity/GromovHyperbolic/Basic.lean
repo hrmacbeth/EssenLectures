@@ -115,27 +115,6 @@ lemma Gromov_product_geodesic_segment {x y : X}
 @[simp] lemma Gromov_product_e_x_x (e x : X) : Gromov_product_at e x x = dist e x := by
   simp [Gromov_product_at]
 
-lemma Gromov_product_at_diff (x y z a b c : X) :
-    |Gromov_product_at x y z - Gromov_product_at a b c| ≤ dist x a + dist y b + dist z c := by
-  sorry
--- unfolding Gromov_product_at_def abs_le_iff apply (auto simp add: divide_simps)
--- by (smt dist_commute dist_triangle4)+
-
-lemma Gromov_product_at_diff1 (x y a b : X) :
-    |Gromov_product_at a x y - Gromov_product_at b x y| ≤ dist a b := by
-  have := Gromov_product_at_diff a x y b x y
-  aesop
-
-lemma Gromov_product_at_diff2 (e x y z : X) :
-    |Gromov_product_at e x z - Gromov_product_at e y z| ≤ dist x y := by
-  have := Gromov_product_at_diff e x z e y z
-  aesop
-
-lemma Gromov_product_at_diff3 (e x y z : X) :
-    |Gromov_product_at e x y - Gromov_product_at e x z| ≤ dist y z := by
-  have := Gromov_product_at_diff e x y e x z
-  aesop
-
 /-- The Gromov product is continuous in its three variables. -/
 -- never used?
 @[fun_prop] lemma Gromov_product_at_continuous :
