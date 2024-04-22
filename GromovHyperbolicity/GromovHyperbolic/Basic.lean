@@ -99,18 +99,17 @@ lemma Gromov_product_add (e x y : X) :
   simp only [Gromov_product_at, dist_comm]
   ring
 
--- not sure whether inequalities are sharp or non-sharp
 lemma Gromov_product_geodesic_segment {x y : X}
     (h : geodesic_segment_between G x y) {t : ℝ} (ht₀ : 0 ≤ t) (ht : t ≤ dist x y) :
     Gromov_product_at x y (geodesic_segment_param G x t) = t := by
-  sorry
--- proof -
---   have "dist x (geodesic_segment_param G x t) = t"
---     using assms(1) assms(2) geodesic_segment_param(6) by auto
---   moreover have "dist y (geodesic_segment_param G x t) = dist x y - t"
---     by (metis \<open>dist x (geodesic_segment_param G x t) = t -/ add_diff_cancel_left' assms(1) assms(2) dist_commute geodesic_segment_dist geodesic_segment_param(3))
---   ultimately show ?thesis unfolding Gromov_product_at_def by auto
--- qed
+  have : dist x (geodesic_segment_param G x t) = t := by sorry
+--     using assms(1) assms(2) `geodesic_segment_param`(6) by auto
+  have :
+      dist x (geodesic_segment_param G x t) + dist (geodesic_segment_param G x t) y = dist x y :=
+    sorry -- `geodesic_segment_dist`
+  dsimp [Gromov_product_at]
+  simp only [dist_comm] at *
+  linarith
 
 @[simp] lemma Gromov_product_e_x_x (e x : X) : Gromov_product_at e x x = dist e x := by
   simp [Gromov_product_at]
