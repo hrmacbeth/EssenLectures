@@ -24,8 +24,6 @@ def proj_set {X : Type*} [MetricSpace X] (x : X) (s : Set X) : Set X := sorry
 lemma proj_setD [MetricSpace X] {x y : X} {s : Set X} (hxy : x ∈ proj_set y s) : x ∈ s := sorry
 
 
--- `geodesic_subsegment_exists`
-
 class GeodesicSpace (X : Type*) [MetricSpace X]
 
 -- **Lemma 2.1**

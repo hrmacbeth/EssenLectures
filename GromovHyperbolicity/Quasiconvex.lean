@@ -36,8 +36,8 @@ lemma quasiconvex_of_geodesic {G : Set M} (hG : geodesic_segment G) : quasiconve
   apply quasiconvexI
   · simp
   intro x y hx hy
-  obtain ⟨H, hHG, hHxy⟩ : ∃ H, H ⊆ G ∧ geodesic_segment_between H x y := sorry
---     using `geodesic_subsegment_exists` [OF assms(1) *] by auto
+  obtain ⟨H, hHG, hHxy⟩ : ∃ H, H ⊆ G ∧ geodesic_segment_between H x y :=
+    geodesic_subsegment_exists hG hx hy
   refine ⟨H, hHxy, ?_⟩
   intro _ _
   rw [infDist_zero_of_mem]
