@@ -5,3 +5,5 @@ split all conjunctive theorem conclusions for Lean style compatibility
 decide about all "not sure whether should be sharp or non-sharp"
 
 eliminate "needed for" annotations
+
+rename lemmas which, in Lean, would idiomatically be set up for projection notation
