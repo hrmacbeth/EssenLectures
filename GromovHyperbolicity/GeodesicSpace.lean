@@ -313,9 +313,9 @@ lemma geodesic_segment_param8 {G : Set X} {x y : X} (h : geodesic_segment_betwee
 --     by (auto simp add: * dist_real_def isometry_onD)
 -- qed
 
--- lemma geodesic_segment_param_in_segment:
---   assumes "G \<noteq> {}"
---   shows "geodesic_segment_param G x t \<in> G"
+lemma geodesic_segment_param_in_segment {G : Set X} (hG : G.Nonempty) {x : X} :
+    geodesic_segment_param G x t ∈ G :=
+  sorry
 -- unfolding geodesic_segment_param_def
 -- apply (auto, metis (mono_tags, lifting) someI)
 -- using assms some_in_eq by fastforce
@@ -710,7 +710,7 @@ lemma geodesic_segment_topology {G : Set X} (h : geodesic_segment G) :
 -- $a$ is on \verb+{x--S--y}+, then \verb+{x--S--y}+ is the union of \verb+{x--S--a}+ and \verb+{a--S--y}+, but
 -- I do not know if such a choice is always possible -- such a choice of geodesics is
 -- called a geodesic bicombing.
--- We also write \verb+{x--y}+ for \verb+{x--UNIV--y}+.\<close>
+-- We also write \verb+{x‒y}+ for \verb+{x--UNIV--y}+.\<close>
 
 -- definition some_geodesic_segment_between::"'a::metric_space \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> 'a set" ("(1{_--_--_})")
 --   where "some_geodesic_segment_between = (SOME f. \<forall> x y S. f x S y = f y S x
@@ -786,7 +786,7 @@ notation "{" x "‒" y "}" => some_geodesic_segment_between_UNIV x y
 --   "(\<not>(\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S)) \<Longrightarrow> {x--S--y} = {x, y}"
 -- unfolding some_geodesic_segment_between_def by (simp add: someI_ex[OF some_geodesic_segment_between_exists])+
 
--- text \<open>Basic topological properties of our chosen set of geodesics.\<close>
+/-! ### Basic topological properties of our chosen set of geodesics. -/
 
 -- lemma some_geodesic_compact [simp]:
 --   "compact {x--S--y}"
@@ -802,8 +802,8 @@ notation "{" x "‒" y "}" => some_geodesic_segment_between_UNIV x y
 --   "bounded {x--S--y}"
 -- by (rule compact_imp_bounded[OF some_geodesic_compact[of x S y]])
 
--- lemma some_geodesic_endpoints [simp]:
---   "x \<in> {x--S--y}" "y \<in> {x--S--y}" "{x--S--y} \<noteq> {}"
+@[simp] lemma some_geodesic_endpoints {x y : X} : x ∈ {x‒y} ∧ y ∈ {x‒y} ∧ {x‒y}.Nonempty :=
+  sorry
 -- apply (cases "\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S") using some_geodesic_segment_description[of x y S] apply auto
 -- apply (cases "\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S") using some_geodesic_segment_description[of x y S] apply auto
 -- apply (cases "\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S") using geodesic_segment_endpoints(3) by (auto, blast)
@@ -948,26 +948,51 @@ variable [GeodesicSpace X]
   sorry
 -- using some_geodesic_segment_description(1)[of x y] geodesic_subsetD[OF geodesic] by (auto, blast)
 
+-- lemma (in geodesic_space) some_geodesic_connected [simp]:
+--   "connected {x‒y}" "path_connected {x‒y}"
+-- by (auto intro!: geodesic_segment_topology)
+
+/-! In geodesic spaces, we restate as simp rules all properties of the geodesic segment
+parametrizations. -/
+
+-- FIXME? in Isabelle these were all marked [simp]
+
+lemma geodesic_segment_param_in_geodesic_spaces1 {x y : X} :
+    geodesic_segment_param {x‒y} x 0 = x :=
+  sorry
+
+lemma geodesic_segment_param_in_geodesic_spaces2 {x y : X} :
+    geodesic_segment_param {x‒y} x (dist x y) = y :=
+  sorry
+
+lemma geodesic_segment_param_in_geodesic_spaces3 {x y : X} (ht : t ∈ Icc 0 (dist x y)) :
+    geodesic_segment_param {x‒y} x t ∈ {x‒y} :=
+  sorry
+
+lemma geodesic_segment_param_in_geodesic_spaces4 {x y : X} :
+    Isometry (geodesic_segment_param {x‒y} x ∘ Subtype.val : Icc (0:ℝ) (dist x y) → _) := by
+  sorry
+
+lemma geodesic_segment_param_in_geodesic_spaces5 {x y : X} :
+    (geodesic_segment_param {x‒y} x) '' Icc 0 (dist x y) = {x‒y} :=
+  sorry
+
+lemma geodesic_segment_param_in_geodesic_spaces6 {x y : X} (ht : t ∈ Icc 0 (dist x y)) :
+    dist x (geodesic_segment_param {x‒y} x t) = t :=
+  sorry
+
+lemma geodesic_segment_param_in_geodesic_spaces7 {x y : X}
+    (hs : s ∈ Icc 0 (dist x y)) (ht : t ∈ Icc 0 (dist x y)) :
+    dist (geodesic_segment_param {x‒y} x s) (geodesic_segment_param {x‒y} x t) = |s-t| :=
+  sorry
+
+lemma geodesic_segment_param_in_geodesic_spaces8 {x y z : X} (hz : z ∈ {x‒y}) :
+    z = geodesic_segment_param {x‒y} x (dist x z) :=
+  sorry
+
+-- using geodesic_segment_param[OF some_geodesic_is_geodesic_segment(1)[of x y]] by auto
+
 #exit
-
-lemma (in geodesic_space) some_geodesic_connected [simp]:
-  "connected {x--y}" "path_connected {x--y}"
-by (auto intro!: geodesic_segment_topology)
-
-text \<open>In geodesic spaces, we restate as simp rules all properties of the geodesic segment
-parametrizations.\<close>
-
-lemma (in geodesic_space) geodesic_segment_param_in_geodesic_spaces [simp]:
-  "geodesic_segment_param {x--y} x 0 = x"
-  "geodesic_segment_param {x--y} x (dist x y) = y"
-  "t \<in> {0..dist x y} \<Longrightarrow> geodesic_segment_param {x--y} x t \<in> {x--y}"
-  "isometry_on {0..dist x y} (geodesic_segment_param {x--y} x)"
-  "(geodesic_segment_param {x--y} x)`{0..dist x y} = {x--y}"
-  "t \<in> {0..dist x y} \<Longrightarrow> dist x (geodesic_segment_param {x--y} x t) = t"
-  "s \<in> {0..dist x y} \<Longrightarrow> t \<in> {0..dist x y} \<Longrightarrow> dist (geodesic_segment_param {x--y} x s) (geodesic_segment_param {x--y} x t) = abs(s-t)"
-  "z \<in> {x--y} \<Longrightarrow> z = geodesic_segment_param {x--y} x (dist x z)"
-using geodesic_segment_param[OF some_geodesic_is_geodesic_segment(1)[of x y]] by auto
-
 
 subsection \<open>Uniquely geodesic spaces\<close>
 
@@ -1081,11 +1106,11 @@ using uniquely_geodesic[of _ x y] by (meson some_geodesic_is_geodesic_segment)
 
 lemma geodesic_segment_dist':
   assumes "dist x z = dist x y + dist y z"
-  shows "y \<in> {x--z}" "{x--z} = {x--y} \<union> {y--z}"
+  shows "y \<in> {x--z}" "{x--z} = {x‒y} \<union> {y--z}"
 proof -
-  have "geodesic_segment_between ({x--y} \<union> {y--z}) x z"
+  have "geodesic_segment_between ({x‒y} \<union> {y--z}) x z"
     using geodesic_segment_union[OF assms] by auto
-  then show "{x--z} = {x--y} \<union> {y--z}"
+  then show "{x--z} = {x‒y} \<union> {y--z}"
     using geodesic_segment_unique by auto
   then show "y \<in> {x--z}" by auto
 qed
@@ -1096,15 +1121,15 @@ using geodesic_segment_dist'(1) geodesic_segment_dist[OF some_geodesic_is_geodes
 
 lemma geodesic_segment_split:
   assumes "(y::'a) \<in> {x--z}"
-  shows "{x--z} = {x--y} \<union> {y--z}"
-        "{x--y} \<inter> {y--z} = {y}"
+  shows "{x--z} = {x‒y} \<union> {y--z}"
+        "{x‒y} \<inter> {y--z} = {y}"
 apply (metis assms geodesic_segment_dist geodesic_segment_dist'(2) some_geodesic_is_geodesic_segment(1))
 apply (rule geodesic_segment_union(2)[of x z], auto simp add: assms)
 using assms geodesic_segment_expression by blast
 
 lemma geodesic_segment_subparam':
   assumes "y \<in> {x--z}" "t \<in> {0..dist x y}"
-  shows "geodesic_segment_param {x--z} x t = geodesic_segment_param {x--y} x t"
+  shows "geodesic_segment_param {x--z} x t = geodesic_segment_param {x‒y} x t"
 apply (rule geodesic_segment_subparam[of _ _ z _ y]) using assms apply auto
 using geodesic_segment_split(1)[OF assms(1)] by auto
 

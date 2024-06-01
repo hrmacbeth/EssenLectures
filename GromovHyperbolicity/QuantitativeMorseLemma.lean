@@ -28,6 +28,8 @@ up interesting tools, although the dependency it gives is worse. -/
 variable {X : Type*} [MetricSpace X] [Gromov_hyperbolic_space X] [GeodesicSpace X]
   [∀ (x y : X) (S : Set X), Decidable (∃ G, geodesic_segment_between G x y ∧ G ⊆ S)]
 
+open Gromov_hyperbolic_space
+
 variable {G : Set X}
 
 /-- The next lemma (for $C = 0$, Lemma 2 in~\<^cite> "shchur") asserts that, if two points are not too far apart (at distance at most
@@ -45,48 +47,46 @@ $δ$ is also hyperbolic for any larger constant $δ'$. -/
 -- (in Gromov_hyperbolic_space_geodesic)
 lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px py : X}
     (hpxG : px ∈ proj_set x G) (hpyG : py ∈ proj_set y G) {δ C M : ℝ}
-    (hδ : δ ≥ Gromov_hyperbolic_space.deltaG X) {M : ℝ} (hxy : dist x y ≤ 10 * δ + C)
+    (hδ : δ ≥ deltaG X) {M : ℝ} (hxy : dist x y ≤ 10 * δ + C)
     (hM : M ≥ 15/2 * δ) (hpx : dist px x ≥ M + 5 * δ + C/2) (hpy : dist py y ≥ M + 5 * δ + C/2)
     (hC : C ≥ 0) :
-    dist (geodesic_segment_param ({px‒x} : Set X) px M)
-              (geodesic_segment_param {py‒y} py M) ≤ 5 * δ := by
-  sorry
--- proof -
---   have "dist px x ≤ dist py x"
+    dist (geodesic_segment_param {px‒x} px M) (geodesic_segment_param {py‒y} py M) ≤ 5 * δ := by
+  have : dist px x ≤ dist py x := sorry
 --     using proj_setD(2)[OF assms(2)] infDist_le[OF proj_setD(1)[OF assms(3)], of x] by (simp add: metric_space_class.dist_commute)
---   have "dist py y ≤ dist px y"
+  have : dist py y ≤ dist px y := sorry
 --     using proj_setD(2)[OF assms(3)] infDist_le[OF proj_setD(1)[OF assms(2)], of y] by (simp add: metric_space_class.dist_commute)
-
---   have "delta ≥ 0"
---     using assms local.delta_nonneg by linarith
---   then have M: "M ≥ 0" "M ≤ dist px x" "M ≤ dist px y" "M ≤ dist py x" "M ≤ dist py y"
---     using assms \<open>dist px x ≤ dist py x\<close> \<open>dist py y ≤ dist px y \<close>by auto
---   have "px ∈ G" "py ∈ G"
---     using assms proj_setD by auto
-
---   define x' where "x' = geodesic_segment_param {px‒x} px M"
---   define y' where "y' = geodesic_segment_param {py‒y} py M"
-
+  have : 0 ≤ δ := by
+    have : Inhabited X := ⟨x⟩
+    linarith [delta_nonneg X]
+  have hM : 0 ≤ M ∧ M ≤ dist px x ∧ M ≤ dist px y ∧ M ≤ dist py x ∧ M ≤ dist py y := by
+    refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;> linarith
+  have : px ∈ G ∧ py ∈ G := ⟨proj_setD hpxG, proj_setD hpyG⟩
+  set x' := geodesic_segment_param {px‒x} px M
+  set y' := geodesic_segment_param {py‒y} py M
   /- First step: the distance between $px$ and $py$ is at most $5δ$. -/
---   have := calc dist px py ≤ max (5 * Gromov_hyperbolic_space.deltaG X) (dist x y - dist px x - dist py y + 10 * Gromov_hyperbolic_space.deltaG X)"
---     by (rule proj_along_geodesic_contraction[OF assms(1) assms(2) assms(3)])
---   _ ≤ max (5 * Gromov_hyperbolic_space.deltaG X) (5 * Gromov_hyperbolic_space.deltaG X)"
---     apply (intro mono_intros) using assms \<open>delta ≥ 0\<close> by auto
---   finally have "dist px py ≤ 5 * δ"
---     using \<open>delta ≥ Gromov_hyperbolic_space.deltaG X\<close> by auto
-
+  have :=
+  calc dist px py
+      ≤ max (5 * deltaG X) (dist x y - dist px x - dist py y + 10 * deltaG X) :=
+        proj_along_geodesic_contraction hG hpxG hpyG
+    _ ≤ max (5 * deltaG X) (5 * deltaG X) := by
+        gcongr
+        linarith
+    _ ≤ 5 * δ := by
+        rw [max_self]
+        gcongr
   /- Second step: show that all the interesting Gromov products at bounded below by $M$. -/
---   have *: "x' ∈ {px‒x}" unfolding x'_def
---     by (simp add: geodesic_segment_param_in_segment)
---   have "px ∈ proj_set x' G"
+  have hx'_mem : x' ∈ {px‒x} := geodesic_segment_param_in_segment (some_geodesic_endpoints).2.2
+  have : px ∈ proj_set x' G := sorry
 --     by (rule proj_set_geodesic_same_basepoint[OF \<open>px ∈ proj_set x G\<close> _ *], auto)
---   have "dist px x' = M"
---     unfolding x'_def using M by auto
---   have "dist px x' ≤ dist py x'"
+  have : dist px x' = M := by
+    apply geodesic_segment_param_in_geodesic_spaces6
+    exact ⟨hM.1, hM.2.1⟩
+  have : dist px x' ≤ dist py x' := sorry
 --     using proj_setD(2)[OF \<open>px ∈ proj_set x' G\<close>] infDist_le[OF proj_setD(1)[OF assms(3)], of x'] by (simp add: metric_space_class.dist_commute)
---   have **: "dist px x = dist px x' + dist x' x"
---     using geodesic_segment_dist[OF _ *, of px x] by auto
---   have Ixx: "Gromov_product_at px x' x = M"
+  have : dist px x = dist px x' + dist x' x := by
+    rw [← geodesic_segment_dist (some_geodesic_is_geodesic_segment px x).1 hx'_mem]
+  have Ixx : Gromov_product_at px x' x = M := by
+    sorry
 --     unfolding Gromov_product_at_def ** x'_def using M by auto
 --   have := calc 2 * M = dist px x' + dist px x - dist x' x"
 --     unfolding ** x'_def using M by auto
@@ -95,6 +95,8 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
 --   _ = 2 * Gromov_product_at py x x'"
 --     unfolding Gromov_product_at_def by (auto simp add: metric_space_class.dist_commute)
 --   finally have Iyx: "Gromov_product_at py x x' ≥ M" by auto
+  sorry
+-- proof -
 
 --   have *: "y' ∈ {py‒y}" unfolding y'_def
 --     by (simp add: geodesic_segment_param_in_segment)
@@ -134,15 +136,15 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
 --     by auto
 
   /- Third step: prove the estimate -/
---   have := calc M - 2 * δ ≤ Min {Gromov_product_at px x' x, Gromov_product_at px x y, Gromov_product_at px y y'} - 2 * Gromov_hyperbolic_space.deltaG X"
---     using Ixx Ixy Ix \<open>δ ≥ Gromov_hyperbolic_space.deltaG X\<close> by auto
+--   have := calc M - 2 * δ ≤ Min {Gromov_product_at px x' x, Gromov_product_at px x y, Gromov_product_at px y y'} - 2 * deltaG X"
+--     using Ixx Ixy Ix \<open>δ ≥ deltaG X\<close> by auto
 --   _ ≤ Gromov_product_at px x' y'"
 --     by (intro mono_intros)
 --   finally have A: "M - 4 * δ + dist x' y' ≤ dist px y'"
 --     unfolding Gromov_product_at_def \<open>dist px x' = M\<close> by auto
 
---   have := calc M - 2 * δ ≤ Min {Gromov_product_at py x' x, Gromov_product_at py x y, Gromov_product_at py y y'} - 2 * Gromov_hyperbolic_space.deltaG X"
---     using Iyx Iyy Iy \<open>δ ≥ Gromov_hyperbolic_space.deltaG X\<close> by (auto simp add: Gromov_product_commute)
+--   have := calc M - 2 * δ ≤ Min {Gromov_product_at py x' x, Gromov_product_at py x y, Gromov_product_at py y y'} - 2 * deltaG X"
+--     using Iyx Iyy Iy \<open>δ ≥ deltaG X\<close> by (auto simp add: Gromov_product_commute)
 --   _ ≤ Gromov_product_at py x' y'"
 --     by (intro mono_intros)
 --   finally have B: "M - 4 * δ + dist x' y' ≤ dist py x'"
@@ -155,7 +157,7 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
 --   _ ≤ max (dist px py + dist y' x') (dist px x' + dist y' py) + 2 * deltaG TYPE('a)"
 --     by (rule hyperb_quad_ineq)
 --   _ ≤ max (dist px py + dist y' x') (dist px x' + dist y' py) + 2 * δ"
---     using \<open>Gromov_hyperbolic_space.deltaG X ≤ δ\<close> by auto
+--     using \<open>deltaG X ≤ δ\<close> by auto
 --   finally have "2 * M - 10 * δ + 2 * dist x' y' ≤ max (dist px py + dist y' x') (dist px x' + dist y' py)"
 --     by auto
 --   then have "2 * M - 10 * δ + 2 * dist x' y' ≤ dist px x' + dist py y'"
@@ -184,8 +186,8 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
     (h : ∀ x y, x ∈ Icc a b → y ∈ Icc a b → dist (f x) (f y) ≤ Λ * dist x y + C)
     (ha : a ≤ b) (hpa : pa ∈ proj_set (f a) G) (hpb : pb ∈ proj_set (f b) G)
     (hG' : ∀ t, t ∈ Icc a b → infDist (f t) G ≥ D) (hD : D ≥ 15/2 * δ + C/2)
-    (hδ : δ > Gromov_hyperbolic_space.deltaG X) (hC : C ≥ 0) (hΛ : Λ ≥ 0) :
-    dist pa pb ≤ max (5 * Gromov_hyperbolic_space.deltaG X)
+    (hδ : δ > deltaG X) (hC : C ≥ 0) (hΛ : Λ ≥ 0) :
+    dist pa pb ≤ max (5 * deltaG X)
       ((4 * exp (1/2 * log 2)) * Λ * (b-a) * exp (-(D-C/2) * log 2 / (5 * δ))) := by
   sorry
 -- proof -
@@ -209,7 +211,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
 --             → (\<forall>i ∈ {0..2^k}. dist (p i) (g i) ≥ 5 * δ * k + 15/2 * δ + c/2)
 --             → (\<forall>i ∈ {0..<2^k}. dist (g i) (g (Suc i)) ≤ 10 * δ + c)
 --             → c ≥ 0
---             → dist (p 0) (p (2^k)) ≤ 5 * Gromov_hyperbolic_space.deltaG X" for k
+--             → dist (p 0) (p (2^k)) ≤ 5 * deltaG X" for k
 --   proof (induction k)
 --     case 0
 --     then have H: "p 0 ∈ proj_set (g 0) G"
@@ -218,11 +220,11 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
 --                  "dist (p 0) (g 0) ≥ 15/2 * δ + c/2"
 --                  "dist (p 1) (g 1) ≥ 15/2 * δ + c/2"
 --       by auto
---     have := calc dist (p 0) (p 1) ≤ max (5 * Gromov_hyperbolic_space.deltaG X) (dist (g 0) (g 1) - dist (p 0) (g 0) - dist (p 1) (g 1) + 10 * Gromov_hyperbolic_space.deltaG X)"
+--     have := calc dist (p 0) (p 1) ≤ max (5 * deltaG X) (dist (g 0) (g 1) - dist (p 0) (g 0) - dist (p 1) (g 1) + 10 * deltaG X)"
 --       by (rule proj_along_geodesic_contraction[OF \<open>geodesic_segment G\<close> \<open>p 0 ∈ proj_set (g 0) G\<close> \<open>p 1 ∈ proj_set (g 1) G\<close>])
---     _ ≤ max (5 * Gromov_hyperbolic_space.deltaG X) (5 * Gromov_hyperbolic_space.deltaG X)"
---       apply (intro mono_intros) using H \<open>delta > Gromov_hyperbolic_space.deltaG X\<close> by auto
---     finally show "dist (p 0) (p (2^0)) ≤ 5 * Gromov_hyperbolic_space.deltaG X"
+--     _ ≤ max (5 * deltaG X) (5 * deltaG X)"
+--       apply (intro mono_intros) using H \<open>delta > deltaG X\<close> by auto
+--     finally show "dist (p 0) (p (2^0)) ≤ 5 * deltaG X"
 --       by auto
 --   next
 --     case (Suc k)
@@ -230,11 +232,11 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
 --       by (simp add: algebra_simps)
 --     define h where "h = (\<lambda>i. geodesic_segment_param {p i‒g i} (p i) (5 * δ * k + 15/2 * δ))"
 --     have h_dist: "dist (h i) (h (Suc i)) ≤ 5 * δ" if "i ∈ {0..<2^(Suc k)}" for i
---       unfolding h_def apply (rule geodesic_projection_exp_contracting_aux[OF \<open>geodesic_segment G\<close> _ _ less_imp_le[OF \<open>delta > Gromov_hyperbolic_space.deltaG X\<close>]])
+--       unfolding h_def apply (rule geodesic_projection_exp_contracting_aux[OF \<open>geodesic_segment G\<close> _ _ less_imp_le[OF \<open>delta > deltaG X\<close>]])
 --       unfolding * using Suc.prems that \<open>delta > 0\<close> by (auto simp add: algebra_simps divide_simps)
 --     define g' where "g' = (\<lambda>i. h (2 * i))"
 --     define p' where "p' = (\<lambda>i. p (2 * i))"
---     have "dist (p' 0) (p' (2^k)) ≤ 5 * Gromov_hyperbolic_space.deltaG X"
+--     have "dist (p' 0) (p' (2^k)) ≤ 5 * deltaG X"
 --     proof (rule Suc.IH[where ?g = g' and ?c = 0])
 --       show "\<forall>i∈{0..2 ^ k}. p' i ∈ proj_set (g' i) G"
 --       proof
@@ -270,7 +272,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
 --         finally show "dist (g' i) (g' (Suc i)) ≤ 10 * δ + 0" by simp
 --       qed
 --     qed (simp)
---     then show "dist (p 0) (p (2 ^ Suc k)) ≤ 5 * Gromov_hyperbolic_space.deltaG X"
+--     then show "dist (p 0) (p (2 ^ Suc k)) ≤ 5 * deltaG X"
 --       unfolding p'_def by auto
 --   qed
 
@@ -352,7 +354,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
 --         using that proj_setD(2)[OF B[OF that]] by (simp add: metric_space_class.dist_commute)
 --       finally show ?thesis by simp
 --     qed
---     have "dist (p 0) (p (2^k)) ≤ 5 * Gromov_hyperbolic_space.deltaG X"
+--     have "dist (p 0) (p (2^k)) ≤ 5 * deltaG X"
 --       apply (rule Main[where ?g = g and ?c = C]) using A B C \<open>C ≥ 0\<close> by auto
 --     then show ?thesis
 --       unfolding p_def by auto
@@ -460,10 +462,10 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
 --       qed
 --       define g' where "g' = (\<lambda>i. g (i + 2^k * j))"
 --       define p' where "p' = (\<lambda>i. p (i + 2^k * j))"
---       have := calc dist (p' 0) (p' (2^k)) ≤ 5 * Gromov_hyperbolic_space.deltaG X"
+--       have := calc dist (p' 0) (p' (2^k)) ≤ 5 * deltaG X"
 --         apply (rule Main[where ?g = g' and ?c = C]) unfolding p'_def g'_def using A B C I I' \<open>C ≥ 0\<close> by auto
 --       _ ≤ 5 * δ"
---         using \<open>Gromov_hyperbolic_space.deltaG X < δ\<close> by auto
+--         using \<open>deltaG X < δ\<close> by auto
 --       finally show ?thesis
 --         unfolding p'_def by auto
 --     qed
@@ -513,9 +515,9 @@ lemma quasiconvex_projection_exp_contracting
     (hab : a ≤ b) (hpaG : pa ∈ proj_set (f a) G) (hpbG : pb ∈ proj_set (f b) G)
     (hG : ∀ t, t ∈ Icc a b → infDist (f t) G ≥ D)
     (hD : D ≥ 15/2 * δ + K + C/2)
-    (hδ : δ > Gromov_hyperbolic_space.deltaG X) (hC : C ≥ 0) (hΛ : Λ ≥ 0) :
+    (hδ : δ > deltaG X) (hC : C ≥ 0) (hΛ : Λ ≥ 0) :
     dist pa pb ≤ 2 * K + 8 * δ
-      + max (5 * Gromov_hyperbolic_space.deltaG X)
+      + max (5 * deltaG X)
           ((4 * exp (1/2 * log 2)) * Λ * (b-a) * exp (-(D - K - C/2) * log 2 / (5 * δ))) := by
   sorry
 -- proof -
@@ -552,7 +554,7 @@ lemma quasiconvex_projection_exp_contracting
 --     then show "D - K ≤ infDist (f t) H"
 --       apply (subst infDist_notempty) using H(1) by auto
 --   qed
---   have Q: "dist qa qb ≤ max (5 * Gromov_hyperbolic_space.deltaG X) ((4 * exp(1/2 * log 2)) * lambda * (b-a) * exp(-((D - K)-C/2 ) * log 2 / (5 * delta)))"
+--   have Q: "dist qa qb ≤ max (5 * deltaG X) ((4 * exp(1/2 * log 2)) * lambda * (b-a) * exp(-((D - K)-C/2 ) * log 2 / (5 * delta)))"
 --     apply (rule geodesic_projection_exp_contracting[OF geodesic_segmentI[OF \<open>geodesic_segment_between H pa pb\<close>] assms(2) assms(3)])
 --     using qa qb I assms by auto
 
@@ -573,7 +575,7 @@ lemma quasiconvex_projection_exp_contracting
 --     qed
 --     then have I: "dist (f a) pa - dist (f a) qa - K ≤ 0"
 --       using dense_ge by blast
---     have := calc dist (f a) qa + dist qa pa ≤ dist (f a) pa + 4 * Gromov_hyperbolic_space.deltaG X"
+--     have := calc dist (f a) qa + dist qa pa ≤ dist (f a) pa + 4 * deltaG X"
 --       apply (rule dist_along_geodesic[OF geodesic_segmentI[OF H(1)]]) using qa H(1) by auto
 --     _ ≤ dist (f a) qa + K + 4 * delta"
 --       using I assms by auto
@@ -597,7 +599,7 @@ lemma quasiconvex_projection_exp_contracting
 --     qed
 --     then have I: "dist (f b) pb - dist (f b) qb - K ≤ 0"
 --       using dense_ge by blast
---     have := calc dist (f b) qb + dist qb pb ≤ dist (f b) pb + 4 * Gromov_hyperbolic_space.deltaG X"
+--     have := calc dist (f b) qb + dist qb pb ≤ dist (f b) pb + 4 * deltaG X"
 --       apply (rule dist_along_geodesic[OF geodesic_segmentI[OF H(1)]]) using qb H(1) by auto
 --     _ ≤ dist (f b) qb + K + 4 * delta"
 --       using I assms by auto
@@ -744,7 +746,7 @@ lemma Morse_Gromov_theorem_aux1
     (hab : a ≤ b)
     (hGf : geodesic_segment_between G (f a) (f b))
     (hz : z ∈ Icc a b)
-    (hδ : δ > Gromov_hyperbolic_space.deltaG X) :
+    (hδ : δ > deltaG X) :
     infDist (f z) G ≤ Λ ^ 2 * (11/2 * C + 91 * δ) := by
   sorry
 #exit
