@@ -1,6 +1,7 @@
 /-  Author:  Sébastien Gouëzel   sebastien.gouezel@univ-rennes1.fr
     License: BSD
 -/
+import Mathlib.Topology.Connected.PathConnected
 import Mathlib.Topology.MetricSpace.Isometry
 
 /-! # Geodesic spaces
@@ -85,9 +86,9 @@ noncomputable def geodesic_segment_param (G : Set X) (x : X) (t : ℝ) : X :=
 --   ultimately show ?thesis by auto
 -- qed
 
--- lemma geodesic_segment_endpoints [simp]:
---   assumes "geodesic_segment_between G x y"
---   shows "x \<in> G" "y \<in> G" "G \<noteq> {}"
+@[simp] lemma geodesic_segment_endpoints {G : Set X} {x y : X}
+    (hxy : geodesic_segment_between G x y) : x ∈ G ∧ y ∈ G ∧ G.Nonempty := by
+  sorry
 -- using assms unfolding geodesic_segment_between_def
 --   by (auto, metis atLeastAtMost_iff image_eqI less_eq_real_def zero_le_dist)
 
@@ -471,12 +472,12 @@ lemma geodesic_subsegment_exists (hG : geodesic_segment G) (hx : x ∈ G)  (hy :
 --   show ?thesis using isometry_on_homeomorphism(3)[OF g(3)] unfolding g(4) by simp
 -- qed
 
--- `geodesic_segment_topology`
 /- Just like an interval, a geodesic segment is compact, connected, path connected, bounded,
 closed, nonempty, and proper. -/
--- lemma geodesic_segment_topology:
---   assumes "geodesic_segment G"
---   shows "compact G" "connected G" "path_connected G" "bounded G" "closed G" "G \<noteq> {}" "proper G"
+lemma geodesic_segment_topology {G : Set X} (h : geodesic_segment G) :
+    IsCompact G ∧ IsConnected G ∧ IsPathConnected G ∧ Bornology.IsBounded G ∧ IsClosed G
+      ∧ G.Nonempty := by -- original also had "proper G"
+  sorry
 -- proof -
 --   show "compact G"
 --     using assms geodesic_segment_homeo_interval homeomorphic_compactness
@@ -776,174 +777,178 @@ abbrev some_geodesic_segment_between_UNIV {X : Type*} [MetricSpace X] (x y : X) 
 set_option quotPrecheck false in
 notation "{" x "‒" y "}" => some_geodesic_segment_between_UNIV x y
 
-#exit
+-- lemma some_geodesic_commute:
+--   "{x--S--y} = {y--S--x}"
+-- unfolding some_geodesic_segment_between_def by (auto simp add: someI_ex[OF some_geodesic_segment_between_exists])
 
-lemma some_geodesic_commute:
-  "{x--S--y} = {y--S--x}"
-unfolding some_geodesic_segment_between_def by (auto simp add: someI_ex[OF some_geodesic_segment_between_exists])
+-- lemma some_geodesic_segment_description:
+--   "(\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S) \<Longrightarrow> geodesic_segment_between {x--S--y} x y"
+--   "(\<not>(\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S)) \<Longrightarrow> {x--S--y} = {x, y}"
+-- unfolding some_geodesic_segment_between_def by (simp add: someI_ex[OF some_geodesic_segment_between_exists])+
 
-lemma some_geodesic_segment_description:
-  "(\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S) \<Longrightarrow> geodesic_segment_between {x--S--y} x y"
-  "(\<not>(\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S)) \<Longrightarrow> {x--S--y} = {x, y}"
-unfolding some_geodesic_segment_between_def by (simp add: someI_ex[OF some_geodesic_segment_between_exists])+
+-- text \<open>Basic topological properties of our chosen set of geodesics.\<close>
 
-text \<open>Basic topological properties of our chosen set of geodesics.\<close>
+-- lemma some_geodesic_compact [simp]:
+--   "compact {x--S--y}"
+-- apply (cases "\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S")
+-- using some_geodesic_segment_description[of x y] geodesic_segment_topology[of "{x--S--y}"] geodesic_segment_def apply auto
+--   by blast
 
-lemma some_geodesic_compact [simp]:
-  "compact {x--S--y}"
-apply (cases "\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S")
-using some_geodesic_segment_description[of x y] geodesic_segment_topology[of "{x--S--y}"] geodesic_segment_def apply auto
-  by blast
+-- lemma some_geodesic_closed [simp]:
+--   "closed {x--S--y}"
+-- by (rule compact_imp_closed[OF some_geodesic_compact[of x S y]])
 
-lemma some_geodesic_closed [simp]:
-  "closed {x--S--y}"
-by (rule compact_imp_closed[OF some_geodesic_compact[of x S y]])
+-- lemma some_geodesic_bounded [simp]:
+--   "bounded {x--S--y}"
+-- by (rule compact_imp_bounded[OF some_geodesic_compact[of x S y]])
 
-lemma some_geodesic_bounded [simp]:
-  "bounded {x--S--y}"
-by (rule compact_imp_bounded[OF some_geodesic_compact[of x S y]])
+-- lemma some_geodesic_endpoints [simp]:
+--   "x \<in> {x--S--y}" "y \<in> {x--S--y}" "{x--S--y} \<noteq> {}"
+-- apply (cases "\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S") using some_geodesic_segment_description[of x y S] apply auto
+-- apply (cases "\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S") using some_geodesic_segment_description[of x y S] apply auto
+-- apply (cases "\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S") using geodesic_segment_endpoints(3) by (auto, blast)
 
-lemma some_geodesic_endpoints [simp]:
-  "x \<in> {x--S--y}" "y \<in> {x--S--y}" "{x--S--y} \<noteq> {}"
-apply (cases "\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S") using some_geodesic_segment_description[of x y S] apply auto
-apply (cases "\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S") using some_geodesic_segment_description[of x y S] apply auto
-apply (cases "\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S") using geodesic_segment_endpoints(3) by (auto, blast)
+-- lemma some_geodesic_subsegment:
+--   assumes "H \<subseteq> {x--S--y}" "compact H" "connected H" "H \<noteq> {}"
+--   shows "geodesic_segment H"
+-- apply (cases "\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S")
+-- using some_geodesic_segment_description[of x y] geodesic_segment_subsegment[OF _ assms] geodesic_segment_def apply auto[1]
+-- using some_geodesic_segment_description[of x y] assms
+-- by (metis connected_finite_iff_sing finite.emptyI finite.insertI finite_subset geodesic_segment_between_x_x(2))
 
-lemma some_geodesic_subsegment:
-  assumes "H \<subseteq> {x--S--y}" "compact H" "connected H" "H \<noteq> {}"
-  shows "geodesic_segment H"
-apply (cases "\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S")
-using some_geodesic_segment_description[of x y] geodesic_segment_subsegment[OF _ assms] geodesic_segment_def apply auto[1]
-using some_geodesic_segment_description[of x y] assms
-by (metis connected_finite_iff_sing finite.emptyI finite.insertI finite_subset geodesic_segment_between_x_x(2))
+-- lemma some_geodesic_in_subset:
+--   assumes "x \<in> S" "y \<in> S"
+--   shows "{x--S--y} \<subseteq> S"
+-- apply (cases "\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S")
+-- unfolding some_geodesic_segment_between_def by (simp add: assms someI_ex[OF some_geodesic_segment_between_exists])+
 
-lemma some_geodesic_in_subset:
-  assumes "x \<in> S" "y \<in> S"
-  shows "{x--S--y} \<subseteq> S"
-apply (cases "\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S")
-unfolding some_geodesic_segment_between_def by (simp add: assms someI_ex[OF some_geodesic_segment_between_exists])+
+-- lemma some_geodesic_same_endpoints [simp]:
+--   "{x--S--x} = {x}"
+-- apply (cases "\<exists>G. geodesic_segment_between G x x \<and> G \<subseteq> S")
+-- apply (meson geodesic_segment_between_x_x(3) some_geodesic_segment_description(1))
+-- by (simp add: some_geodesic_segment_description(2))
 
-lemma some_geodesic_same_endpoints [simp]:
-  "{x--S--x} = {x}"
-apply (cases "\<exists>G. geodesic_segment_between G x x \<and> G \<subseteq> S")
-apply (meson geodesic_segment_between_x_x(3) some_geodesic_segment_description(1))
-by (simp add: some_geodesic_segment_description(2))
+-- subsection \<open>Geodesic subsets\<close>
 
-subsection \<open>Geodesic subsets\<close>
+-- text \<open>A subset is \emph{geodesic} if any two of its points can be joined by a geodesic segment.
+-- We prove basic properties of such a subset in this paragraph -- notably connectedness. A basic
+-- example is given by convex subsets of vector spaces, as closed segments are geodesic.\<close>
 
-text \<open>A subset is \emph{geodesic} if any two of its points can be joined by a geodesic segment.
-We prove basic properties of such a subset in this paragraph -- notably connectedness. A basic
-example is given by convex subsets of vector spaces, as closed segments are geodesic.\<close>
+-- definition geodesic_subset::"('a::metric_space) set \<Rightarrow> bool"
+--   where "geodesic_subset S = (\<forall>x\<in>S. \<forall>y\<in>S. \<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S)"
 
-definition geodesic_subset::"('a::metric_space) set \<Rightarrow> bool"
-  where "geodesic_subset S = (\<forall>x\<in>S. \<forall>y\<in>S. \<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S)"
+-- lemma geodesic_subsetD:
+--   assumes "geodesic_subset S" "x \<in> S" "y \<in> S"
+--   shows "geodesic_segment_between {x--S--y} x y"
+-- using assms some_geodesic_segment_description(1) unfolding geodesic_subset_def by blast
 
-lemma geodesic_subsetD:
-  assumes "geodesic_subset S" "x \<in> S" "y \<in> S"
-  shows "geodesic_segment_between {x--S--y} x y"
-using assms some_geodesic_segment_description(1) unfolding geodesic_subset_def by blast
+-- lemma geodesic_subsetI:
+--   assumes "\<And>x y. x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> \<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S"
+--   shows "geodesic_subset S"
+-- using assms unfolding geodesic_subset_def by auto
 
-lemma geodesic_subsetI:
-  assumes "\<And>x y. x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> \<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S"
-  shows "geodesic_subset S"
-using assms unfolding geodesic_subset_def by auto
+-- lemma geodesic_subset_empty:
+--   "geodesic_subset {}"
+-- using geodesic_subsetI by auto
 
-lemma geodesic_subset_empty:
-  "geodesic_subset {}"
-using geodesic_subsetI by auto
+-- lemma geodesic_subset_singleton:
+--   "geodesic_subset {x}"
+-- by (auto intro!: geodesic_subsetI geodesic_segment_between_x_x(1))
 
-lemma geodesic_subset_singleton:
-  "geodesic_subset {x}"
-by (auto intro!: geodesic_subsetI geodesic_segment_between_x_x(1))
+-- lemma geodesic_subset_path_connected:
+--   assumes "geodesic_subset S"
+--   shows "path_connected S"
+-- proof -
+--   have "\<exists>g. path g \<and> path_image g \<subseteq> S \<and> pathstart g = x \<and> pathfinish g = y" if "x \<in> S" "y \<in> S" for x y
+--   proof -
+--     define G where "G = {x--S--y}"
+--     have *: "geodesic_segment_between G x y" "G \<subseteq> S" "x \<in> G" "y \<in> G"
+--       using assms that by (auto simp add: G_def geodesic_subsetD some_geodesic_in_subset that(1) that(2))
+--     then have "path_connected G"
+--       using geodesic_segment_topology(3) unfolding geodesic_segment_def by auto
+--     then have "\<exists>g. path g \<and> path_image g \<subseteq> G \<and> pathstart g = x \<and> pathfinish g = y"
+--       using * unfolding path_connected_def by auto
+--     then show ?thesis using \<open>G \<subseteq> S\<close> by auto
+--   qed
+--   then show ?thesis
+--     unfolding path_connected_def by auto
+-- qed
 
-lemma geodesic_subset_path_connected:
-  assumes "geodesic_subset S"
-  shows "path_connected S"
-proof -
-  have "\<exists>g. path g \<and> path_image g \<subseteq> S \<and> pathstart g = x \<and> pathfinish g = y" if "x \<in> S" "y \<in> S" for x y
-  proof -
-    define G where "G = {x--S--y}"
-    have *: "geodesic_segment_between G x y" "G \<subseteq> S" "x \<in> G" "y \<in> G"
-      using assms that by (auto simp add: G_def geodesic_subsetD some_geodesic_in_subset that(1) that(2))
-    then have "path_connected G"
-      using geodesic_segment_topology(3) unfolding geodesic_segment_def by auto
-    then have "\<exists>g. path g \<and> path_image g \<subseteq> G \<and> pathstart g = x \<and> pathfinish g = y"
-      using * unfolding path_connected_def by auto
-    then show ?thesis using \<open>G \<subseteq> S\<close> by auto
-  qed
-  then show ?thesis
-    unfolding path_connected_def by auto
-qed
+-- text \<open>To show that a segment in a normed vector space is geodesic, we will need to use its
+-- length parametrization, which is given in the next lemma.\<close>
 
-text \<open>To show that a segment in a normed vector space is geodesic, we will need to use its
-length parametrization, which is given in the next lemma.\<close>
+-- lemma closed_segment_as_isometric_image:
+--   "((\<lambda>t. x + (t/dist x y) *\<^sub>R (y - x))`{0..dist x y}) = closed_segment x y"
+-- proof (auto simp add: closed_segment_def image_iff)
+--   fix t assume H: "0 \<le> t" "t \<le> dist x y"
+--   show "\<exists>u. x + (t / dist x y) *\<^sub>R (y - x) = (1 - u) *\<^sub>R x + u *\<^sub>R y \<and> 0 \<le> u \<and> u \<le> 1"
+--     apply (rule exI[of _ "t/dist x y"])
+--     using H apply (auto simp add: algebra_simps divide_simps)
+--     apply (metis add_diff_cancel_left' add_diff_eq add_divide_distrib dist_eq_0_iff scaleR_add_left vector_fraction_eq_iff)
+--     done
+-- next
+--   fix u::real assume H: "0 \<le> u" "u \<le> 1"
+--   show "\<exists>t\<in>{0..dist x y}. (1 - u) *\<^sub>R x + u *\<^sub>R y = x + (t / dist x y) *\<^sub>R (y - x)"
+--     apply (rule bexI[of _ "u * dist x y"])
+--     using H by (auto simp add: algebra_simps mult_left_le_one_le)
+-- qed
 
-lemma closed_segment_as_isometric_image:
-  "((\<lambda>t. x + (t/dist x y) *\<^sub>R (y - x))`{0..dist x y}) = closed_segment x y"
-proof (auto simp add: closed_segment_def image_iff)
-  fix t assume H: "0 \<le> t" "t \<le> dist x y"
-  show "\<exists>u. x + (t / dist x y) *\<^sub>R (y - x) = (1 - u) *\<^sub>R x + u *\<^sub>R y \<and> 0 \<le> u \<and> u \<le> 1"
-    apply (rule exI[of _ "t/dist x y"])
-    using H apply (auto simp add: algebra_simps divide_simps)
-    apply (metis add_diff_cancel_left' add_diff_eq add_divide_distrib dist_eq_0_iff scaleR_add_left vector_fraction_eq_iff)
-    done
-next
-  fix u::real assume H: "0 \<le> u" "u \<le> 1"
-  show "\<exists>t\<in>{0..dist x y}. (1 - u) *\<^sub>R x + u *\<^sub>R y = x + (t / dist x y) *\<^sub>R (y - x)"
-    apply (rule bexI[of _ "u * dist x y"])
-    using H by (auto simp add: algebra_simps mult_left_le_one_le)
-qed
+-- proposition closed_segment_is_geodesic:
+--   fixes x y::"'a::real_normed_vector"
+--   shows "isometry_on {0..dist x y} (\<lambda>t. x + (t/dist x y) *\<^sub>R (y - x))"
+--         "geodesic_segment_between (closed_segment x y) x y"
+--         "geodesic_segment (closed_segment x y)"
+-- proof -
+--   show *: "isometry_on {0..dist x y} (\<lambda>t. x + (t/dist x y) *\<^sub>R (y - x))"
+--     unfolding isometry_on_def dist_norm
+--     apply (cases "x = y")
+--     by (auto simp add: scaleR_diff_left[symmetric] diff_divide_distrib[symmetric] norm_minus_commute)
+--   show "geodesic_segment_between (closed_segment x y) x y"
+--     unfolding closed_segment_as_isometric_image[symmetric]
+--     apply (rule geodesic_segment_betweenI[OF _ _ *]) by auto
+--   then show "geodesic_segment (closed_segment x y)"
+--     by auto
+-- qed
 
-proposition closed_segment_is_geodesic:
-  fixes x y::"'a::real_normed_vector"
-  shows "isometry_on {0..dist x y} (\<lambda>t. x + (t/dist x y) *\<^sub>R (y - x))"
-        "geodesic_segment_between (closed_segment x y) x y"
-        "geodesic_segment (closed_segment x y)"
-proof -
-  show *: "isometry_on {0..dist x y} (\<lambda>t. x + (t/dist x y) *\<^sub>R (y - x))"
-    unfolding isometry_on_def dist_norm
-    apply (cases "x = y")
-    by (auto simp add: scaleR_diff_left[symmetric] diff_divide_distrib[symmetric] norm_minus_commute)
-  show "geodesic_segment_between (closed_segment x y) x y"
-    unfolding closed_segment_as_isometric_image[symmetric]
-    apply (rule geodesic_segment_betweenI[OF _ _ *]) by auto
-  then show "geodesic_segment (closed_segment x y)"
-    by auto
-qed
+-- text \<open>We deduce that a convex set is geodesic.\<close>
 
-text \<open>We deduce that a convex set is geodesic.\<close>
-
-proposition convex_is_geodesic:
-  assumes "convex (S::'a::real_normed_vector set)"
-  shows "geodesic_subset S"
-proof (rule geodesic_subsetI)
-  fix x y assume H: "x \<in> S" "y \<in> S"
-  show "\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S"
-    apply (rule exI[of _ "closed_segment x y"])
-    apply (auto simp add: closed_segment_is_geodesic)
-    using H assms convex_contains_segment by blast
-qed
+-- proposition convex_is_geodesic:
+--   assumes "convex (S::'a::real_normed_vector set)"
+--   shows "geodesic_subset S"
+-- proof (rule geodesic_subsetI)
+--   fix x y assume H: "x \<in> S" "y \<in> S"
+--   show "\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S"
+--     apply (rule exI[of _ "closed_segment x y"])
+--     apply (auto simp add: closed_segment_is_geodesic)
+--     using H assms convex_contains_segment by blast
+-- qed
 
 
-subsection \<open>Geodesic spaces\<close>
+/- ! ## Geodesic spaces
 
-text \<open>In this subsection, we define geodesic spaces (metric spaces in which there is a geodesic
+In this subsection, we define geodesic spaces (metric spaces in which there is a geodesic
 segment joining any pair of points). We specialize the previous statements on geodesic segments to
-these situations.\<close>
+these situations. -/
 
-class geodesic_space = metric_space +
-  assumes geodesic: "geodesic_subset (UNIV::('a::metric_space) set)"
+class GeodesicSpace (X : Type*) [MetricSpace X]
 
-text \<open>The simplest example of a geodesic space is a real normed vector space. Significant examples
-also include graphs (with the graph distance), Riemannian manifolds, and $CAT(\kappa)$ spaces.\<close>
+-- class geodesic_space = metric_space +
+--   assumes geodesic: "geodesic_subset (UNIV::('a::metric_space) set)"
 
-instance real_normed_vector \<subseteq> geodesic_space
-by (standard, simp add: convex_is_geodesic)
+/- The simplest example of a geodesic space is a real normed vector space. Significant examples
+also include graphs (with the graph distance), Riemannian manifolds, and $CAT(\kappa)$ spaces. -/
 
-lemma (in geodesic_space) some_geodesic_is_geodesic_segment [simp]:
-  "geodesic_segment_between {x--y} x (y::'a)"
-  "geodesic_segment {x--y}"
-using some_geodesic_segment_description(1)[of x y] geodesic_subsetD[OF geodesic] by (auto, blast)
+-- instance real_normed_vector \<subseteq> geodesic_space
+-- by (standard, simp add: convex_is_geodesic)
+
+variable [GeodesicSpace X]
+
+@[simp] lemma some_geodesic_is_geodesic_segment (x y : X) :
+    geodesic_segment_between {x‒y} x y ∧ geodesic_segment {x‒y} := by
+  sorry
+-- using some_geodesic_segment_description(1)[of x y] geodesic_subsetD[OF geodesic] by (auto, blast)
+
+#exit
 
 lemma (in geodesic_space) some_geodesic_connected [simp]:
   "connected {x--y}" "path_connected {x--y}"

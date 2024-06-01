@@ -364,6 +364,8 @@ lemma dist_le_max_dist_triangle {x y m : X} (hxy : geodesic_segment_between G x 
     simp only [dist_comm] at *
     linarith
 
+attribute [gcongr] infDist_le_infDist_of_subset -- FIXME move this
+
 /-- A useful variation around the previous properties is that quadrilaterals are thin, in the
 following sense: if one has a union of three geodesics from `x` to `t`, then a geodesic from `x`
 to `t` remains within distance `8 * δ` of the union of these 3 geodesics. We formulate the
@@ -378,36 +380,42 @@ lemma thin_quadrilaterals [GeodesicSpace X] {x y z t w : X}
     (hxt : geodesic_segment_between Gxt x t)
     (hw : w ∈ Gxt) :
     infDist w (Gxy ∪ Gyz ∪ Gzt) ≤ 8 * δ := by
-  sorry
--- proof -
---   have I: "infDist w ({x--z} ∪ Gzt) ≤ 4 * δ"
---     apply (rule thin_triangles[OF _ assms(3) assms(4) assms(5)])
---     by (simp add: geodesic_segment_commute)
---   have "\<exists>u ∈ {x--z} ∪ Gzt. infDist w ({x--z} ∪ Gzt) = dist w u"
---     apply (rule infDist_proper_attained, auto intro!: proper_Un simp add: geodesic_segment_topology(7))
---     by (meson assms(3) geodesic_segmentI geodesic_segment_topology)
---   then obtain u where u: "u ∈ {x--z} ∪ Gzt" "infDist w ({x--z} ∪ Gzt) = dist w u"
---     by auto
---   have "infDist u (Gxy ∪ Gyz ∪ Gzt) ≤ 4 * δ"
---   proof (cases "u ∈ {x--z}")
---     case True
---     have "infDist u (Gxy ∪ Gyz ∪ Gzt) ≤ infDist u (Gxy ∪ Gyz)"
---       apply (intro mono_intros) using assms(1) by auto
---     also have "... ≤ 4 * δ"
---       using thin_triangles[OF geodesic_segment_commute[OF assms(1)] assms(2) _ True] by auto
---     finally show ?thesis
---       by auto
---   next
---     case False
---     then have *: "u ∈ Gzt" using u(1) by auto
---     have "infDist u (Gxy ∪ Gyz ∪ Gzt) ≤ infDist u Gzt"
---       apply (intro mono_intros) using assms(3) by auto
---     also have "... = 0" using * by auto
---     finally show ?thesis
---       using local.delta_nonneg by linarith
---   qed
---   moreover have "infDist w (Gxy ∪ Gyz ∪ Gzt) ≤ infDist u (Gxy ∪ Gyz ∪ Gzt) + dist w u"
---     by (intro mono_intros)
---   ultimately show ?thesis
---     using I u(2) by auto
--- qed
+  have hxz : geodesic_segment_between {x‒z} x z := (some_geodesic_is_geodesic_segment x z).1
+  have I : infDist w ({x‒z} ∪ Gzt) ≤ 4 * δ := by
+    rw [geodesic_segment_commute] at hxz
+    exact thin_triangles hxz hzt hxt hw
+  obtain ⟨u, hu_mem, hu_dist⟩ : ∃ u ∈ {x‒z} ∪ Gzt, infDist w ({x‒z} ∪ Gzt) = dist w u := by
+    apply IsCompact.exists_infDist_eq_dist
+    apply IsCompact.union
+    · refine (geodesic_segment_topology (X := X) ?_).1
+      exact (some_geodesic_is_geodesic_segment x z).2
+    · refine (geodesic_segment_topology (X := X) ?_).1
+      exact ⟨_, _, hzt⟩
+    · use x
+      left
+      exact (geodesic_segment_endpoints hxz).1
+  have : infDist u (Gxy ∪ Gyz ∪ Gzt) ≤ 4 * δ := by
+    by_cases h : u ∈ {x‒z}
+    · calc infDist u (Gxy ∪ Gyz ∪ Gzt) ≤ infDist u (Gxy ∪ Gyz) := by
+            rw [union_assoc]
+            gcongr
+            · refine ⟨y, ?_⟩
+              left
+              exact (geodesic_segment_endpoints hxy).2.1
+            · aesop
+        _ ≤ 4 * δ := by
+            rw [geodesic_segment_commute] at hxy
+            exact thin_triangles hxy hyz hxz h
+    · have : u ∈ Gzt := by aesop
+      calc infDist u (Gxy ∪ Gyz ∪ Gzt) ≤ infDist u Gzt := by
+            gcongr
+            · exact ⟨_, this⟩
+            · aesop
+        _ = 0 := infDist_zero_of_mem this
+        _ ≤ 4 * δ := by
+            have : Inhabited X := ⟨u⟩
+            have := delta_nonneg X
+            positivity
+  have : infDist w (Gxy ∪ Gyz ∪ Gzt) ≤ infDist u (Gxy ∪ Gyz ∪ Gzt) + dist w u :=
+    infDist_le_infDist_add_dist
+  linarith
