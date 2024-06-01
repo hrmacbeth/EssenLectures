@@ -140,8 +140,11 @@ lemma dist_along_quasiconvex (hCG : quasiconvex C G) (hp : p ∈ proj_set x G) (
   have : p ∈ G := proj_setD hp
   obtain ⟨H, hH₁, hH₂⟩ : ∃ H, geodesic_segment_between H p y ∧ ∀ q ∈ H, infDist q G ≤ C :=
     quasiconvexD hCG this hy
-  obtain ⟨m, hm₁, hm₂⟩ : ∃ m ∈ H, infDist x H = dist x m := sorry
---     apply (rule `infDist_proper_attained` [of H x]) using `geodesic_segment_topology` [OF geodesic_segmentI[OF H(1)]] by auto
+  obtain ⟨m, hm₁, hm₂⟩ : ∃ m ∈ H, infDist x H = dist x m := by
+    apply IsCompact.exists_infDist_eq_dist
+    · refine (geodesic_segment_topology ?_).1
+      exact ⟨_, _, hH₁⟩
+    · exact (geodesic_segment_endpoints hH₁).2.2
   have I : dist x m ≤ Gromov_product_at x p y + 2 * δ := by
     rw [← hm₂]
     apply infDist_triangle_side x hH₁
