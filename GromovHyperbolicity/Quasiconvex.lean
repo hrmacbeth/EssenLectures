@@ -150,8 +150,10 @@ lemma dist_along_quasiconvex (hCG : quasiconvex C G) (hp : p ∈ proj_set x G) (
     apply infDist_triangle_side x hH₁
   have : ∀ e > 0, dist x p - dist x m - C ≤ e := by
     intro e he
-    obtain ⟨r, hrG, hrm⟩ : ∃ r ∈ G, dist m r < infDist m G + e := sorry
---       apply (rule `infDist_almost_attained`) using he assms(3) by auto
+    obtain ⟨r, hrG, hrm⟩ : ∃ r ∈ G, dist m r < infDist m G + e := by
+      rw [← infDist_lt_iff]
+      · linarith
+      · exact ⟨_, hy⟩
     have : infDist m G ≤ C := hH₂ _ hm₁
     have :=
     calc dist x p ≤ dist x r := sorry -- using hrG assms(2) `proj_set_dist_le` by blast

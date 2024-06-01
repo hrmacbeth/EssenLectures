@@ -23,13 +23,13 @@ def proj_set {X : Type*} [MetricSpace X] (x : X) (s : Set X) : Set X := sorry
 
 lemma proj_setD [MetricSpace X] {x y : X} {s : Set X} (hxy : x ∈ proj_set y s) : x ∈ s := sorry
 
+-- `proj_set_dist_le`
 
 -- **Lemma 2.1**
 -- `quasi_geodesic_made_lipschitz`
 
--- `infDist_almost_attained`
--- `infDist_proper_attained`
--- `proj_set_dist_le`
+-- `infDist_almost_attained` -- in Mathlib `infDist_lt_iff`
+-- `infDist_proper_attained` -- in Mathlib `IsCompact.exists_infDist_eq_dist`
 
 open Set Topology in
 -- there must be a better way! check the library
