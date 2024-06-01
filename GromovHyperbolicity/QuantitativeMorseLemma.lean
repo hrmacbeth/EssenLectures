@@ -3,7 +3,7 @@
 import GromovHyperbolicity.Quasiconvex
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 
-open Set Metric Real
+open Set Metric Real Classical
 
 /-! # The Morse-Gromov Theorem
 

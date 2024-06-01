@@ -232,16 +232,8 @@ lemma thin_triangles1 {x y z : X}
         gcongr
     _ ≤ Gromov_product_at x (geodesic_segment_param G x t) (geodesic_segment_param H x t) :=
         hyperb_ineq ..
-  have A : dist x (geodesic_segment_param G x t) = t := by
-    apply le_antisymm
-    · apply dist_geodesic_segment_param
-    conv_lhs => rw [← h2]
-    exact (Gromov_product_le_dist _ _ _).1
-  have B : dist x (geodesic_segment_param H x t) = t := by
-    apply le_antisymm
-    · apply dist_geodesic_segment_param
-    conv_lhs => rw [← h2]
-    exact (Gromov_product_le_dist _ _ x).1
+  have A : dist x (geodesic_segment_param G x t) = t := dist_geodesic_segment_param G x t
+  have B : dist x (geodesic_segment_param H x t) = t := dist_geodesic_segment_param ..
   rw [Gromov_product_at] at I
   linarith
 

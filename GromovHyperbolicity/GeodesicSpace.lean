@@ -48,7 +48,7 @@ theorem geodesic_segment_param_mem {X : Type*} [MetricSpace X] (G : Set X) (x : 
 
 -- note: made up this name and guessed statement, it was recorded as geodesic_segment_param(6)
 theorem dist_geodesic_segment_param {X : Type*} [MetricSpace X] (G : Set X) (x : X) (t : ℝ) :
-    dist x (geodesic_segment_param G x t) ≤ t :=
+    dist x (geodesic_segment_param G x t) = t :=
   sorry
 
 -- note: made up this name and guessed statement, it was recorded as a property of

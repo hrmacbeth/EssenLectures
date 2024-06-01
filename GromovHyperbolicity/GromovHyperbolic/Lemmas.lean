@@ -6,7 +6,7 @@ import GromovHyperbolicity.GromovHyperbolic.Basic
 # Gromov hyperbolic spaces
 -/
 
-open Metric
+open Metric Classical
 
 variable {X : Type*} [MetricSpace X]
 
