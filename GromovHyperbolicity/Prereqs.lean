@@ -2,6 +2,7 @@
     License: BSD -/
 import Mathlib.Topology.MetricSpace.Basic
 import Mathlib.Topology.UniformSpace.Completion
+import GromovHyperbolicity.GeodesicSpace
 
 /-! # TODO Missing geodesic space theory -/
 
@@ -22,13 +23,9 @@ def proj_set {X : Type*} [MetricSpace X] (x : X) (s : Set X) : Set X := sorry
 
 lemma proj_setD [MetricSpace X] {x y : X} {s : Set X} (hxy : x ∈ proj_set y s) : x ∈ s := sorry
 
-def geodesic_segment {X : Type*} [MetricSpace X] (s : Set X) : Prop := sorry
 
-def geodesic_segment_between {X : Type*} [MetricSpace X] (s : Set X) (x y : X) : Prop := sorry
+-- def geodesic_segment_between {X : Type*} [MetricSpace X] (s : Set X) (x y : X) : Prop := sorry
 
--- guessed statement
-lemma geodesic_segment_commute {X : Type*} [MetricSpace X] (s : Set X) (x y : X) :
-    geodesic_segment_between s x y ↔ geodesic_segment_between s y x := sorry
 
 lemma some_geodesic_segment_between_exists (X : Type*) [MetricSpace X]
     [∀ x y : X, ∀ S : Set X, Decidable (∃ G, geodesic_segment_between G x y ∧ G ⊆ S)] :
@@ -55,27 +52,7 @@ abbrev some_geodesic_segment_between_UNIV {X : Type*} [MetricSpace X]
 set_option quotPrecheck false in
 notation "{" x "‒" y "}" => some_geodesic_segment_between_UNIV x y
 
-def geodesic_segment_param {X : Type*} [MetricSpace X] (G : Set X) (x : X) (t : ℝ) : X := sorry
-
--- note: made up this name and guessed statement, it was recorded as geodesic_segment_param(3)
-theorem geodesic_segment_param_mem {X : Type*} [MetricSpace X] (G : Set X) (x : X) (t : ℝ) :
-    geodesic_segment_param G x t ∈ G := sorry
-
--- note: made up this name and guessed statement, it was recorded as geodesic_segment_param(6)
-theorem dist_geodesic_segment_param {X : Type*} [MetricSpace X] (G : Set X) (x : X) (t : ℝ) :
-    dist x (geodesic_segment_param G x t) ≤ t :=
-  sorry
-
--- note: made up this name and guessed statement, it was recorded as a property of
--- geodesic_segment_param
-theorem geodesic_segment_param_geodesic {X : Type*} [inst : MetricSpace X] {G : Set X} {y z w : X}
-    (hyz : geodesic_segment_between G y z) (hw : w ∈ G) :
-  ∃ t ∈ Set.Icc 0 (dist y z), w = geodesic_segment_param G y t := sorry
-
--- `geodesic_segment_reverse_param`
--- `geodesic_segment_topology`
 -- `geodesic_subsegment_exists`
--- `geodesic_segment_dist`
 
 class GeodesicSpace (X : Type*) [MetricSpace X]
 

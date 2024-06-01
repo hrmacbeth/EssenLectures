@@ -1,6 +1,5 @@
 /-  Author:  Sébastien Gouëzel   sebastien.gouezel@univ-rennes1.fr
     License: BSD -/
-import Mathlib.Topology.MetricSpace.Isometry
 import Mathlib.Topology.MetricSpace.Completion
 import Mathlib.Topology.MetricSpace.HausdorffDistance
 import GromovHyperbolicity.Prereqs
@@ -9,7 +8,7 @@ import GromovHyperbolicity.Prereqs
 # Gromov hyperbolic spaces
 -/
 
-open Metric Set
+open Metric Set Classical
 
 noncomputable section
 
@@ -242,7 +241,7 @@ lemma thin_triangles1 {x y z : X}
     apply le_antisymm
     · apply dist_geodesic_segment_param
     conv_lhs => rw [← h2]
-    exact (Gromov_product_le_dist _ _ _).1
+    exact (Gromov_product_le_dist _ _ x).1
   rw [Gromov_product_at] at I
   linarith
 
