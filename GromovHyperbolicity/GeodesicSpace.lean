@@ -481,261 +481,286 @@ closed, nonempty, and proper. -/
 --     using proper_of_compact \<open>compact G\<close> by auto
 -- qed
 
-#exit
+-- lemma geodesic_segment_between_x_x [simp]:
+--   "geodesic_segment_between {x} x x"
+--   "geodesic_segment {x}"
+--   "geodesic_segment_between G x x \<longleftrightarrow> G = {x}"
+-- proof -
+--   show *: "geodesic_segment_between {x} x x"
+--     unfolding geodesic_segment_between_def apply (rule exI[of _ "\<lambda>_. x"]) unfolding isometry_on_def by auto
+--   then show "geodesic_segment {x}" by auto
+--   show "geodesic_segment_between G x x \<longleftrightarrow> G = {x}"
+--     using geodesic_segment_dist_le geodesic_segment_endpoints(2) * by fastforce
+-- qed
 
-lemma geodesic_segment_between_x_x [simp]:
-  "geodesic_segment_between {x} x x"
-  "geodesic_segment {x}"
-  "geodesic_segment_between G x x \<longleftrightarrow> G = {x}"
-proof -
-  show *: "geodesic_segment_between {x} x x"
-    unfolding geodesic_segment_between_def apply (rule exI[of _ "\<lambda>_. x"]) unfolding isometry_on_def by auto
-  then show "geodesic_segment {x}" by auto
-  show "geodesic_segment_between G x x \<longleftrightarrow> G = {x}"
-    using geodesic_segment_dist_le geodesic_segment_endpoints(2) * by fastforce
-qed
+-- lemma geodesic_segment_disconnection:
+--   assumes "geodesic_segment_between G x y" "z \<in> G"
+--   shows "(connected (G - {z})) = (z = x \<or> z = y)"
+-- proof -
+--   obtain g where g: "g 0 = x" "g (dist x y) = y" "isometry_on {0..dist x y} g" "G = g`{0..dist x y}"
+--     by (meson \<open>geodesic_segment_between G x y\<close> geodesic_segment_between_def)
+--   obtain t where t: "t \<in> {0..dist x y}" "z = g t" using \<open>z \<in> G\<close> g(4) by auto
+--   have "({0..dist x y} - {t}) homeomorphic (G - {g t})"
+--   proof -
+--     have *: "isometry_on ({0..dist x y} - {t}) g"
+--       apply (rule isometry_on_subset[OF g(3)]) by auto
+--     have "({0..dist x y} - {t}) homeomorphic g`({0..dist x y} - {t})"
+--       by (rule isometry_on_homeomorphism(3)[OF *])
+--     moreover have "g`({0..dist x y} - {t}) = G - {g t}"
+--       unfolding g(4) using isometry_on_injective[OF g(3)] t by (auto simp add: inj_onD)
+--     ultimately show ?thesis by auto
+--   qed
+--   moreover have "connected({0..dist x y} - {t}) = (t = 0 \<or> t = dist x y)"
+--     using t(1) by (auto simp add: connected_iff_interval, fastforce)
+--   ultimately have "connected (G - {z}) = (t = 0 \<or> t = dist x y)"
+--     unfolding \<open>z = g t\<close>[symmetric]using homeomorphic_connectedness by blast
+--   moreover have "(t = 0 \<or> t = dist x y) = (z = x \<or> z = y)"
+--     using t g apply auto
+--     by (metis atLeastAtMost_iff isometry_on_inverse(2) order_refl zero_le_dist)+
+--   ultimately show ?thesis by auto
+-- qed
 
-lemma geodesic_segment_disconnection:
-  assumes "geodesic_segment_between G x y" "z \<in> G"
-  shows "(connected (G - {z})) = (z = x \<or> z = y)"
-proof -
-  obtain g where g: "g 0 = x" "g (dist x y) = y" "isometry_on {0..dist x y} g" "G = g`{0..dist x y}"
-    by (meson \<open>geodesic_segment_between G x y\<close> geodesic_segment_between_def)
-  obtain t where t: "t \<in> {0..dist x y}" "z = g t" using \<open>z \<in> G\<close> g(4) by auto
-  have "({0..dist x y} - {t}) homeomorphic (G - {g t})"
-  proof -
-    have *: "isometry_on ({0..dist x y} - {t}) g"
-      apply (rule isometry_on_subset[OF g(3)]) by auto
-    have "({0..dist x y} - {t}) homeomorphic g`({0..dist x y} - {t})"
-      by (rule isometry_on_homeomorphism(3)[OF *])
-    moreover have "g`({0..dist x y} - {t}) = G - {g t}"
-      unfolding g(4) using isometry_on_injective[OF g(3)] t by (auto simp add: inj_onD)
-    ultimately show ?thesis by auto
-  qed
-  moreover have "connected({0..dist x y} - {t}) = (t = 0 \<or> t = dist x y)"
-    using t(1) by (auto simp add: connected_iff_interval, fastforce)
-  ultimately have "connected (G - {z}) = (t = 0 \<or> t = dist x y)"
-    unfolding \<open>z = g t\<close>[symmetric]using homeomorphic_connectedness by blast
-  moreover have "(t = 0 \<or> t = dist x y) = (z = x \<or> z = y)"
-    using t g apply auto
-    by (metis atLeastAtMost_iff isometry_on_inverse(2) order_refl zero_le_dist)+
-  ultimately show ?thesis by auto
-qed
+-- lemma geodesic_segment_unique_endpoints:
+--   assumes "geodesic_segment_between G x y"
+--           "geodesic_segment_between G a b"
+--   shows "{x, y} = {a, b}"
+-- by (metis geodesic_segment_disconnection assms(1) assms(2) doubleton_eq_iff geodesic_segment_endpoints(1) geodesic_segment_endpoints(2))
 
-lemma geodesic_segment_unique_endpoints:
-  assumes "geodesic_segment_between G x y"
-          "geodesic_segment_between G a b"
-  shows "{x, y} = {a, b}"
-by (metis geodesic_segment_disconnection assms(1) assms(2) doubleton_eq_iff geodesic_segment_endpoints(1) geodesic_segment_endpoints(2))
+-- lemma geodesic_segment_subsegment:
+--   assumes "geodesic_segment G" "H \<subseteq> G" "compact H" "connected H" "H \<noteq> {}"
+--   shows "geodesic_segment H"
+-- proof -
+--   obtain x y where "geodesic_segment_between G x y"
+--     using assms unfolding geodesic_segment_def by auto
+--   obtain g where g: "g 0 = x" "g (dist x y) = y" "isometry_on {0..dist x y} g" "G = g`{0..dist x y}"
+--     by (meson \<open>geodesic_segment_between G x y\<close> geodesic_segment_between_def)
+--   define L where "L = (inv_into {0..dist x y} g)`H"
+--   have "L \<subseteq> {0..dist x y}"
+--     unfolding L_def using isometry_on_inverse[OF \<open>isometry_on {0..dist x y} g\<close>] assms(2) g(4) by auto
+--   have "isometry_on G (inv_into {0..dist x y} g)"
+--     using isometry_on_inverse[OF \<open>isometry_on {0..dist x y} g\<close>] g(4) by auto
+--   then have "isometry_on H (inv_into {0..dist x y} g)"
+--     using \<open>H \<subseteq> G\<close> isometry_on_subset by auto
+--   then have "H homeomorphic L" unfolding L_def using isometry_on_homeomorphism(3) by auto
+--   then have "compact L \<and> connected L"
+--     using assms homeomorphic_compactness homeomorphic_connectedness by blast
+--   then obtain a b where "L = {a..b}"
+--     using connected_compact_interval_1[of L] by auto
+--   have "a \<le> b" using \<open>H \<noteq> {}\<close> \<open>L = {a..b}\<close> unfolding L_def by auto
+--   then have "0 \<le> a" "b \<le> dist x y" using \<open>L \<subseteq> {0..dist x y}\<close> \<open>L = {a..b}\<close> by auto
+--   have *: "H = g`{a..b}"
+--     by (metis L_def \<open>L = {a..b}\<close> assms(2) g(4) image_inv_into_cancel)
+--   show "geodesic_segment H"
+--     unfolding * apply (rule geodesic_segmentI2[OF _ \<open>a \<le> b\<close>])
+--     apply (rule isometry_on_subset[OF g(3)]) using \<open>0 \<le> a\<close> \<open>b \<le> dist x y\<close> by auto
+-- qed
 
-lemma geodesic_segment_subsegment:
-  assumes "geodesic_segment G" "H \<subseteq> G" "compact H" "connected H" "H \<noteq> {}"
-  shows "geodesic_segment H"
-proof -
-  obtain x y where "geodesic_segment_between G x y"
-    using assms unfolding geodesic_segment_def by auto
-  obtain g where g: "g 0 = x" "g (dist x y) = y" "isometry_on {0..dist x y} g" "G = g`{0..dist x y}"
-    by (meson \<open>geodesic_segment_between G x y\<close> geodesic_segment_between_def)
-  define L where "L = (inv_into {0..dist x y} g)`H"
-  have "L \<subseteq> {0..dist x y}"
-    unfolding L_def using isometry_on_inverse[OF \<open>isometry_on {0..dist x y} g\<close>] assms(2) g(4) by auto
-  have "isometry_on G (inv_into {0..dist x y} g)"
-    using isometry_on_inverse[OF \<open>isometry_on {0..dist x y} g\<close>] g(4) by auto
-  then have "isometry_on H (inv_into {0..dist x y} g)"
-    using \<open>H \<subseteq> G\<close> isometry_on_subset by auto
-  then have "H homeomorphic L" unfolding L_def using isometry_on_homeomorphism(3) by auto
-  then have "compact L \<and> connected L"
-    using assms homeomorphic_compactness homeomorphic_connectedness by blast
-  then obtain a b where "L = {a..b}"
-    using connected_compact_interval_1[of L] by auto
-  have "a \<le> b" using \<open>H \<noteq> {}\<close> \<open>L = {a..b}\<close> unfolding L_def by auto
-  then have "0 \<le> a" "b \<le> dist x y" using \<open>L \<subseteq> {0..dist x y}\<close> \<open>L = {a..b}\<close> by auto
-  have *: "H = g`{a..b}"
-    by (metis L_def \<open>L = {a..b}\<close> assms(2) g(4) image_inv_into_cancel)
-  show "geodesic_segment H"
-    unfolding * apply (rule geodesic_segmentI2[OF _ \<open>a \<le> b\<close>])
-    apply (rule isometry_on_subset[OF g(3)]) using \<open>0 \<le> a\<close> \<open>b \<le> dist x y\<close> by auto
-qed
+-- text \<open>The image under an isometry of a geodesic segment is still obviously a geodesic segment.\<close>
+-- lemma isometry_preserves_geodesic_segment_between:
+--   assumes "isometry_on X f"
+--           "G \<subseteq> X" "geodesic_segment_between G x y"
+--   shows "geodesic_segment_between (f`G) (f x) (f y)"
+-- proof -
+--   obtain g where g: "g 0 = x" "g (dist x y) = y" "isometry_on {0..dist x y} g" "G = g`{0..dist x y}"
+--     by (meson \<open>geodesic_segment_between G x y\<close> geodesic_segment_between_def)
+--   then have *: "f`G = (f o g) `{0..dist x y}" "f x = (f o g) 0" "f y = (f o g) (dist x y)"
+--     by auto
+--   show ?thesis
+--     unfolding * apply (intro geodesic_segmentI2(1))
+--     unfolding comp_def apply (rule isometry_on_compose[of _ g])
+--     using g(3) g(4) assms by (auto intro: isometry_on_subset)
+-- qed
 
-text \<open>The image under an isometry of a geodesic segment is still obviously a geodesic segment.\<close>
-lemma isometry_preserves_geodesic_segment_between:
-  assumes "isometry_on X f"
-          "G \<subseteq> X" "geodesic_segment_between G x y"
-  shows "geodesic_segment_between (f`G) (f x) (f y)"
-proof -
-  obtain g where g: "g 0 = x" "g (dist x y) = y" "isometry_on {0..dist x y} g" "G = g`{0..dist x y}"
-    by (meson \<open>geodesic_segment_between G x y\<close> geodesic_segment_between_def)
-  then have *: "f`G = (f o g) `{0..dist x y}" "f x = (f o g) 0" "f y = (f o g) (dist x y)"
-    by auto
-  show ?thesis
-    unfolding * apply (intro geodesic_segmentI2(1))
-    unfolding comp_def apply (rule isometry_on_compose[of _ g])
-    using g(3) g(4) assms by (auto intro: isometry_on_subset)
-qed
+-- text \<open>The sum of distances $d(w, x) + d(w, y)$ can be controlled using the distance from $w$
+-- to a geodesic segment between $x$ and $y$.\<close>
+-- lemma geodesic_segment_distance:
+--   assumes "geodesic_segment_between G x y"
+--   shows "dist w x + dist w y \<le> dist x y + 2 * infdist w G"
+-- proof -
+--   have "\<exists>z \<in> G. infdist w G = dist w z"
+--     apply (rule infdist_proper_attained) using assms by (auto simp add: geodesic_segment_topology)
+--   then obtain z where z: "z \<in> G" "infdist w G = dist w z" by auto
+--   have "dist w x + dist w y \<le> (dist w z + dist z x) + (dist w z + dist z y)"
+--     by (intro mono_intros)
+--   also have "... = dist x z + dist z y + 2 * dist w z"
+--     by (auto simp add: dist_commute)
+--   also have "... = dist x y + 2 * infdist w G"
+--     using z(1) assms geodesic_segment_dist unfolding z(2) by auto
+--   finally show ?thesis by auto
+-- qed
 
-text \<open>The sum of distances $d(w, x) + d(w, y)$ can be controlled using the distance from $w$
-to a geodesic segment between $x$ and $y$.\<close>
-lemma geodesic_segment_distance:
-  assumes "geodesic_segment_between G x y"
-  shows "dist w x + dist w y \<le> dist x y + 2 * infdist w G"
-proof -
-  have "\<exists>z \<in> G. infdist w G = dist w z"
-    apply (rule infdist_proper_attained) using assms by (auto simp add: geodesic_segment_topology)
-  then obtain z where z: "z \<in> G" "infdist w G = dist w z" by auto
-  have "dist w x + dist w y \<le> (dist w z + dist z x) + (dist w z + dist z y)"
-    by (intro mono_intros)
-  also have "... = dist x z + dist z y + 2 * dist w z"
-    by (auto simp add: dist_commute)
-  also have "... = dist x y + 2 * infdist w G"
-    using z(1) assms geodesic_segment_dist unfolding z(2) by auto
-  finally show ?thesis by auto
-qed
+-- text \<open>If a point $y$ is on a geodesic segment between $x$ and its closest projection $p$ on a set $A$,
+-- then $p$ is also a closest projection of $y$, and the closest projection set of $y$ is contained in
+-- that of $x$.\<close>
 
-text \<open>If a point $y$ is on a geodesic segment between $x$ and its closest projection $p$ on a set $A$,
-then $p$ is also a closest projection of $y$, and the closest projection set of $y$ is contained in
-that of $x$.\<close>
+-- lemma proj_set_geodesic_same_basepoint:
+--   assumes "p \<in> proj_set x A" "geodesic_segment_between G p x" "y \<in> G"
+--   shows "p \<in> proj_set y A"
+-- proof (rule proj_setI)
+--   show "p \<in> A"
+--     using assms proj_setD by auto
+--   have *: "dist y p \<le> dist y q" if "q \<in> A" for q
+--   proof -
+--     have "dist p y + dist y x = dist p x"
+--       using assms geodesic_segment_dist by blast
+--     also have "... \<le> dist q x"
+--       using proj_set_dist_le[OF \<open>q \<in> A\<close> assms(1)] by (simp add: dist_commute)
+--     also have "... \<le> dist q y + dist y x"
+--       by (intro mono_intros)
+--     finally show ?thesis
+--       by (simp add: dist_commute)
+--   qed
+--   have "dist y p \<le> Inf (dist y ` A)"
+--     apply (rule cINF_greatest) using \<open>p \<in> A\<close> * by auto
+--   then show "dist y p \<le> infdist y A"
+--     unfolding infdist_def using \<open>p \<in> A\<close> by auto
+-- qed
 
-lemma proj_set_geodesic_same_basepoint:
-  assumes "p \<in> proj_set x A" "geodesic_segment_between G p x" "y \<in> G"
-  shows "p \<in> proj_set y A"
-proof (rule proj_setI)
-  show "p \<in> A"
-    using assms proj_setD by auto
-  have *: "dist y p \<le> dist y q" if "q \<in> A" for q
-  proof -
-    have "dist p y + dist y x = dist p x"
-      using assms geodesic_segment_dist by blast
-    also have "... \<le> dist q x"
-      using proj_set_dist_le[OF \<open>q \<in> A\<close> assms(1)] by (simp add: dist_commute)
-    also have "... \<le> dist q y + dist y x"
-      by (intro mono_intros)
-    finally show ?thesis
-      by (simp add: dist_commute)
-  qed
-  have "dist y p \<le> Inf (dist y ` A)"
-    apply (rule cINF_greatest) using \<open>p \<in> A\<close> * by auto
-  then show "dist y p \<le> infdist y A"
-    unfolding infdist_def using \<open>p \<in> A\<close> by auto
-qed
+-- lemma proj_set_subset:
+--   assumes "p \<in> proj_set x A" "geodesic_segment_between G p x" "y \<in> G"
+--   shows "proj_set y A \<subseteq> proj_set x A"
+-- proof -
+--   have "z \<in> proj_set x A" if "z \<in> proj_set y A" for z
+--   proof (rule proj_setI)
+--     show "z \<in> A" using that proj_setD by auto
+--     have "dist x z \<le> dist x y + dist y z"
+--       by (intro mono_intros)
+--     also have "... \<le> dist x y + dist y p"
+--       using proj_set_dist_le[OF proj_setD(1)[OF \<open>p \<in> proj_set x A\<close>] that] by auto
+--     also have "... = dist x p"
+--       using assms geodesic_segment_commute geodesic_segment_dist by blast
+--     also have "... = infdist x A"
+--       using proj_setD(2)[OF assms(1)] by simp
+--     finally show "dist x z \<le> infdist x A"
+--       by simp
+--   qed
+--   then show ?thesis by auto
+-- qed
 
-lemma proj_set_subset:
-  assumes "p \<in> proj_set x A" "geodesic_segment_between G p x" "y \<in> G"
-  shows "proj_set y A \<subseteq> proj_set x A"
-proof -
-  have "z \<in> proj_set x A" if "z \<in> proj_set y A" for z
-  proof (rule proj_setI)
-    show "z \<in> A" using that proj_setD by auto
-    have "dist x z \<le> dist x y + dist y z"
-      by (intro mono_intros)
-    also have "... \<le> dist x y + dist y p"
-      using proj_set_dist_le[OF proj_setD(1)[OF \<open>p \<in> proj_set x A\<close>] that] by auto
-    also have "... = dist x p"
-      using assms geodesic_segment_commute geodesic_segment_dist by blast
-    also have "... = infdist x A"
-      using proj_setD(2)[OF assms(1)] by simp
-    finally show "dist x z \<le> infdist x A"
-      by simp
-  qed
-  then show ?thesis by auto
-qed
+-- lemma proj_set_thickening:
+--   assumes "p \<in> proj_set x Z"
+--           "0 \<le> D"
+--           "D \<le> dist p x"
+--           "geodesic_segment_between G p x"
+--   shows "geodesic_segment_param G p D \<in> proj_set x (\<Union>z\<in>Z. cball z D)"
+-- proof (rule proj_setI')
+--   have "dist p (geodesic_segment_param G p D) = D"
+--     using geodesic_segment_param(7)[OF assms(4), of 0 D]
+--     unfolding geodesic_segment_param(1)[OF assms(4)] using assms by simp
+--   then show "geodesic_segment_param G p D \<in> (\<Union>z\<in>Z. cball z D)"
+--     using proj_setD(1)[OF \<open>p \<in> proj_set x Z\<close>] by force
+--   show "dist x (geodesic_segment_param G p D) \<le> dist x y" if "y \<in> (\<Union>z\<in>Z. cball z D)" for y
+--   proof -
+--     obtain z where y: "y \<in> cball z D" "z \<in> Z" using \<open>y \<in> (\<Union>z\<in>Z. cball z D)\<close> by auto
+--     have "dist (geodesic_segment_param G p D) x + D = dist p x"
+--       using geodesic_segment_param(7)[OF assms(4), of D "dist p x"]
+--       unfolding geodesic_segment_param(2)[OF assms(4)] using assms by simp
+--     also have "... \<le> dist z x"
+--       using proj_setD(2)[OF \<open>p \<in> proj_set x Z\<close>] infdist_le[OF \<open>z \<in> Z\<close>, of x] by (simp add: dist_commute)
+--     also have "... \<le> dist z y + dist y x"
+--       by (intro mono_intros)
+--     also have "... \<le> D + dist y x"
+--       using y by simp
+--     finally show ?thesis by (simp add: dist_commute)
+--   qed
+-- qed
 
-lemma proj_set_thickening:
-  assumes "p \<in> proj_set x Z"
-          "0 \<le> D"
-          "D \<le> dist p x"
-          "geodesic_segment_between G p x"
-  shows "geodesic_segment_param G p D \<in> proj_set x (\<Union>z\<in>Z. cball z D)"
-proof (rule proj_setI')
-  have "dist p (geodesic_segment_param G p D) = D"
-    using geodesic_segment_param(7)[OF assms(4), of 0 D]
-    unfolding geodesic_segment_param(1)[OF assms(4)] using assms by simp
-  then show "geodesic_segment_param G p D \<in> (\<Union>z\<in>Z. cball z D)"
-    using proj_setD(1)[OF \<open>p \<in> proj_set x Z\<close>] by force
-  show "dist x (geodesic_segment_param G p D) \<le> dist x y" if "y \<in> (\<Union>z\<in>Z. cball z D)" for y
-  proof -
-    obtain z where y: "y \<in> cball z D" "z \<in> Z" using \<open>y \<in> (\<Union>z\<in>Z. cball z D)\<close> by auto
-    have "dist (geodesic_segment_param G p D) x + D = dist p x"
-      using geodesic_segment_param(7)[OF assms(4), of D "dist p x"]
-      unfolding geodesic_segment_param(2)[OF assms(4)] using assms by simp
-    also have "... \<le> dist z x"
-      using proj_setD(2)[OF \<open>p \<in> proj_set x Z\<close>] infdist_le[OF \<open>z \<in> Z\<close>, of x] by (simp add: dist_commute)
-    also have "... \<le> dist z y + dist y x"
-      by (intro mono_intros)
-    also have "... \<le> D + dist y x"
-      using y by simp
-    finally show ?thesis by (simp add: dist_commute)
-  qed
-qed
+-- lemma proj_set_thickening':
+--   assumes "p \<in> proj_set x Z"
+--           "0 \<le> D"
+--           "D \<le> E"
+--           "E \<le> dist p x"
+--           "geodesic_segment_between G p x"
+--   shows "geodesic_segment_param G p D \<in> proj_set (geodesic_segment_param G p E) (\<Union>z\<in>Z. cball z D)"
+-- proof -
+--   define H where "H = geodesic_subsegment G p D (dist p x)"
+--   have H1: "geodesic_segment_between H (geodesic_segment_param G p D) x"
+--     apply (subst geodesic_segment_param(2)[OF \<open>geodesic_segment_between G p x\<close>, symmetric])
+--     unfolding H_def apply (rule geodesic_subsegment(2)) using assms by auto
+--   have H2: "geodesic_segment_param G p E \<in> H"
+--     unfolding H_def using assms geodesic_subsegment(1) by force
+--   have "geodesic_segment_param G p D \<in> proj_set x (\<Union>z\<in>Z. cball z D)"
+--     apply (rule proj_set_thickening) using assms by auto
+--   then show ?thesis
+--     by (rule proj_set_geodesic_same_basepoint[OF _ H1 H2])
+-- qed
 
-lemma proj_set_thickening':
-  assumes "p \<in> proj_set x Z"
-          "0 \<le> D"
-          "D \<le> E"
-          "E \<le> dist p x"
-          "geodesic_segment_between G p x"
-  shows "geodesic_segment_param G p D \<in> proj_set (geodesic_segment_param G p E) (\<Union>z\<in>Z. cball z D)"
-proof -
-  define H where "H = geodesic_subsegment G p D (dist p x)"
-  have H1: "geodesic_segment_between H (geodesic_segment_param G p D) x"
-    apply (subst geodesic_segment_param(2)[OF \<open>geodesic_segment_between G p x\<close>, symmetric])
-    unfolding H_def apply (rule geodesic_subsegment(2)) using assms by auto
-  have H2: "geodesic_segment_param G p E \<in> H"
-    unfolding H_def using assms geodesic_subsegment(1) by force
-  have "geodesic_segment_param G p D \<in> proj_set x (\<Union>z\<in>Z. cball z D)"
-    apply (rule proj_set_thickening) using assms by auto
-  then show ?thesis
-    by (rule proj_set_geodesic_same_basepoint[OF _ H1 H2])
-qed
+-- text \<open>It is often convenient to use \emph{one} geodesic between $x$ and $y$, even if it is not unique.
+-- We introduce a notation for such a choice of a geodesic, denoted \verb+{x--S--y}+ for such a geodesic
+-- that moreover remains in the set $S$. We also enforce
+-- the condition \verb+{x--S--y} = {y--S--x}+. When there is no such geodesic, we simply take
+-- \verb+{x--S--y} = {x, y}+ for definiteness. It would be even better to enforce that, if
+-- $a$ is on \verb+{x--S--y}+, then \verb+{x--S--y}+ is the union of \verb+{x--S--a}+ and \verb+{a--S--y}+, but
+-- I do not know if such a choice is always possible -- such a choice of geodesics is
+-- called a geodesic bicombing.
+-- We also write \verb+{x--y}+ for \verb+{x--UNIV--y}+.\<close>
 
-text \<open>It is often convenient to use \emph{one} geodesic between $x$ and $y$, even if it is not unique.
-We introduce a notation for such a choice of a geodesic, denoted \verb+{x--S--y}+ for such a geodesic
-that moreover remains in the set $S$. We also enforce
-the condition \verb+{x--S--y} = {y--S--x}+. When there is no such geodesic, we simply take
-\verb+{x--S--y} = {x, y}+ for definiteness. It would be even better to enforce that, if
-$a$ is on \verb+{x--S--y}+, then \verb+{x--S--y}+ is the union of \verb+{x--S--a}+ and \verb+{a--S--y}+, but
+-- definition some_geodesic_segment_between::"'a::metric_space \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> 'a set" ("(1{_--_--_})")
+--   where "some_geodesic_segment_between = (SOME f. \<forall> x y S. f x S y = f y S x
+--     \<and> (if (\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S) then (geodesic_segment_between (f x S y) x y \<and> (f x S y \<subseteq> S))
+--         else f x S y = {x, y}))"
+
+-- abbreviation some_geodesic_segment_between_UNIV::"'a::metric_space \<Rightarrow> 'a \<Rightarrow> 'a set" ("(1{_--_})")
+--   where "some_geodesic_segment_between_UNIV x y \<equiv> {x--UNIV--y}"
+
+/-- We prove that there is such a choice of geodesics, compatible with direction reversal. What
+we do is choose arbitrarily a geodesic between `x` and `y` if it exists, and then use the geodesic
+between `min x y` and `max x y`, for any total order on the space, to ensure that we get the
+same result from `x` to `y` or from `y` to `x`. -/
+lemma some_geodesic_segment_between_exists (X : Type*) [MetricSpace X]
+    [∀ x y : X, ∀ S : Set X, Decidable (∃ G, geodesic_segment_between G x y ∧ G ⊆ S)] :
+    ∃ f : X → Set X → X → Set X, ∀ x y S, f x S y = f y S x
+    ∧  (if (∃ G, geodesic_segment_between G x y ∧ G ⊆ S) then
+          (geodesic_segment_between (f x S y) x y ∧ (f x S y ⊆ S))
+        else
+          f x S y = {x, y}) :=
+  sorry
+--   define g::"'a \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> 'a set" where
+--     "g = (\<lambda>x S y. if (\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S) then (SOME G. geodesic_segment_between G x y \<and> G \<subseteq> S) else {x, y})"
+--   have g1: "geodesic_segment_between (g x S y) x y \<and> (g x S y \<subseteq> S)" if "\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S" for x y S
+--     unfolding g_def using someI_ex[OF that] by auto
+--   have g2: "g x S y = {x, y}" if "\<not>(\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S)" for x y S
+--     unfolding g_def using that by auto
+--   obtain r::"'a rel" where r: "well_order_on UNIV r"
+--     using well_order_on by auto
+--   have A: "x = y" if "(x, y) \<in> r" "(y, x) \<in> r" for x y
+--     using r that unfolding well_order_on_def linear_order_on_def partial_order_on_def antisym_def by auto
+--   have B: "(x, y) \<in> r \<or> (y, x) \<in> r" for x y
+--     using r unfolding well_order_on_def linear_order_on_def total_on_def partial_order_on_def preorder_on_def refl_on_def by force
+
+--   define f where "f = (\<lambda>x S y. if (x, y) \<in> r then g x S y else g y S x)"
+--   have "f x S y = f y S x" for x y S unfolding f_def using r A B by auto
+--   moreover have "geodesic_segment_between (f x S y) x y \<and> (f x S y \<subseteq> S)" if "\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S" for x y S
+--     unfolding f_def using g1 geodesic_segment_commute that by smt
+--   moreover have "f x S y = {x, y}" if "\<not>(\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S)" for x y S
+--     unfolding f_def using g2 that geodesic_segment_commute doubleton_eq_iff by metis
+--   ultimately show ?thesis by metis
+-- qed
+
+/-- It is often convenient to use \emph{one} geodesic between `x` and `y`, even if it is not unique.
+We introduce a notation for such a choice of a geodesic, denoted `{x‒S‒y}` for such a geodesic
+that moreover remains in the set `S`. We also enforce
+the condition `{x‒S‒y} = {y‒S‒x}`. When there is no such geodesic, we simply take
+`{x‒S‒y} = {x, y}` for definiteness. It would be even better to enforce that, if
+`a` is on `{x‒S‒y}`, then `{x‒S‒y}` is the union of `{x‒S‒a}` and `{a‒S‒y}` but
 I do not know if such a choice is always possible -- such a choice of geodesics is
 called a geodesic bicombing.
-We also write \verb+{x--y}+ for \verb+{x--UNIV--y}+.\<close>
+We also write `{x‒y}` for `{x‒(@Set.univ X)‒y}`. -/
+def some_geodesic_segment_between {X : Type*} [MetricSpace X]
+    [∀ x y : X, ∀ S : Set X, Decidable (∃ G, geodesic_segment_between G x y ∧ G ⊆ S)]
+    (x y : X) (S : Set X) : Set X :=
+  (some_geodesic_segment_between_exists X).choose x S y
 
-definition some_geodesic_segment_between::"'a::metric_space \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> 'a set" ("(1{_--_--_})")
-  where "some_geodesic_segment_between = (SOME f. \<forall> x y S. f x S y = f y S x
-    \<and> (if (\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S) then (geodesic_segment_between (f x S y) x y \<and> (f x S y \<subseteq> S))
-        else f x S y = {x, y}))"
+set_option quotPrecheck false in
+notation "{" x "‒" S "‒" y "}" => some_geodesic_segment_between x y S
 
-abbreviation some_geodesic_segment_between_UNIV::"'a::metric_space \<Rightarrow> 'a \<Rightarrow> 'a set" ("(1{_--_})")
-  where "some_geodesic_segment_between_UNIV x y \<equiv> {x--UNIV--y}"
+abbrev some_geodesic_segment_between_UNIV {X : Type*} [MetricSpace X] (x y : X) : Set X :=
+  {x‒(@Set.univ X)‒y}
 
-text \<open>We prove that there is such a choice of geodesics, compatible with direction reversal. What
-we do is choose arbitrarily a geodesic between $x$ and $y$ if it exists, and then use the geodesic
-between $\min(x, y)$ and $\max(x,y)$, for any total order on the space, to ensure that we get the
-same result from $x$ to $y$ or from $y$ to $x$.\<close>
+set_option quotPrecheck false in
+notation "{" x "‒" y "}" => some_geodesic_segment_between_UNIV x y
 
-lemma some_geodesic_segment_between_exists:
-  "\<exists>f. \<forall> x y S. f x S y = f y S x
-    \<and> (if (\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S) then (geodesic_segment_between (f x S y) x y \<and> (f x S y \<subseteq> S))
-        else f x S y = {x, y})"
-proof -
-  define g::"'a \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> 'a set" where
-    "g = (\<lambda>x S y. if (\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S) then (SOME G. geodesic_segment_between G x y \<and> G \<subseteq> S) else {x, y})"
-  have g1: "geodesic_segment_between (g x S y) x y \<and> (g x S y \<subseteq> S)" if "\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S" for x y S
-    unfolding g_def using someI_ex[OF that] by auto
-  have g2: "g x S y = {x, y}" if "\<not>(\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S)" for x y S
-    unfolding g_def using that by auto
-  obtain r::"'a rel" where r: "well_order_on UNIV r"
-    using well_order_on by auto
-  have A: "x = y" if "(x, y) \<in> r" "(y, x) \<in> r" for x y
-    using r that unfolding well_order_on_def linear_order_on_def partial_order_on_def antisym_def by auto
-  have B: "(x, y) \<in> r \<or> (y, x) \<in> r" for x y
-    using r unfolding well_order_on_def linear_order_on_def total_on_def partial_order_on_def preorder_on_def refl_on_def by force
-
-  define f where "f = (\<lambda>x S y. if (x, y) \<in> r then g x S y else g y S x)"
-  have "f x S y = f y S x" for x y S unfolding f_def using r A B by auto
-  moreover have "geodesic_segment_between (f x S y) x y \<and> (f x S y \<subseteq> S)" if "\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S" for x y S
-    unfolding f_def using g1 geodesic_segment_commute that by smt
-  moreover have "f x S y = {x, y}" if "\<not>(\<exists>G. geodesic_segment_between G x y \<and> G \<subseteq> S)" for x y S
-    unfolding f_def using g2 that geodesic_segment_commute doubleton_eq_iff by metis
-  ultimately show ?thesis by metis
-qed
+#exit
 
 lemma some_geodesic_commute:
   "{x--S--y} = {y--S--x}"
