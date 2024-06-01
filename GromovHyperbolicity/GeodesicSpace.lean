@@ -14,7 +14,7 @@ noncomputable section
 
 /-! ## Geodesic segments in general metric spaces -/
 
-open Set
+open Set Classical
 
 variable {X : Type*} [MetricSpace X]
 
@@ -29,9 +29,7 @@ def geodesic_segment (G : Set X) : Prop := ∃ x y, geodesic_segment_between G x
 following definition, which guarantees that the point is on `G` even without checking that `G`
 is a geodesic segment or that the parameter is in the reasonable range: this shortens some
 arguments below. -/
-noncomputable def geodesic_segment_param (G : Set X) [Decidable (G.Nonempty)]
-    (x : X) (t : ℝ) [Decidable (∃ w ∈ G, dist x w = t)] :
-    X :=
+noncomputable def geodesic_segment_param (G : Set X) (x : X) (t : ℝ) : X :=
   if h : ∃ w ∈ G, dist x w = t then
     h.choose
   else if h : G.Nonempty then
@@ -39,23 +37,6 @@ noncomputable def geodesic_segment_param (G : Set X) [Decidable (G.Nonempty)]
   else
     have : Nonempty X := ⟨x⟩
     Classical.ofNonempty
-
-open Classical
-
--- note: made up this name and guessed statement, it was recorded as geodesic_segment_param(3)
-theorem geodesic_segment_param_mem {X : Type*} [MetricSpace X] (G : Set X) (x : X) (t : ℝ) :
-    geodesic_segment_param G x t ∈ G := sorry
-
--- note: made up this name and guessed statement, it was recorded as geodesic_segment_param(6)
-theorem dist_geodesic_segment_param {X : Type*} [MetricSpace X] (G : Set X) (x : X) (t : ℝ) :
-    dist x (geodesic_segment_param G x t) = t :=
-  sorry
-
--- note: made up this name and guessed statement, it was recorded as a property of
--- geodesic_segment_param
-theorem geodesic_segment_param_geodesic {X : Type*} [inst : MetricSpace X] {G : Set X} {y z w : X}
-    (hyz : geodesic_segment_between G y z) (hw : w ∈ G) :
-  ∃ t ∈ Set.Icc 0 (dist y z), w = geodesic_segment_param G y t := sorry
 
 -- lemma geodesic_segment_betweenI:
 --   assumes "g 0 = x" "g (dist x y) = y" "isometry_on {0..dist x y} g" "G = g`{0..dist x y}"
@@ -130,7 +111,7 @@ lemma geodesic_segment_commute {X : Type*} [MetricSpace X] (s : Set X) (x y : X)
 -- qed
 
 -- `geodesic_segment_dist`
-lemma geodesic_segment_dist {x y z : X} (hGxy : geodesic_segment_between G x y) (haG : a ∈ G) :
+lemma geodesic_segment_dist {x y : X} (hGxy : geodesic_segment_between G x y) (haG : a ∈ G) :
     dist x a + dist a y = dist x y := by
   sorry
 -- proof -
@@ -255,6 +236,46 @@ lemma geodesic_segment_dist {x y z : X} (hGxy : geodesic_segment_between G x y) 
 --     unfolding st(3) st(4) dist_real_def by simp
 --   then show "dist a b \<le> dist x y" using st(1) st(2) unfolding dist_real_def by auto
 -- qed
+
+lemma geodesic_segment_param1 {X : Type*} [MetricSpace X] {G : Set X} {x y : X}
+    (h : geodesic_segment_between G x y) :
+    geodesic_segment_param G x 0 = x := by
+  sorry
+
+lemma geodesic_segment_param2 {X : Type*} [MetricSpace X] {G : Set X} {x y : X}
+    (h : geodesic_segment_between G x y) :
+    geodesic_segment_param G x (dist x y) = y := by
+  sorry
+
+lemma geodesic_segment_param3 {X : Type*} [MetricSpace X] {G : Set X} {x y : X}
+    (h : geodesic_segment_between G x y) (h' : t ∈ Icc 0 (dist x y)) :
+    geodesic_segment_param G x t ∈ G := by
+  sorry
+
+lemma geodesic_segment_param4 {X : Type*} [MetricSpace X] {G : Set X} {x y : X}
+    (h : geodesic_segment_between G x y) :
+    Isometry (geodesic_segment_param G x ∘ Subtype.val : Icc (0:ℝ) (dist x y) → _) := by
+  sorry
+
+lemma geodesic_segment_param5 {X : Type*} [MetricSpace X] {G : Set X} {x y : X}
+    (h : geodesic_segment_between G x y) :
+    (geodesic_segment_param G x) '' (Icc 0 (dist x y)) = G := by
+  sorry
+
+lemma geodesic_segment_param6 {X : Type*} [MetricSpace X] {G : Set X} {x y : X}
+    (h : geodesic_segment_between G x y) (h1 : t ∈ Icc 0 (dist x y)) :
+    dist x (geodesic_segment_param G x t) = t := by
+  sorry
+
+lemma geodesic_segment_param7 {X : Type*} [MetricSpace X] {G : Set X} {x y : X}
+    (h : geodesic_segment_between G x y) (h1 : s ∈ Icc 0 (dist x y)) (h2 : t ∈ Icc 0 (dist x y)) :
+    dist (geodesic_segment_param G x s) (geodesic_segment_param G x t) = |s - t| := by
+  sorry
+
+lemma geodesic_segment_param8 {X : Type*} [MetricSpace X] {G : Set X} {x y : X}
+    (h : geodesic_segment_between G x y) {z : X} (h1 : z ∈ G) :
+    z = geodesic_segment_param G x (dist x z) := by
+  sorry
 
 -- lemma geodesic_segment_param [simp]:
 --   assumes "geodesic_segment_between G x y"

@@ -101,11 +101,11 @@ lemma Gromov_product_add (e x y : X) :
 lemma Gromov_product_geodesic_segment {x y : X}
     (h : geodesic_segment_between G x y) {t : ℝ} (ht₀ : 0 ≤ t) (ht : t ≤ dist x y) :
     Gromov_product_at x y (geodesic_segment_param G x t) = t := by
-  have : dist x (geodesic_segment_param G x t) = t := by sorry
---     using assms(1) assms(2) `geodesic_segment_param`(6) by auto
+  have : dist x (geodesic_segment_param G x t) = t := geodesic_segment_param6 h ⟨ht₀, ht⟩
   have :
-      dist x (geodesic_segment_param G x t) + dist (geodesic_segment_param G x t) y = dist x y :=
-    sorry -- `geodesic_segment_dist`
+      dist x (geodesic_segment_param G x t) + dist (geodesic_segment_param G x t) y = dist x y := by
+    apply geodesic_segment_dist h
+    exact geodesic_segment_param3 h ⟨ht₀, ht⟩
   dsimp [Gromov_product_at]
   simp only [dist_comm] at *
   linarith
@@ -232,8 +232,12 @@ lemma thin_triangles1 {x y z : X}
         gcongr
     _ ≤ Gromov_product_at x (geodesic_segment_param G x t) (geodesic_segment_param H x t) :=
         hyperb_ineq ..
-  have A : dist x (geodesic_segment_param G x t) = t := dist_geodesic_segment_param G x t
-  have B : dist x (geodesic_segment_param H x t) = t := dist_geodesic_segment_param ..
+  have A : dist x (geodesic_segment_param G x t) = t := by
+    refine geodesic_segment_param6 hxy ⟨ht₀, ?_⟩
+    sorry
+  have B : dist x (geodesic_segment_param H x t) = t := by
+    refine geodesic_segment_param6 hxz ⟨ht₀, ?_⟩
+    sorry
   rw [Gromov_product_at] at I
   linarith
 
@@ -243,8 +247,10 @@ theorem thin_triangles {x y z w : X}
     (hyz : geodesic_segment_between Gyz y z)
     (hw : w ∈ Gyz) :
     infDist w (Gxy ∪ Gxz) ≤ 4 * δ := by
-  obtain ⟨t, ht0, htw⟩ : ∃ t ∈ Icc 0 (dist y z), w = geodesic_segment_param Gyz y t :=
-    geodesic_segment_param_geodesic hyz hw
+  obtain ⟨t, ht0, htw⟩ : ∃ t ∈ Icc 0 (dist y z), w = geodesic_segment_param Gyz y t := by
+    rw [← geodesic_segment_param5 hyz] at hw
+    obtain ⟨t, ht, htw⟩ := hw
+    exact ⟨t, ht, htw.symm⟩
   by_cases ht : t ≤ Gromov_product_at y x z
   · have : dist w (geodesic_segment_param Gxy y t) ≤ 4 * δ := by
       rw [htw]
@@ -254,7 +260,9 @@ theorem thin_triangles {x y z w : X}
     refine le_trans ?_ this
     apply infDist_le_dist_of_mem
     apply mem_union_left
-    apply geodesic_segment_param_mem
+    rw [geodesic_segment_commute] at hxy
+    refine geodesic_segment_param3 hxy ⟨ht0.1, ?_⟩
+    sorry
   · let s := dist y z - t
     have hs : s ∈ Ico 0 (Gromov_product_at z y x) := by
       dsimp [Ico, Icc] at ht0 ⊢
@@ -272,7 +280,9 @@ theorem thin_triangles {x y z w : X}
     refine le_trans ?_ this
     apply infDist_le_dist_of_mem
     apply mem_union_right
-    apply geodesic_segment_param_mem
+    rw [geodesic_segment_commute] at hxz
+    refine geodesic_segment_param3 hxz ⟨hs.1, ?_⟩
+    sorry
 
 /-- The distance of a vertex of a triangle to the opposite side is essentially given by the
 Gromov product, up to `2 * δ`. -/
@@ -280,10 +290,13 @@ lemma dist_triangle_side_middle {x y : X} (z : X) (hxy : geodesic_segment_betwee
     dist z (geodesic_segment_param G x (Gromov_product_at x z y))
       ≤ Gromov_product_at z x y + 2 * δ := by
   let m := geodesic_segment_param G x (Gromov_product_at x z y)
-  have : m ∈ G := geodesic_segment_param_mem ..
+  have : m ∈ G := by
+    refine geodesic_segment_param3 hxy ⟨?_, ?_⟩
+    · exact Gromov_product_nonneg x z y
+    · sorry
   have A : dist x m = Gromov_product_at x z y := by
     dsimp [m]
-    -- something involving `dist_geodesic_segment_param`
+    -- something involving `geodesic_segment_param6`
 --     unfolding m_def by (rule geodesic_segment_param(6)[OF assms(1)], auto)
     sorry
   have B : dist x m + dist m y = dist x y := sorry -- `geodesic_segment_dist`
@@ -307,7 +320,9 @@ lemma infDist_triangle_side {x y : X} (z : X) (hxy : geodesic_segment_between G 
     infDist z G ≤ Gromov_product_at z x y + 2 * δ := by
   refine le_trans ?_ <| dist_triangle_side_middle z hxy
   apply infDist_le_dist_of_mem
-  exact geodesic_segment_param_mem G x (Gromov_product_at x z y)
+  refine geodesic_segment_param3 hxy ⟨?_, ?_⟩
+  · exact Gromov_product_nonneg x z y
+  · sorry
 
 /-- The distance of a point on a side of triangle to the opposite vertex is controlled by
 the length of the opposite sides, up to `δ`. -/
