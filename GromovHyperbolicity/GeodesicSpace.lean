@@ -323,11 +323,10 @@ lemma geodesic_segment_param8 {X : Type*} [MetricSpace X] {G : Set X} {x y : X}
 -- apply (auto, metis (mono_tags, lifting) someI)
 -- using assms some_in_eq by fastforce
 
--- `geodesic_segment_reverse_param`
--- lemma geodesic_segment_reverse_param:
---   assumes "geodesic_segment_between G x y"
---           "t \<in> {0..dist x y}"
---   shows "geodesic_segment_param G y (dist x y - t) = geodesic_segment_param G x t"
+lemma geodesic_segment_reverse_param {X : Type*} [MetricSpace X] {G : Set X} {x y : X}
+    (hxy : geodesic_segment_between G x y) {t : ℝ} (ht : t ∈ Icc 0 (dist x y)) :
+    geodesic_segment_param G y (dist x y - t) = geodesic_segment_param G x t := by
+  sorry
 -- proof -
 --   have * [simp]: "geodesic_segment_between G y x"
 --     using geodesic_segment_commute[OF assms(1)] by simp

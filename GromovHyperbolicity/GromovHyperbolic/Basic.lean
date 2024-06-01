@@ -234,10 +234,12 @@ lemma thin_triangles1 {x y z : X}
         hyperb_ineq ..
   have A : dist x (geodesic_segment_param G x t) = t := by
     refine geodesic_segment_param6 hxy ⟨ht₀, ?_⟩
-    sorry
+    calc t ≤ _ := ht
+      _ ≤ _ := (Gromov_product_le_dist _ _ _).1
   have B : dist x (geodesic_segment_param H x t) = t := by
     refine geodesic_segment_param6 hxz ⟨ht₀, ?_⟩
-    sorry
+    calc t ≤ _ := ht
+      _ ≤ _ := (Gromov_product_le_dist _ _ _).2
   rw [Gromov_product_at] at I
   linarith
 
@@ -262,7 +264,8 @@ theorem thin_triangles {x y z w : X}
     apply mem_union_left
     rw [geodesic_segment_commute] at hxy
     refine geodesic_segment_param3 hxy ⟨ht0.1, ?_⟩
-    sorry
+    calc t ≤ _ := ht
+      _ ≤ _ := (Gromov_product_le_dist _ _ _).1
   · let s := dist y z - t
     have hs : s ∈ Ico 0 (Gromov_product_at z y x) := by
       dsimp [Ico, Icc] at ht0 ⊢
@@ -271,8 +274,8 @@ theorem thin_triangles {x y z w : X}
       have := Gromov_product_commute y x z
       constructor <;>
       linarith
-    have w2 : w = geodesic_segment_param Gyz z s := by sorry
---       unfolding s_def w(2) apply (rule `geodesic_segment_reverse_param`[symmetric]) using assms(3) w(1) by auto
+    have w2 : w = geodesic_segment_param Gyz z s := by
+      rw [htw, geodesic_segment_reverse_param hyz ht0]
     have : dist w (geodesic_segment_param Gxz z s) ≤ 4 * δ := by
       rw [w2]
       rw [geodesic_segment_commute] at hxz hyz
@@ -282,7 +285,8 @@ theorem thin_triangles {x y z w : X}
     apply mem_union_right
     rw [geodesic_segment_commute] at hxz
     refine geodesic_segment_param3 hxz ⟨hs.1, ?_⟩
-    sorry
+    calc s ≤ _ := hs.2.le
+      _ ≤ _ := (Gromov_product_le_dist _ _ _).2
 
 /-- The distance of a vertex of a triangle to the opposite side is essentially given by the
 Gromov product, up to `2 * δ`. -/
@@ -293,13 +297,12 @@ lemma dist_triangle_side_middle {x y : X} (z : X) (hxy : geodesic_segment_betwee
   have : m ∈ G := by
     refine geodesic_segment_param3 hxy ⟨?_, ?_⟩
     · exact Gromov_product_nonneg x z y
-    · sorry
+    · exact (Gromov_product_le_dist _ _ _).2
   have A : dist x m = Gromov_product_at x z y := by
-    dsimp [m]
-    -- something involving `geodesic_segment_param6`
---     unfolding m_def by (rule geodesic_segment_param(6)[OF assms(1)], auto)
-    sorry
-  have B : dist x m + dist m y = dist x y := sorry -- `geodesic_segment_dist`
+    refine geodesic_segment_param6 hxy ⟨?_, ?_⟩
+    · exact Gromov_product_nonneg x z y
+    · exact (Gromov_product_le_dist _ _ _).2
+  have B : dist x m + dist m y = dist x y := geodesic_segment_dist hxy this
   have hxzym : dist x z + dist y m = Gromov_product_at z x y + dist x y := by
     clear_value m
     simp only [dist_comm, Gromov_product_at] at A B ⊢
@@ -322,7 +325,7 @@ lemma infDist_triangle_side {x y : X} (z : X) (hxy : geodesic_segment_between G 
   apply infDist_le_dist_of_mem
   refine geodesic_segment_param3 hxy ⟨?_, ?_⟩
   · exact Gromov_product_nonneg x z y
-  · sorry
+  · exact (Gromov_product_le_dist _ _ _).2
 
 /-- The distance of a point on a side of triangle to the opposite vertex is controlled by
 the length of the opposite sides, up to `δ`. -/
@@ -347,7 +350,7 @@ lemma dist_le_max_dist_triangle {x y m : X} (hxy : geodesic_segment_between G x 
           min_eq_left hzxmy |>.symm
       _ ≤ Gromov_product_at z x y + δ := hyperb_ineq' z x m y
     dsimp [Gromov_product_at] at this
-    have : dist x m + dist m y = dist x y := sorry -- `geodesic_segment_dist`
+    have : dist x m + dist m y = dist x y := geodesic_segment_dist hxy hm
     have := le_max_right (dist x z) (dist y z)
     simp only [dist_comm] at *
     linarith
@@ -356,7 +359,7 @@ lemma dist_le_max_dist_triangle {x y m : X} (hxy : geodesic_segment_between G x 
           by simpa [Gromov_product_commute] using min_eq_right hzxmy.le |>.symm
       _ ≤ Gromov_product_at z x y + δ := hyperb_ineq' z x m y
     dsimp [Gromov_product_at] at this
-    have : dist x m + dist m y = dist x y := sorry -- `geodesic_segment_dist`
+    have : dist x m + dist m y = dist x y := geodesic_segment_dist hxy hm
     have := le_max_left (dist x z) (dist y z)
     simp only [dist_comm] at *
     linarith
