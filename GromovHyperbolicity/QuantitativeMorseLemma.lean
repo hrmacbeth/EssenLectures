@@ -32,19 +32,18 @@ open Gromov_hyperbolic_space
 
 variable {G : Set X}
 
-/-- The next lemma (for $C = 0$, Lemma 2 in~\<^cite> "shchur") asserts that, if two points are not too far apart (at distance at most
-$10 δ$), and far enough from a given geodesic segment, then when one moves towards this
-geodesic segment by a fixed amount (here $5 δ$), then the two points become closer (the new
-distance is at most $5 δ$, gaining a factor of $2$). Later, we will iterate this lemma to
+/-- The next lemma (for `C = 0`, Lemma 2 in~\<^cite> "shchur") asserts that, if two points are not too far apart (at distance at most
+`10 * δ`), and far enough from a given geodesic segment, then when one moves towards this
+geodesic segment by a fixed amount (here `5 * δ`), then the two points become closer (the new
+distance is at most `5 * δ`, gaining a factor of `2`). Later, we will iterate this lemma to
 show that the projection on a geodesic segment is exponentially contracting. For the application,
-we give a more general version involving an additional constant $C$.
+we give a more general version involving an additional constant `C`.
 
-This lemma holds for $δ$ the hyperbolicity constant. We will want to apply it with $δ > 0$,
-so to avoid problems in the case $δ = 0$ we formulate it not using the hyperbolicity constant of
+This lemma holds for `δ` the hyperbolicity constant. We will want to apply it with `δ > 0`,
+so to avoid problems in the case `δ = 0` we formulate it not using the hyperbolicity constant of
 the given type, but any constant which is at least the hyperbolicity constant (this is to work
 around the fact that one can not say or use easily in Isabelle that a type with hyperbolicity
-$δ$ is also hyperbolic for any larger constant $δ'$. -/
--- (in Gromov_hyperbolic_space_geodesic)
+`δ` is also hyperbolic for any larger constant `δ'`. -/
 lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px py : X}
     (hpxG : px ∈ proj_set x G) (hpyG : py ∈ proj_set y G) {δ C M : ℝ}
     (hδ : δ ≥ deltaG X) {M : ℝ} (hxy : dist x y ≤ 10 * δ + C)
@@ -63,8 +62,8 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
   have : px ∈ G ∧ py ∈ G := ⟨proj_setD hpxG, proj_setD hpyG⟩
   set x' := geodesic_segment_param {px‒x} px M
   set y' := geodesic_segment_param {py‒y} py M
-  /- First step: the distance between $px$ and $py$ is at most $5δ$. -/
-  have :=
+  /- First step: the distance between `px` and `py` is at most `5 * δ`. -/
+  have hpxpyδ :=
   calc dist px py
       ≤ max (5 * deltaG X) (dist x y - dist px x - dist py y + 10 * deltaG X) :=
         proj_along_geodesic_contraction hG hpxG hpyG
@@ -74,7 +73,7 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
     _ ≤ 5 * δ := by
         rw [max_self]
         gcongr
-  /- Second step: show that all the interesting Gromov products at bounded below by $M$. -/
+  /- Second step: show that all the interesting Gromov products at bounded below by `M`. -/
   have hx'_mem : x' ∈ {px‒x} := geodesic_segment_param_in_segment (some_geodesic_endpoints).2.2
   have : px ∈ proj_set x' G := sorry
 --     by (rule proj_set_geodesic_same_basepoint[OF \<open>px ∈ proj_set x G\<close> _ *], auto)
@@ -108,47 +107,31 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
     simp only [Gromov_product_at, dist_comm] at Iyy hpypxy hpypyy' ⊢
     linarith only [Iyy, hpypxy, hpypyy']
   have Ix : Gromov_product_at px x y ≥ M := by
-    simp [Gromov_product_at]
+    dsimp only [Gromov_product_at]
     linarith only [hpypxy, hxy, hpx, hpy]
   have Iy : Gromov_product_at py x y ≥ M := by
-    simp [Gromov_product_at] at *
+    dsimp only [Gromov_product_at] at *
     linarith only [hpxpyx, hxy, hpx, hpy]
-  sorry
--- proof -
-
   /- Third step: prove the estimate -/
---   have := calc M - 2 * δ ≤ Min {Gromov_product_at px x' x, Gromov_product_at px x y, Gromov_product_at px y y'} - 2 * deltaG X"
---     using Ixx Ixy Ix \<open>δ ≥ deltaG X\<close> by auto
---   _ ≤ Gromov_product_at px x' y'"
---     by (intro mono_intros)
---   finally have A: "M - 4 * δ + dist x' y' ≤ dist px y'"
---     unfolding Gromov_product_at_def \<open>dist px x' = M\<close> by auto
-
---   have := calc M - 2 * δ ≤ Min {Gromov_product_at py x' x, Gromov_product_at py x y, Gromov_product_at py y y'} - 2 * deltaG X"
---     using Iyx Iyy Iy \<open>δ ≥ deltaG X\<close> by (auto simp add: Gromov_product_commute)
---   _ ≤ Gromov_product_at py x' y'"
---     by (intro mono_intros)
---   finally have B: "M - 4 * δ + dist x' y' ≤ dist py x'"
---     unfolding Gromov_product_at_def \<open>dist py y' = M\<close> by auto
-
---   have "dist px py ≤ 2 * M - 10 * δ"
---     using assms \<open>dist px py ≤ 5 * δ\<close> by auto
---   have := calc 2 * M - 8 * δ + 2 * dist x' y' ≤ dist px y' + dist py x'"
---     using A B by auto
---   _ ≤ max (dist px py + dist y' x') (dist px x' + dist y' py) + 2 * deltaG TYPE('a)"
---     by (rule hyperb_quad_ineq)
---   _ ≤ max (dist px py + dist y' x') (dist px x' + dist y' py) + 2 * δ"
---     using \<open>deltaG X ≤ δ\<close> by auto
---   finally have "2 * M - 10 * δ + 2 * dist x' y' ≤ max (dist px py + dist y' x') (dist px x' + dist y' py)"
---     by auto
---   then have "2 * M - 10 * δ + 2 * dist x' y' ≤ dist px x' + dist py y'"
---     apply (auto simp add: metric_space_class.dist_commute)
---     using \<open>0 ≤ δ\<close> \<open>dist px py ≤ 2 * M - 10 * δ\<close> \<open>dist px x' = M\<close> \<open>dist py y' = M\<close> by auto
---   then have "dist x' y' ≤ 5 * δ"
---     unfolding \<open>dist px x' = M\<close> \<open>dist py y' = M\<close> by auto
---   then show ?thesis
---     unfolding x'_def y'_def by auto
--- qed
+  have A : M - 4 * δ + dist x' y' ≤ dist px y' := by
+    have h₁ := le_min Ixx.ge <| le_min Ix Ixy
+    have h₂ : _ ≤ _ / 2 := hyperb_ineq_4_points px x' x y y'
+    linarith only [hpxx'M, hδ, h₁, h₂]
+  have B : M - 4 * δ + dist x' y' ≤ dist py x' := by
+    rw [Gromov_product_commute] at Iyx Iyy
+    have h₁ := le_min Iyx.le <| le_min Iy Iyy.ge
+    have h₂ : _ ≤ _ / 2 := hyperb_ineq_4_points py x' x y y'
+    linarith only [hpyy'M, hδ, h₁, h₂]
+  have hpxpy : dist px py ≤ 2 * M - 10 * δ := by linarith only [hpxpyδ, hM]
+  have : 2 * M - 10 * δ + 2 * dist x' y'
+      ≤ max (dist px py + dist y' x') (dist px x' + dist y' py) := by
+    have := hyperb_quad_ineq px y' py x'
+    linarith only [this, hδ, A, B]
+  have : 2 * M - 10 * δ + 2 * dist x' y' ≤ dist px x' + dist py y' := by
+    simp only [dist_comm] at this hpxpy hpxx'M hpyy'M
+    rw [le_max_iff] at this
+    obtain h | h := this <;> linarith only [this, hpxpy, h, hδ₀, hpxx'M, hpyy'M]
+  linarith only [hpxx'M, hpyy'M, this]
 
 /-- The next lemma (Lemma 10 in~\<^cite>\<open>"shchur"\<close> for $C = 0$) asserts that the projection on a geodesic segment is
 an exponential contraction.
