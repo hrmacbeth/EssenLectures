@@ -5,4 +5,5 @@ import GromovHyperbolicity.GromovHyperbolic.Basic
 import GromovHyperbolicity.Prereqs
 import GromovHyperbolicity.QuantitativeMorseLemma
 import GromovHyperbolicity.Quasiconvex
+import GromovHyperbolicity.QuasiconvexProjectionExpContracting
 -- import GromovHyperbolicity.QuasiIsometryInvariant
