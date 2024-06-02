@@ -2,18 +2,19 @@
     License: BSD -/
 import GromovHyperbolicity.Quasiconvex
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
+import Mathlib.Analysis.SpecialFunctions.Pow.Real
 
 open Set Metric Real Classical
 
 /-! # The Morse-Gromov Theorem
 
-The goal of this section is to prove a central basic result in the theory of hyperbolic spaces,
+The goal of this file is to prove a central basic result in the theory of hyperbolic spaces,
 usually called the Morse Lemma. It is really
 a theorem, and we add the name Gromov the avoid the confusion with the other Morse lemma
-on the existence of good coordinates for $C^2$ functions with non-vanishing hessian.
+on the existence of good coordinates for `C ^ 2` functions with non-vanishing hessian.
 
 It states that a quasi-geodesic remains within bounded distance of a geodesic with the same
-endpoints, the error depending only on $δ$ and on the parameters $(\lambda, C)$ of the
+endpoints, the error depending only on `δ` and on the parameters $(\lambda, C)$ of the
 quasi-geodesic, but not on its length.
 
 There are several proofs of this result. We will follow the one of Shchur~\<^cite> "shchur", which
@@ -26,7 +27,6 @@ for completeness the proof in~\<^cite> "bridson_haefliger", as it brings
 up interesting tools, although the dependency it gives is worse. -/
 
 variable {X : Type*} [MetricSpace X] [Gromov_hyperbolic_space X] [GeodesicSpace X]
-  [∀ (x y : X) (S : Set X), Decidable (∃ G, geodesic_segment_between G x y ∧ G ⊆ S)]
 
 open Gromov_hyperbolic_space
 
@@ -133,18 +133,19 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
     obtain h | h := this <;> linarith only [this, hpxpy, h, hδ₀, hpxx'M, hpyy'M]
   linarith only [hpxx'M, hpyy'M, this]
 
-/-- The next lemma (Lemma 10 in~\<^cite>\<open>"shchur"\<close> for $C = 0$) asserts that the projection on a geodesic segment is
-an exponential contraction.
-More precisely, if a path of length $L$ is at distance at least $D$ of a geodesic segment $G$,
-then the projection of the path on $G$ has diameter at most $C L \exp(-c D/δ)$, where $C$ and
-$c$ are universal constants. This is not completely true at one can not go below a fixed size, as
-always, so the correct bound is $K \max(δ, L \exp(-c D/δ))$. For the application, we
-give a slightly more general statement involving an additional constant $C$.
+attribute [-simp] mul_eq_mul_left_iff -- FIXME global?
 
-This statement follows from the previous lemma: if one moves towards $G$ by $10 δ$, then
-the distance between points is divided by $2$. Then one iterates this statement as many times
-as possible, gaining a factor $2$ each time and therefore an exponential factor in the end. -/
--- (in Gromov_hyperbolic_space_geodesic)
+/-- The next lemma (Lemma 10 in~\<^cite>\<open>"shchur"\<close> for `C = 0`) asserts that the projection on a geodesic segment is
+an exponential contraction.
+More precisely, if a path of length `L` is at distance at least `D` of a geodesic segment `G`,
+then the projection of the path on `G` has diameter at most `C * L * exp (-c * D / δ)`, where `C` and
+`c` are universal constants. This is not completely true at one can not go below a fixed size, as
+always, so the correct bound is `K * max δ (L * exp (-c * D / δ))`. For the application, we
+give a slightly more general statement involving an additional constant `C`.
+
+This statement follows from the previous lemma: if one moves towards `G` by `10 * δ`, then
+the distance between points is divided by `2`. Then one iterates this statement as many times
+as possible, gaining a factor `2` each time and therefore an exponential factor in the end. -/
 -- TODO don't know if notation is Ioo or Icc
 lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ → X} {a b : ℝ}
     (h : ∀ x y, x ∈ Icc a b → y ∈ Icc a b → dist (f x) (f y) ≤ Λ * dist x y + C)
@@ -153,27 +154,31 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
     (hδ : δ > deltaG X) (hC : C ≥ 0) (hΛ : Λ ≥ 0) :
     dist pa pb ≤ max (5 * deltaG X)
       ((4 * exp (1/2 * log 2)) * Λ * (b-a) * exp (-(D-C/2) * log 2 / (5 * δ))) := by
-  sorry
--- proof -
---   have "δ > 0" using assms
---     using local.delta_nonneg by linarith
---   have := calc exp(15/2/5 * log 2) = exp(log 2) * exp(1/2 * log (2::real))"
---     unfolding mult_exp_exp by simp
---   _ = 2 * exp(1/2 * log 2)"
---     by auto
---   finally have "exp(15/2/5 * log 2) = 2 * exp(1/2 * log (2::real))"
---     by simp
+  have : δ > 0 := by
+    have : Inhabited X := ⟨pa⟩
+    linarith only [delta_nonneg X, hδ]
+  have :=
+  calc exp (15/2/5 * log 2) = exp (log 2) * exp (1/2 * log (2:ℝ)) := by
+        rw [← exp_add]
+        ring_nf
+    _ = 2 * exp (1/2 * log 2) := by rw [exp_log]; norm_num
 
-  /- The idea of the proof is to start with a sequence of points separated by $10 δ + C$ along
-  the original path, and push them by a fixed distance towards $G$ to bring them at distance at most
-  $5 δ$, thanks to the previous lemma. Then, discard half the points, and start again. This
-  is possible while one is far enough from $G$. In the first step of the proof, we formalize this
-  in the case where the process can be iterated long enough that, at the end, the projections on $G$
+  /- The idea of the proof is to start with a sequence of points separated by `10 * δ + C` along
+  the original path, and push them by a fixed distance towards `G` to bring them at distance at most
+  `5 * δ`, thanks to the previous lemma. Then, discard half the points, and start again. This
+  is possible while one is far enough from `G`. In the first step of the proof, we formalize this
+  in the case where the process can be iterated long enough that, at the end, the projections on `G`
   are very close together. This is a simple induction, based on the previous lemma. -/
-
---   have Main: "∀ c g p. (\<forall>i ∈ {0..2^k}. p i ∈ proj_set (g i) G)
---             → (\<forall>i ∈ {0..2^k}. dist (p i) (g i) ≥ 5 * δ * k + 15/2 * δ + c/2)
---             → (\<forall>i ∈ {0..<2^k}. dist (g i) (g (Suc i)) ≤ 10 * δ + c)
+  have Main (k : ℕ) : ∀ c (g : ℕ → X) (p : ℕ → X),
+              (∀ i ∈ Icc 0 (2^k), p i ∈ proj_set (g i) G)
+            → (∀ i ∈ Icc 0 (2^k), dist (p i) (g i) ≥ 5 * δ * k + 15/2 * δ + c/2)
+            → (∀ i ∈ Ico 0 (2^k), dist (g i) (g (i + 1)) ≤ 10 * δ + c)
+            → c ≥ 0
+            → dist (p 0) (p (2^k)) ≤ 5 * deltaG X := by
+    sorry
+--   have Main: "∀ c g p. (∀ i ∈ {0..2^k}. p i ∈ proj_set (g i) G)
+--             → (∀ i ∈ {0..2^k}. dist (p i) (g i) ≥ 5 * δ * k + 15/2 * δ + c/2)
+--             → (∀ i ∈ {0..<2^k}. dist (g i) (g (Suc i)) ≤ 10 * δ + c)
 --             → c ≥ 0
 --             → dist (p 0) (p (2^k)) ≤ 5 * deltaG X" for k
 --   proof (induction k)
@@ -202,7 +207,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
 --     define p' where "p' = (\<lambda>i. p (2 * i))"
 --     have "dist (p' 0) (p' (2^k)) ≤ 5 * deltaG X"
 --     proof (rule Suc.IH[where ?g = g' and ?c = 0])
---       show "\<forall>i∈{0..2 ^ k}. p' i ∈ proj_set (g' i) G"
+--       show "∀ i∈{0..2 ^ k}. p' i ∈ proj_set (g' i) G"
 --       proof
 --         fix i::nat assume "i ∈ {0..2^k}"
 --         then have *: "2 * i ∈ {0..2^(Suc k)}" by auto
@@ -210,7 +215,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
 --           unfolding p'_def g'_def h_def apply (rule proj_set_geodesic_same_basepoint[of _ "g (2 * i)" _ "{p(2 * i)‒g(2 * i)}"])
 --           using Suc * by (auto simp add: geodesic_segment_param_in_segment)
 --       qed
---       show "\<forall>i∈{0..2 ^ k}. 5 * δ * k + 15/2 * δ + 0/2 ≤ dist (p' i) (g' i)"
+--       show "∀ i∈{0..2 ^ k}. 5 * δ * k + 15/2 * δ + 0/2 ≤ dist (p' i) (g' i)"
 --       proof
 --         fix i::nat assume "i ∈ {0..2^k}"
 --         then have *: "2 * i ∈ {0..2^(Suc k)}" by auto
@@ -224,7 +229,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
 --           using * \<open>delta > 0\<close> by auto
 --         then show "5 * δ * k + 15/2 * δ + 0/2 ≤ dist (p' i) (g' i)" by simp
 --       qed
---       show "\<forall>i∈{0..<2 ^ k}. dist (g' i) (g' (Suc i)) ≤ 10 * δ + 0"
+--       show "∀ i∈{0..<2 ^ k}. dist (g' i) (g' (Suc i)) ≤ 10 * δ + 0"
 --       proof
 --         fix i::nat assume *: "i ∈ {0..<2 ^ k}"
 --         have := calc dist (g' i) (g' (Suc i)) = dist (h (2 * i)) (h (Suc (Suc (2 * i))))"
@@ -241,34 +246,55 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
 --   qed
 
   /- Now, we will apply the previous basic statement to points along our original path. We
-  introduce $k$, the number of steps for which the pushing process can be done -- it only depends on
-  the original distance $D$ to $G$. -/
+  introduce `k`, the number of steps for which the pushing process can be done -- it only depends on
+  the original distance `D` to `G`. -/
 
---   define k where "k = nat(floor((D - C/2 - 15/2 * δ)/(5 * δ)))"
+  let k : ℕ := Nat.floor ((D - C/2 - 15/2 * δ) / (5 * δ))
 --   have "int k = floor((D - C/2 - 15/2 * δ)/(5 * δ))"
 --     unfolding k_def apply (rule nat_0_le) using \<open>D ≥ 15/2 * δ + C/2\<close> \<open>delta > 0\<close> by auto
---   then have "k ≤ (D - C/2 - 15/2 * δ)/(5 * δ)" "(D - C/2 - 15/2 * δ)/(5 * δ) ≤ k + 1"
---     by linarith+
---   then have k: "D ≥ 5 * δ * k + 15/2 * δ + C/2" "D ≤ 5 * δ * (k+1) + 15/2 * δ + C/2"
---     using \<open>delta > 0\<close> by (auto simp add: algebra_simps divide_simps)
---   have := calc exp((D-C/2)/(5 * δ) * log 2) * exp(-15/2/5 * log 2) = exp(((D-C/2-15/2 * δ)/(5 * δ)) * log 2)"
---     unfolding mult_exp_exp using \<open>delta > 0\<close> by (simp add: algebra_simps divide_simps)
---   _ ≤ exp((k+1) * log 2)"
---     apply (intro mono_intros) using k(2) \<open>delta > 0\<close> by (auto simp add: divide_simps algebra_simps)
---   _ = 2^(k+1)"
---     by (subst powr_realpow[symmetric], auto simp add: powr_def)
---   _ = 2 * 2^k"
---     by auto
---   finally have k': "1/2^k ≤ 2 * exp(15/2/5 * log 2) * exp(- ((D-C/2) * log 2 / (5 * δ)))"
---     by (auto simp add: algebra_simps divide_simps exp_minus)
+  have hk₁ : k ≤ (D - C/2 - 15/2 * δ) / (5 * δ) ∧ (D - C/2 - 15/2 * δ) / (5 * δ) ≤ k + 1 := by
+    constructor
+    · apply Nat.floor_le
+      have : 0 ≤ D - C / 2 - 15 / 2 * δ := by linarith
+      positivity
+    · apply le_of_lt
+      norm_cast
+      apply Nat.lt_succ_floor
+  have hk' : D ≥ 5 * δ * k + 15/2 * δ + C/2 ∧ D ≤ 5 * δ * (k+1) + 15/2 * δ + C/2 := by
+    rw [div_le_iff, le_div_iff] at hk₁
+    · constructor <;> linarith only [hk₁]
+    all_goals positivity
+  have :=
+  calc exp ((D - C/2) / (5 * δ) * log 2) * exp (-(15/2/5 * log 2))
+      = exp (((D - C/2 - 15/2 * δ) / (5 * δ)) * log 2) := by
+        rw [← exp_add]
+        congr
+        field_simp
+        ring
+    _ ≤ exp ((k+1) * log 2) := by
+        gcongr
+        exact hk₁.2
+    _ = ((2:ℝ) ^ (k+1 : ℝ) : ℝ):= by
+        rw [rpow_def_of_pos]
+        · ring_nf
+        · norm_num
+    _ = 2 * 2^k := by norm_cast; ring
+  have hk : 1 / (2^k) ≤ 2 * exp (15/2/5 * log 2) * exp (- ((D-C/2) * log 2 / (5 * δ))) := by
+    simp only [exp_neg] at this ⊢
+    rw [← div_le_one] at this ⊢
+    · convert this using 1
+      field_simp
+      ring
+    all_goals positivity
+  sorry
 
   /- We separate the proof into two cases. If the path is not too long, then it can be covered by
-  $2^k$ points at distance at most $10 δ + C$. By the basic statement, it follows that the diameter
-  of the projection is at most $5 δ$. Otherwise, we subdivide the path into $2^N$ points at
-  distance at most $10 δ + C$, with $N \geq k$, and apply the basic statement to blocks of $2^k$
+  `2 ^ k` points at distance at most `10 * δ + C`. By the basic statement, it follows that the diameter
+  of the projection is at most `5 * δ`. Otherwise, we subdivide the path into `2 ^ N` points at
+  distance at most `10 * δ + C`, with `N ≥ k`, and apply the basic statement to blocks of `2 ^ k`
   consecutive points. It follows that the projections of $g_0, g_{2^k}, g_{2\cdot 2^k},\dotsc$ are
-  at distances at most $5 δ$. Hence, the first and last projections are at distance at most
-  $2^{N-k} \cdot 5 δ$, which is the desired bound. -/
+  at distances at most `5 * δ`. Hence, the first and last projections are at distance at most
+  `2 ^ (N - k) * 5 * δ`, which is the desired bound. -/
 
 --   show ?thesis
 --   proof (cases "lambda * (b-a) ≤ 10 * δ * 2^k")
@@ -458,7 +484,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
 --     _ = 5 * δ * 2^N * (1/ 2^k)"
 --       unfolding \<open>(2^(N-k)::real) = 2^N/2^k\<close> by simp
 --     _ ≤ 5 * δ * (2 * lambda * (b-a)/(10 * δ)) * (2 * exp(15/2/5 * log 2) * exp(- ((D-C/2) * log 2 / (5 * δ))))"
---       apply (intro mono_intros) using \<open>delta > 0\<close> \<open>lambda > 0\<close> \<open>a < b\<close> k' N by auto
+--       apply (intro mono_intros) using \<open>delta > 0\<close> \<open>lambda > 0\<close> \<open>a < b\<close> hk N by auto
 --     _ = (2 * exp(15/2/5 * log 2)) * lambda * (b-a) * exp(-(D-C/2) * log 2 / (5 * δ))"
 --       using \<open>delta > 0\<close> by (auto simp add: algebra_simps divide_simps)
 --     finally show ?thesis
@@ -833,7 +859,7 @@ proof -
 
       text \<open>Choose a point $f(ym)$ whose projection on $H$ is roughly at distance $L$ of $pi_z$.\<close>
       have "\<exists>ym ∈ {um..z}. (dist (p um) (p ym) ∈ {(L + dist pi_z (p um)) - 4 * delta - 2 * 0 .. L + dist pi_z (p um)})
-                    ∀  (\<forall>r ∈ {um..ym}. dist (p um) (p r) ≤ L + dist pi_z (p um))"
+                    ∀  (∀ r ∈ {um..ym}. dist (p um) (p r) ≤ L + dist pi_z (p um))"
       proof (rule quasi_convex_projection_small_gaps[where ?f = f and ?G = H])
         show "continuous_on {um..z} f"
           apply (rule continuous_on_subset[OF \<open>continuous_on Icc a b f\<close>])
@@ -858,7 +884,7 @@ proof -
         \<open>ym ∈ {um..z}\<close> \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> by auto
       text \<open>Choose a point $cm$ between $f(um)$ and $f(ym)$ realizing the minimal distance to $H$.
       Call this distance $dm$.\<close>
-      have "\<exists>closestm ∈ {um..ym}. \<forall>v ∈ {um..ym}. infDist (f closestm) H ≤ infDist (f v) H"
+      have "\<exists>closestm ∈ {um..ym}. ∀ v ∈ {um..ym}. infDist (f closestm) H ≤ infDist (f v) H"
         apply (rule continuous_attains_inf) using ym(1) * by auto
       then obtain closestm where closestm: "closestm ∈ {um..ym}" "∀ v. v ∈ {um..ym} → infDist (f closestm) H ≤ infDist (f v) H"
         by auto
@@ -885,7 +911,7 @@ proof -
 
       text \<open>Choose a point $f(yM)$ whose projection on $H$ is roughly at distance $L$ of $pi_z$.\<close>
       have "\<exists>yM ∈ {z..uM}. dist (p uM) (p yM) ∈ {(L + dist pi_z (p uM)) - 4* delta - 2 * 0 .. L + dist pi_z (p uM)}
-                    ∀  (\<forall>r ∈ {yM..uM}. dist (p uM) (p r) ≤ L + dist pi_z (p uM))"
+                    ∀  (∀ r ∈ {yM..uM}. dist (p uM) (p r) ≤ L + dist pi_z (p uM))"
       proof (rule quasi_convex_projection_small_gaps'[where ?f = f and ?G = H])
         show "continuous_on {z..uM} f"
           apply (rule continuous_on_subset[OF \<open>continuous_on Icc a b f\<close>])
@@ -908,7 +934,7 @@ proof -
       have *: "continuous_on {yM..uM} (\<lambda>r. infDist (f r) H)"
         using continuous_on_infDist[OF continuous_on_subset[OF \<open>continuous_on Icc a b f\<close>, of "{yM..uM}"], of H]
         \<open>yM ∈ {z..uM}\<close> \<open>uM ∈ {z..b}\<close> \<open>z ∈ Icc a b\<close> by auto
-      have "\<exists>closestM ∈ {yM..uM}. \<forall>v ∈ {yM..uM}. infDist (f closestM) H ≤ infDist (f v) H"
+      have "\<exists>closestM ∈ {yM..uM}. ∀ v ∈ {yM..uM}. infDist (f closestM) H ≤ infDist (f v) H"
         apply (rule continuous_attains_inf) using yM(1) * by auto
       then obtain closestM where closestM: "closestM ∈ {yM..uM}" "∀ v. v ∈ {yM..uM} → infDist (f closestM) H ≤ infDist (f v) H"
         by auto
@@ -1151,12 +1177,12 @@ proof -
 
         text \<open>The inductive argument\<close>
         have Ind_k: "(Gromov_product_at (f z) (f um) (f uM) ≤ lambda^2 * (D + 3/2 * L + delta + 11/2 * C) - 2 * delta + Kmult * (1 - exp(- K * (uM - um))))
-              \<or> (\<exists>x ∈ {um..ym}. (\<forall>w ∈ {um..x}. dist (f w) (p w) ≥ (2^(k+1)-1) * dm) ∀  dist (q k um) (q k x) ≥ L - 4 * delta + 7 * QC k)" for k
+              \<or> (\<exists>x ∈ {um..ym}. (∀ w ∈ {um..x}. dist (f w) (p w) ≥ (2^(k+1)-1) * dm) ∀  dist (q k um) (q k x) ≥ L - 4 * delta + 7 * QC k)" for k
         proof (induction k)
           text \<open>Base case: there is a point far enough from $q 0 um$ on $H$. This is just the point $ym$,
           by construction.\<close>
           case 0
-          have *: "\<exists>x∈ {um..ym}. (\<forall>w ∈ {um..x}. dist (f w) (p w) ≥ (2^(0+1)-1) * dm) ∀  dist (q 0 um) (q 0 x) ≥ L - 4 * delta + 7 * QC 0"
+          have *: "\<exists>x∈ {um..ym}. (∀ w ∈ {um..x}. dist (f w) (p w) ≥ (2^(0+1)-1) * dm) ∀  dist (q 0 um) (q 0 x) ≥ L - 4 * delta + 7 * QC 0"
           proof (rule bexI[of _ ym], auto simp add: V_def q_def QC_def)
             show "um ≤ ym" using \<open>ym ∈ {um..z}\<close> by auto
             show "L - 4 * delta ≤ dist (p um) (p ym)"
@@ -1220,7 +1246,7 @@ proof -
             and therefore far away from that of $x$. This is just the intermediate value theorem
             (with some care as the closest point projection is not continuous).\<close>
             have "\<exists>w ∈ {um..x}. (dist (q k um) (q k w) ∈ {(9 * delta + 4 * QC k) - 4 * delta - 2 * QC k .. 9 * delta + 4 * QC k})
-                    ∀  (\<forall>v ∈ {um..w}. dist (q k um) (q k v) ≤ 9 * delta + 4 * QC k)"
+                    ∀  (∀ v ∈ {um..w}. dist (q k um) (q k v) ≤ 9 * delta + 4 * QC k)"
             proof (rule quasi_convex_projection_small_gaps[where ?f = f and ?G = "V k"])
               show "continuous_on {um..x} f"
                 apply (rule continuous_on_subset[OF \<open>continuous_on Icc a b f\<close>])
@@ -1441,7 +1467,7 @@ proof -
               case False
               text \<open>Second subcase: between $um$ and $w$, all points are far away from $V_k$. We
               will show that this implies that $w$ is admissible for the step $k+1$.\<close>
-              have "\<exists>w∈{um..ym}. (\<forall>v∈{um..w}. (2 ^ (Suc k + 1) - 1) * dm ≤ dist (f v) (p v)) ∀  L - 4 * delta + 7 * QC (Suc k) ≤ dist (q (Suc k) um) (q (Suc k) w)"
+              have "\<exists>w∈{um..ym}. (∀ v∈{um..w}. (2 ^ (Suc k + 1) - 1) * dm ≤ dist (f v) (p v)) ∀  L - 4 * delta + 7 * QC (Suc k) ≤ dist (q (Suc k) um) (q (Suc k) w)"
               proof (rule bexI[of _ w], auto)
                 show "um ≤ w" "w ≤ ym" using \<open>w ∈ {um..x}\<close> \<open>x ∈ {um..ym}\<close> by auto
                 show "(4 * 2 ^ k - 1) * dm ≤ dist (f x) (p x)" if "um ≤ x" "x ≤ w" for x
@@ -1521,10 +1547,10 @@ proof -
         define q::"nat \<Rightarrow> real \<Rightarrow> 'a" where "q = (\<lambda>k x. geodesic_segment_param {p x‒f x} (p x) ((2^k - 1) * dM))"
 
         have Ind_k: "(Gromov_product_at (f z) (f um) (f uM) ≤ lambda^2 * (D + 3/2 * L + delta + 11/2 * C) - 2 * delta + Kmult * (1 - exp(- K * (uM - um))))
-              \<or> (\<exists>x ∈ {yM..uM}. (\<forall>y ∈ {x..uM}. dist (f y) (p y) ≥ (2^(k+1)-1) * dM) ∀  dist (q k uM) (q k x) ≥ L - 4 * delta + 7 * QC k)" for k
+              \<or> (\<exists>x ∈ {yM..uM}. (∀ y ∈ {x..uM}. dist (f y) (p y) ≥ (2^(k+1)-1) * dM) ∀  dist (q k uM) (q k x) ≥ L - 4 * delta + 7 * QC k)" for k
         proof (induction k)
           case 0
-          have *: "\<exists>x∈ {yM..uM}. (\<forall>y ∈ {x..uM}. dist (f y) (p y) ≥ (2^(0+1)-1) * dM) ∀  dist (q 0 uM) (q 0 x) ≥ L - 4 * delta + 7 * QC 0"
+          have *: "\<exists>x∈ {yM..uM}. (∀ y ∈ {x..uM}. dist (f y) (p y) ≥ (2^(0+1)-1) * dM) ∀  dist (q 0 uM) (q 0 x) ≥ L - 4 * delta + 7 * QC 0"
           proof (rule bexI[of _ yM], auto simp add: V_def q_def QC_def)
             show "yM ≤ uM" using \<open>yM ∈ {z..uM}\<close> by auto
             show "L -4 * delta ≤ dist (p uM) (p yM)"
@@ -1578,7 +1604,7 @@ proof -
             qed
 
             have "\<exists>w ∈ {x..uM}. (dist (q k uM) (q k w) ∈ {(9 * delta + 4 * QC k) - 4 * delta - 2 * QC k .. 9 * delta + 4 * QC k})
-                    ∀  (\<forall>v ∈ {w..uM}. dist (q k uM) (q k v) ≤ 9 * delta + 4 * QC k)"
+                    ∀  (∀ v ∈ {w..uM}. dist (q k uM) (q k v) ≤ 9 * delta + 4 * QC k)"
             proof (rule quasi_convex_projection_small_gaps'[where ?f = f and ?G = "V k"])
               show "continuous_on {x..uM} f"
                 apply (rule continuous_on_subset[OF \<open>continuous_on Icc a b f\<close>])
@@ -1764,7 +1790,7 @@ proof -
               finally show ?thesis by auto
             next
               case False
-              have "\<exists>w∈{yM..uM}. (\<forall>r∈{w..uM}. (2 ^ (Suc k + 1) - 1) * dM ≤ dist (f r) (p r)) ∀  L - 4 * delta + 7 * QC (Suc k) ≤ dist (q (Suc k) uM) (q (Suc k) w)"
+              have "\<exists>w∈{yM..uM}. (∀ r∈{w..uM}. (2 ^ (Suc k + 1) - 1) * dM ≤ dist (f r) (p r)) ∀  L - 4 * delta + 7 * QC (Suc k) ≤ dist (q (Suc k) uM) (q (Suc k) w)"
               proof (rule bexI[of _ w], auto)
                 show "w ≤ uM" "yM ≤ w" using \<open>w ∈ {x..uM}\<close> \<open>x ∈ {yM..uM}\<close> by auto
                 show "(4 * 2 ^ k - 1) * dM ≤ dist (f x) (p x)" if "x ≤ uM" "w ≤ x" for x
@@ -1996,7 +2022,7 @@ proof -
   proof (cases)
     case 1
     have "\<exists>d. continuous_on Icc a b d ∀  d a = f a ∀  d b = f b
-                ∀  (\<forall>x∈Icc a b. dist (f x) (d x) ≤ 4 * C)
+                ∀  (∀ x∈Icc a b. dist (f x) (d x) ≤ 4 * C)
                 ∀  lambda (4 * C)-quasi_isometry_on Icc a b d
                 ∀  (2 * lambda)-lipschitz_on Icc a b d
                 ∀  hausdorff_distance (f`Icc a b) (d`Icc a b) ≤ 2 * C"
