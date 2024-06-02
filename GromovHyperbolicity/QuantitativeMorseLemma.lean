@@ -51,13 +51,13 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
     (hM : M ≥ 15/2 * δ) (hpx : dist px x ≥ M + 5 * δ + C/2) (hpy : dist py y ≥ M + 5 * δ + C/2)
     (hC : C ≥ 0) :
     dist (geodesic_segment_param {px‒x} px M) (geodesic_segment_param {py‒y} py M) ≤ 5 * δ := by
-  have : dist px x ≤ dist py x := sorry
+  have hpxpyx : dist px x ≤ dist py x := sorry
 --     using proj_setD(2)[OF assms(2)] infDist_le[OF proj_setD(1)[OF assms(3)], of x] by (simp add: metric_space_class.dist_commute)
   have : dist py y ≤ dist px y := sorry
 --     using proj_setD(2)[OF assms(3)] infDist_le[OF proj_setD(1)[OF assms(2)], of y] by (simp add: metric_space_class.dist_commute)
   have : 0 ≤ δ := by
     have : Inhabited X := ⟨x⟩
-    linarith [delta_nonneg X]
+    linarith only [hδ, delta_nonneg X]
   have hM : 0 ≤ M ∧ M ≤ dist px x ∧ M ≤ dist px y ∧ M ≤ dist py x ∧ M ≤ dist py y := by
     refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;> linarith
   have : px ∈ G ∧ py ∈ G := ⟨proj_setD hpxG, proj_setD hpyG⟩
@@ -78,23 +78,19 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
   have hx'_mem : x' ∈ {px‒x} := geodesic_segment_param_in_segment (some_geodesic_endpoints).2.2
   have : px ∈ proj_set x' G := sorry
 --     by (rule proj_set_geodesic_same_basepoint[OF \<open>px ∈ proj_set x G\<close> _ *], auto)
-  have : dist px x' = M := by
+  have hpxx'M : dist px x' = M := by
     apply geodesic_segment_param_in_geodesic_spaces6
     exact ⟨hM.1, hM.2.1⟩
-  have : dist px x' ≤ dist py x' := sorry
+  have hpxpyx' : dist px x' ≤ dist py x' := sorry
 --     using proj_setD(2)[OF \<open>px ∈ proj_set x' G\<close>] infDist_le[OF proj_setD(1)[OF assms(3)], of x'] by (simp add: metric_space_class.dist_commute)
   have : dist px x = dist px x' + dist x' x := by
     rw [← geodesic_segment_dist (some_geodesic_is_geodesic_segment px x).1 hx'_mem]
   have Ixx : Gromov_product_at px x' x = M := by
-    sorry
---     unfolding Gromov_product_at_def ** x'_def using M by auto
---   have := calc 2 * M = dist px x' + dist px x - dist x' x"
---     unfolding ** x'_def using M by auto
---   _ ≤ dist py x' + dist py x - dist x' x"
---     apply (intro mono_intros, auto) by fact+
---   _ = 2 * Gromov_product_at py x x'"
---     unfolding Gromov_product_at_def by (auto simp add: metric_space_class.dist_commute)
---   finally have Iyx: "Gromov_product_at py x x' ≥ M" by auto
+    dsimp only [Gromov_product_at]
+    linarith only [this, hpxx'M]
+  have Iyx : Gromov_product_at py x x' ≥ M := by
+    simp only [Gromov_product_at, dist_comm] at Ixx hpxpyx hpxpyx' ⊢
+    linarith only [Ixx, hpxpyx, hpxpyx']
   sorry
 -- proof -
 
