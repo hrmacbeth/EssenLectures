@@ -3,6 +3,7 @@
 import GromovHyperbolicity.Quasiconvex
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
+import Mathlib.Tactic.Rify
 
 open Set Metric Real Classical
 
@@ -148,20 +149,21 @@ the distance between points is divided by `2`. Then one iterates this statement 
 as possible, gaining a factor `2` each time and therefore an exponential factor in the end. -/
 -- TODO don't know if notation is Ioo or Icc
 lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ → X} {a b : ℝ}
-    (h : ∀ x y, x ∈ Icc a b → y ∈ Icc a b → dist (f x) (f y) ≤ Λ * dist x y + C)
-    (ha : a ≤ b) (hpa : pa ∈ proj_set (f a) G) (hpb : pb ∈ proj_set (f b) G)
+    (h : ∀ x y, x ∈ Icc a b → y ∈ Icc a b → dist (f x) (f y) ≤ Λ * |x - y| + C) -- NB changed from `dist x y` in original
+    (hab : a ≤ b) (hpa : pa ∈ proj_set (f a) G) (hpb : pb ∈ proj_set (f b) G)
     (hG' : ∀ t, t ∈ Icc a b → infDist (f t) G ≥ D) (hD : D ≥ 15/2 * δ + C/2)
     (hδ : δ > deltaG X) (hC : C ≥ 0) (hΛ : Λ ≥ 0) :
     dist pa pb ≤ max (5 * deltaG X)
       ((4 * exp (1/2 * log 2)) * Λ * (b-a) * exp (-(D-C/2) * log 2 / (5 * δ))) := by
+  have : Inhabited X := ⟨pa⟩
   have : δ > 0 := by
-    have : Inhabited X := ⟨pa⟩
     linarith only [delta_nonneg X, hδ]
   have :=
   calc exp (15/2/5 * log 2) = exp (log 2) * exp (1/2 * log (2:ℝ)) := by
         rw [← exp_add]
         ring_nf
     _ = 2 * exp (1/2 * log 2) := by rw [exp_log]; norm_num
+  have hab' : 0 ≤ b - a := by linarith only [hab]
 
   /- The idea of the proof is to start with a sequence of points separated by `10 * δ + C` along
   the original path, and push them by a fixed distance towards `G` to bring them at distance at most
@@ -264,29 +266,28 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
     rw [div_le_iff, le_div_iff] at hk₁
     · constructor <;> linarith only [hk₁]
     all_goals positivity
-  have :=
-  calc exp ((D - C/2) / (5 * δ) * log 2) * exp (-(15/2/5 * log 2))
-      = exp (((D - C/2 - 15/2 * δ) / (5 * δ)) * log 2) := by
-        rw [← exp_add]
-        congr
-        field_simp
-        ring
-    _ ≤ exp ((k+1) * log 2) := by
-        gcongr
-        exact hk₁.2
-    _ = ((2:ℝ) ^ (k+1 : ℝ) : ℝ):= by
-        rw [rpow_def_of_pos]
-        · ring_nf
-        · norm_num
-    _ = 2 * 2^k := by norm_cast; ring
   have hk : 1 / (2^k) ≤ 2 * exp (15/2/5 * log 2) * exp (- ((D-C/2) * log 2 / (5 * δ))) := by
+    have :=
+    calc exp ((D - C/2) / (5 * δ) * log 2) * exp (-(15/2/5 * log 2))
+        = exp (((D - C/2 - 15/2 * δ) / (5 * δ)) * log 2) := by
+          rw [← exp_add]
+          congr
+          field_simp
+          ring
+      _ ≤ exp ((k+1) * log 2) := by
+          gcongr
+          exact hk₁.2
+      _ = ((2:ℝ) ^ (k+1 : ℝ) : ℝ):= by
+          rw [rpow_def_of_pos]
+          · ring_nf
+          · norm_num
+      _ = 2 * 2^k := by norm_cast; ring
     simp only [exp_neg] at this ⊢
     rw [← div_le_one] at this ⊢
     · convert this using 1
       field_simp
       ring
     all_goals positivity
-  sorry
 
   /- We separate the proof into two cases. If the path is not too long, then it can be covered by
   `2 ^ k` points at distance at most `10 * δ + C`. By the basic statement, it follows that the diameter
@@ -296,58 +297,66 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
   at distances at most `5 * δ`. Hence, the first and last projections are at distance at most
   `2 ^ (N - k) * 5 * δ`, which is the desired bound. -/
 
---   show ?thesis
---   proof (cases "lambda * (b-a) ≤ 10 * δ * 2^k")
---     text \<open>First, treat the case where the path is rather short.\<close>
---     case True
---     define g::"nat \<Rightarrow> 'a" where "g = (\<lambda>i. f(a + (b-a) * i/2^k))"
---     have "g 0 = f a" "g(2^k) = f b"
---       unfolding g_def by auto
---     have *: "a + (b-a) * i/2^k ∈ Icc a b" if "i ∈ {0..2^k}" for i::nat
---     proof -
---       have "a + (b - a) * (real i / 2 ^ k) ≤ a + (b-a) * (2^k/2^k)"
---         apply (intro mono_intros) using that \<open>a ≤ b\<close> by auto
---       then show ?thesis using \<open>a ≤ b\<close> by auto
---     qed
---     have A: "dist (g i) (g (Suc i)) ≤ 10 * δ + C" if "i ∈ {0..<2^k}" for i
---     proof -
---       have := calc dist (g i) (g (Suc i)) ≤ lambda * dist (a + (b-a) * i/2^k) (a + (b-a) * (Suc i)/2^k) + C"
---         unfolding g_def apply (intro assms(2) *) using that by auto
---       _ = lambda * (b-a)/2^k + C"
---         unfolding dist_real_def using \<open>a ≤ b\<close> by (auto simp add: algebra_simps divide_simps)
---       _ ≤ 10 * δ + C"
---         using True by (simp add: divide_simps algebra_simps)
---       finally show ?thesis by simp
---     qed
---     define p where "p = (\<lambda>i. if i = 0 then pa else if i = 2^k then pb else SOME p. p ∈ proj_set (g i) G)"
---     have B: "p i ∈ proj_set (g i) G" if "i ∈ {0..2^k}" for i
---     proof (cases "i = 0 \<or> i = 2^k")
---       case True
---       then show ?thesis
---         using \<open>pa ∈ proj_set (f a) G\<close> \<open>pb ∈ proj_set (f b) G\<close> unfolding p_def g_def by auto
---     next
---       case False
---       then have "p i = (SOME p. p ∈ proj_set (g i) G)"
---         unfolding p_def by auto
---       moreover have "proj_set (g i) G \<noteq> {}"
+  by_cases h_split : Λ * (b-a) ≤ 10 * δ * 2^k
+  · /- First, treat the case where the path is rather short. -/
+    let g : ℕ → X := fun i ↦ f (a + (b-a) * i/2^k)
+    have hg_endpoints : g 0 = f a ∧ g (2^k) = f b := by simp [g]
+    -- TODO make `i ∈ Icc 0 (2 ^ k)` just `i ≤ 2 ^ k`?
+    have (i : ℕ) (hi : i ∈ Icc 0 (2 ^ k)) : a + (b-a) * i/2^k ∈ Icc a b := by
+      dsimp [Icc] at hi ⊢
+      simp only [zero_le, true_and] at hi
+      constructor
+      · have : 0 ≤ (b - a) * i / 2 ^ k := by positivity
+        linarith only [this]
+      · calc a + (b - a) * i / 2 ^ k ≤ a + (b - a) * 2 ^ k / 2 ^ k := by gcongr; exact_mod_cast hi
+          _ = b := by field_simp
+    have A (i : ℕ) (hi : i ∈ Ico 0 (2 ^ k)) : dist (g i) (g (i + 1)) ≤ 10 * δ + C := by
+      calc dist (g i) (g (i + 1)) ≤ Λ * |(a + (b-a) * i/2^k) - (a + (b-a) * (i + 1)/2^k)| + C := by
+            dsimp [g]
+            convert h (a + (b - a) * i / 2 ^ k) (a + (b - a) * ↑(i + 1) / 2 ^ k) ?_ ?_
+            · norm_cast
+            · apply this
+              exact Ico_subset_Icc_self hi
+            · apply this
+              refine ⟨?_, hi.2⟩
+              positivity
+        _ = Λ * (b - a) / 2 ^ k + C := by
+            rw [mul_div_assoc Λ]
+            congr
+            calc _ = |- ((b - a) / 2 ^ k)| := by
+                  congr
+                  field_simp
+                  ring
+              _ = _ := by
+                  rw [abs_neg, abs_of_nonneg]
+                  positivity
+        _ ≤ 10 * δ + C := by
+            gcongr
+            rwa [div_le_iff]
+            positivity
+    have hG_nonempty (x : X) : (proj_set x G).Nonempty := sorry
 --         apply (rule proj_set_nonempty_of_proper) using geodesic_segment_topology[OF \<open>geodesic_segment G\<close>] by auto
---       ultimately show ?thesis
---         using some_in_eq by auto
---     qed
---     have C: "dist (p i) (g i) ≥ 5 * δ * k + 15/2 * δ + C/2" if "i ∈ {0..2^k}" for i
---     proof -
---       have := calc 5 * δ * k + 15/2 * δ + C/2 ≤ D"
---         using k(1) by simp
---       _ ≤ infDist (g i) G"
---         unfolding g_def apply (rule \<open>∀ t. t ∈ Icc a b → infDist (f t) G ≥ D\<close>) using * that by auto
---       _ = dist (p i) (g i)"
+    let p := fun i ↦ if i = 0 then pa else if i = 2^k then pb else (hG_nonempty  (g i)).choose
+    have B (i : ℕ) (hi : i ∈ Icc 0 (2 ^ k)) : p i ∈ proj_set (g i) G := by
+      dsimp only [p]
+      split_ifs with hi' hi'
+      · rw [hi', hg_endpoints.1]
+        exact hpa
+      · rw [hi', hg_endpoints.2]
+        exact hpb
+      · exact (hG_nonempty _).choose_spec
+    have C (i : ℕ) (hi : i ∈ Icc 0 (2 ^ k)) : dist (p i) (g i) ≥ 5 * δ * k + 15/2 * δ + C/2 := by
+      calc 5 * δ * k + 15/2 * δ + C/2 ≤ D := hk'.1
+        _ ≤ infDist (g i) G := hG' _ <| this _ hi
+        _ = dist (p i) (g i) := sorry
 --         using that proj_setD(2)[OF B[OF that]] by (simp add: metric_space_class.dist_commute)
---       finally show ?thesis by simp
---     qed
---     have "dist (p 0) (p (2^k)) ≤ 5 * deltaG X"
---       apply (rule Main[where ?g = g and ?c = C]) using A B C \<open>C ≥ 0\<close> by auto
---     then show ?thesis
---       unfolding p_def by auto
+    have : dist (p 0) (p (2^k)) ≤ 5 * deltaG X := Main _ _ g _ B C A hC
+    rw [le_max_iff]
+    left
+    simpa [p] using this
+
+  sorry
+
 --   next
 --     text \<open>Now, the case where the path is long. We introduce $N$ such that it is roughly of length
 --     $2^N \cdot 10 δ$.\<close>
@@ -385,7 +394,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
 --       by (metis (no_types) add_diff_cancel_left' le_Suc_ex nonzero_mult_div_cancel_left power_add)
 
 --     text \<open>Define $2^N$ points along the path, separated by at most $10δ$, and their projections.\<close>
---     define g::"nat \<Rightarrow> 'a" where "g = (\<lambda>i. f(a + (b-a) * i/2^N))"
+--     define g::"nat → 'a" where "g = (\<lambda>i. f(a + (b-a) * i/2^N))"
 --     have "g 0 = f a" "g(2^N) = f b"
 --       unfolding g_def by auto
 --     have *: "a + (b-a) * i/2^N ∈ Icc a b" if "i ∈ {0..2^N}" for i::nat
@@ -1173,7 +1182,7 @@ proof -
           apply (simp add: V_def QC_def quasiconvex_of_geodesic geodesic_segmentI[OF H])
           apply (rule quasiconvex_mono[OF _ Q[of k]]) using \<open>deltaG(TYPE('a)) < delta\<close> QC_def by auto
         text \<open>Define $q(k, x)$ to be the projection of $f(x)$ on $V_k$.\<close>
-        define q::"nat \<Rightarrow> real \<Rightarrow> 'a" where "q = (\<lambda>k x. geodesic_segment_param {p x‒f x} (p x) ((2^k - 1) * dm))"
+        define q::"nat → real → 'a" where "q = (\<lambda>k x. geodesic_segment_param {p x‒f x} (p x) ((2^k - 1) * dm))"
 
         text \<open>The inductive argument\<close>
         have Ind_k: "(Gromov_product_at (f z) (f um) (f uM) ≤ lambda^2 * (D + 3/2 * L + delta + 11/2 * C) - 2 * delta + Kmult * (1 - exp(- K * (uM - um))))
@@ -1544,7 +1553,7 @@ proof -
           apply (cases "k = 0")
           apply (simp add: V_def QC_def quasiconvex_of_geodesic geodesic_segmentI[OF H])
           apply (rule quasiconvex_mono[OF _ Q[of k]]) using \<open>deltaG(TYPE('a)) < delta\<close> QC_def by auto
-        define q::"nat \<Rightarrow> real \<Rightarrow> 'a" where "q = (\<lambda>k x. geodesic_segment_param {p x‒f x} (p x) ((2^k - 1) * dM))"
+        define q::"nat → real → 'a" where "q = (\<lambda>k x. geodesic_segment_param {p x‒f x} (p x) ((2^k - 1) * dM))"
 
         have Ind_k: "(Gromov_product_at (f z) (f um) (f uM) ≤ lambda^2 * (D + 3/2 * L + delta + 11/2 * C) - 2 * delta + Kmult * (1 - exp(- K * (uM - um))))
               \<or> (\<exists>x ∈ {yM..uM}. (∀ y ∈ {x..uM}. dist (f y) (p y) ≥ (2^(k+1)-1) * dM) ∀  dist (q k uM) (q k x) ≥ L - 4 * delta + 7 * QC k)" for k
@@ -1884,7 +1893,7 @@ $4\delta$-neighborhood of geodesics from $x^+$ to $z$ and from $x^-$ to $z$ by h
 follows that $x$ is at distance at most $D + 4\delta$ of $z$, concluding the proof.\<close>
 
 lemma (in Gromov_hyperbolic_space_geodesic) Morse_Gromov_theorem_aux2:
-  fixes f::"real \<Rightarrow> 'a"
+  fixes f::"real → 'a"
   assumes "continuous_on Icc a b f"
           "lambda C-quasi_isometry_on Icc a b f"
           "geodesic_segment_between G (f a) (f b)"
@@ -2010,7 +2019,7 @@ This statement follows readily from the previous one and from the fact that quas
 approximated by Lipschitz ones.\<close>
 
 theorem (in Gromov_hyperbolic_space_geodesic) Morse_Gromov_theorem:
-  fixes f::"real \<Rightarrow> 'a"
+  fixes f::"real → 'a"
   assumes "lambda C-quasi_isometry_on Icc a b f"
           "geodesic_segment_between G (f a) (f b)"
   shows "hausdorff_distance (f`Icc a b) G ≤ 92 * lambda^2 * (C + deltaG(TYPE('a)))"
@@ -2097,7 +2106,7 @@ qed
 text \<open>This theorem implies the same statement for two quasi-geodesics sharing their endpoints.\<close>
 
 theorem (in Gromov_hyperbolic_space_geodesic) Morse_Gromov_theorem2:
-  fixes c d::"real \<Rightarrow> 'a"
+  fixes c d::"real → 'a"
   assumes "lambda C-quasi_isometry_on Icc a b c"
           "lambda C-quasi_isometry_on Icc a b d"
           "c A = d A" "c B = d B"
