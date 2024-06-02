@@ -268,7 +268,7 @@ theorem thin_triangles {x y z w : X}
       _ ≤ _ := (Gromov_product_le_dist _ _ _).1
   · let s := dist y z - t
     have hs : s ∈ Ico 0 (Gromov_product_at z y x) := by
-      dsimp [Ico, Icc] at ht0 ⊢
+      dsimp [s, Ico, Icc] at ht0 ⊢
       push_neg at ht
       have := Gromov_product_add y z x
       have := Gromov_product_commute y x z
@@ -304,11 +304,9 @@ lemma dist_triangle_side_middle {x y : X} (z : X) (hxy : geodesic_segment_betwee
     · exact (Gromov_product_le_dist _ _ _).2
   have B : dist x m + dist m y = dist x y := geodesic_segment_dist hxy this
   have hxzym : dist x z + dist y m = Gromov_product_at z x y + dist x y := by
-    clear_value m
     simp only [dist_comm, Gromov_product_at] at A B ⊢
     linarith
   have hxmyz : dist x m + dist y z = Gromov_product_at z x y + dist x y := by
-    clear_value m
     simp only [dist_comm, Gromov_product_at] at A B ⊢
     linarith
   have : dist x y + dist z m ≤ max (dist x z + dist y m) (dist x m + dist y z) + 2 * δ :=

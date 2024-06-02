@@ -334,7 +334,7 @@ lemma quasi_convex_projection_small_gaps' {f p : ℝ → M} {a b : ℝ}
     aesop (add norm [dist_comm])
   refine ⟨-t, ?_, ?_, ?_⟩
   · aesop
-  · simpa using htq
+  · simpa [q] using htq
   · intro s hs
     convert htq' (-s) _ using 2 <;>
     aesop
