@@ -53,12 +53,12 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
     dist (geodesic_segment_param {px‒x} px M) (geodesic_segment_param {py‒y} py M) ≤ 5 * δ := by
   have hpxpyx : dist px x ≤ dist py x := sorry
 --     using proj_setD(2)[OF assms(2)] infDist_le[OF proj_setD(1)[OF assms(3)], of x] by (simp add: metric_space_class.dist_commute)
-  have : dist py y ≤ dist px y := sorry
+  have hpypxy : dist py y ≤ dist px y := sorry
 --     using proj_setD(2)[OF assms(3)] infDist_le[OF proj_setD(1)[OF assms(2)], of y] by (simp add: metric_space_class.dist_commute)
-  have : 0 ≤ δ := by
+  have hδ₀ : 0 ≤ δ := by
     have : Inhabited X := ⟨x⟩
     linarith only [hδ, delta_nonneg X]
-  have hM : 0 ≤ M ∧ M ≤ dist px x ∧ M ≤ dist px y ∧ M ≤ dist py x ∧ M ≤ dist py y := by
+  have hM' : 0 ≤ M ∧ M ≤ dist px x ∧ M ≤ dist px y ∧ M ≤ dist py x ∧ M ≤ dist py y := by
     refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;> linarith
   have : px ∈ G ∧ py ∈ G := ⟨proj_setD hpxG, proj_setD hpyG⟩
   set x' := geodesic_segment_param {px‒x} px M
@@ -70,7 +70,7 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
         proj_along_geodesic_contraction hG hpxG hpyG
     _ ≤ max (5 * deltaG X) (5 * deltaG X) := by
         gcongr
-        linarith
+        linarith only [hδ, hxy, hpx, hpy, hM, hδ₀]
     _ ≤ 5 * δ := by
         rw [max_self]
         gcongr
@@ -80,7 +80,7 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
 --     by (rule proj_set_geodesic_same_basepoint[OF \<open>px ∈ proj_set x G\<close> _ *], auto)
   have hpxx'M : dist px x' = M := by
     apply geodesic_segment_param_in_geodesic_spaces6
-    exact ⟨hM.1, hM.2.1⟩
+    exact ⟨hM'.1, hM'.2.1⟩
   have hpxpyx' : dist px x' ≤ dist py x' := sorry
 --     using proj_setD(2)[OF \<open>px ∈ proj_set x' G\<close>] infDist_le[OF proj_setD(1)[OF assms(3)], of x'] by (simp add: metric_space_class.dist_commute)
   have : dist px x = dist px x' + dist x' x := by
@@ -91,45 +91,30 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
   have Iyx : Gromov_product_at py x x' ≥ M := by
     simp only [Gromov_product_at, dist_comm] at Ixx hpxpyx hpxpyx' ⊢
     linarith only [Ixx, hpxpyx, hpxpyx']
+  have hy'_mem : y' ∈ {py‒y} := geodesic_segment_param_in_segment (some_geodesic_endpoints).2.2
+  have : py ∈ proj_set y' G := sorry
+--     by (rule proj_set_geodesic_same_basepoint[OF \<open>py ∈ proj_set y G\<close> _ *], auto)
+  have hpyy'M : dist py y' = M := by
+    apply geodesic_segment_param_in_geodesic_spaces6
+    exact ⟨hM'.1, hM'.2.2.2.2⟩
+  have hpypyy' : dist py y' ≤ dist px y' := sorry
+--     using proj_setD(2)[OF \<open>py ∈ proj_set y' G\<close>] infDist_le[OF proj_setD(1)[OF assms(2)], of y'] by (simp add: metric_space_class.dist_commute)
+  have : dist py y = dist py y' + dist y' y := by
+    rw [← geodesic_segment_dist (some_geodesic_is_geodesic_segment py y).1 hy'_mem]
+  have Iyy : Gromov_product_at py y' y = M := by
+    dsimp only [Gromov_product_at]
+    linarith only [this, hpyy'M]
+  have Ixy : Gromov_product_at px y y' ≥ M := by
+    simp only [Gromov_product_at, dist_comm] at Iyy hpypxy hpypyy' ⊢
+    linarith only [Iyy, hpypxy, hpypyy']
+  have Ix : Gromov_product_at px x y ≥ M := by
+    simp [Gromov_product_at]
+    linarith only [hpypxy, hxy, hpx, hpy]
+  have Iy : Gromov_product_at py x y ≥ M := by
+    simp [Gromov_product_at] at *
+    linarith only [hpxpyx, hxy, hpx, hpy]
   sorry
 -- proof -
-
---   have *: "y' ∈ {py‒y}" unfolding y'_def
---     by (simp add: geodesic_segment_param_in_segment)
---   have "py ∈ proj_set y' G"
---     by (rule proj_set_geodesic_same_basepoint[OF \<open>py ∈ proj_set y G\<close> _ *], auto)
---   have "dist py y' = M"
---     unfolding y'_def using M by auto
---   have "dist py y' ≤ dist px y'"
---     using proj_setD(2)[OF \<open>py ∈ proj_set y' G\<close>] infDist_le[OF proj_setD(1)[OF assms(2)], of y'] by (simp add: metric_space_class.dist_commute)
---   have **: "dist py y = dist py y' + dist y' y"
---     using geodesic_segment_dist[OF _ *, of py y] by auto
---   have Iyy: "Gromov_product_at py y' y = M"
---     unfolding Gromov_product_at_def ** y'_def using M by auto
---   have := calc 2 * M = dist py y' + dist py y - dist y' y"
---     unfolding ** y'_def using M by auto
---   _ ≤ dist px y' + dist px y - dist y' y"
---     apply (intro mono_intros, auto) by fact+
---   _ = 2 * Gromov_product_at px y y'"
---     unfolding Gromov_product_at_def by (auto simp add: metric_space_class.dist_commute)
---   finally have Ixy: "Gromov_product_at px y y' ≥ M" by auto
-
---   have := calc 2 * M ≤ dist px x + dist py y - dist x y"
---     using assms by auto
---   _ ≤ dist px x + dist px y - dist x y"
---     by (intro mono_intros, fact)
---   _ = 2 * Gromov_product_at px x y"
---     unfolding Gromov_product_at_def by auto
---   finally have Ix: "Gromov_product_at px x y ≥ M"
---     by auto
---   have := calc 2 * M ≤ dist px x + dist py y - dist x y"
---     using assms by auto
---   _ ≤ dist py x + dist py y - dist x y"
---     by (intro mono_intros, fact)
---   _ = 2 * Gromov_product_at py x y"
---     unfolding Gromov_product_at_def by auto
---   finally have Iy: "Gromov_product_at py x y ≥ M"
---     by auto
 
   /- Third step: prove the estimate -/
 --   have := calc M - 2 * δ ≤ Min {Gromov_product_at px x' x, Gromov_product_at px x y, Gromov_product_at px y y'} - 2 * deltaG X"
