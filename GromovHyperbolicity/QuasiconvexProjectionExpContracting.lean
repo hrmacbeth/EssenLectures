@@ -6,7 +6,7 @@ import Mathlib.Analysis.SpecialFunctions.Pow.Real
 open Set Metric Real Classical
 
 /-! The main result of this file is `quasiconvex_projection_exp_contracting`, a key technical result
-used in the Gouëzel-Shchur quantitative Morose lemma. -/
+used in the Gouëzel-Shchur quantitative Morse lemma. -/
 
 variable {X : Type*} [MetricSpace X] [Gromov_hyperbolic_space X] [GeodesicSpace X]
 
@@ -278,27 +278,30 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
   at distances at most `5 * δ`. Hence, the first and last projections are at distance at most
   `2 ^ (N - k) * 5 * δ`, which is the desired bound. -/
 
+  -- TODO make `i ∈ Icc 0 (2 ^ k)` just `i ≤ 2 ^ k`?
+  have hi_mem {k i : ℕ} (hi : i ∈ Icc 0 (2 ^ k)) : a + (b-a) * i/2^k ∈ Icc a b := by
+    dsimp [Icc] at hi ⊢
+    simp only [zero_le, true_and] at hi
+    constructor
+    · have : 0 ≤ (b - a) * i / 2 ^ k := by positivity
+      linarith only [this]
+    · calc a + (b - a) * i / 2 ^ k ≤ a + (b - a) * 2 ^ k / 2 ^ k := by gcongr; exact_mod_cast hi
+        _ = b := by field_simp
+  have hG_nonempty (x : X) : (proj_set x G).Nonempty := sorry
+--         apply (rule proj_set_nonempty_of_proper) using geodesic_segment_topology[OF \<open>geodesic_segment G\<close>] by auto
+
   by_cases h_split : Λ * (b-a) ≤ 10 * δ * 2^k
   · /- First, treat the case where the path is rather short. -/
     let g : ℕ → X := fun i ↦ f (a + (b-a) * i/2^k)
     have hg_endpoints : g 0 = f a ∧ g (2^k) = f b := by simp [g]
-    -- TODO make `i ∈ Icc 0 (2 ^ k)` just `i ≤ 2 ^ k`?
-    have (i : ℕ) (hi : i ∈ Icc 0 (2 ^ k)) : a + (b-a) * i/2^k ∈ Icc a b := by
-      dsimp [Icc] at hi ⊢
-      simp only [zero_le, true_and] at hi
-      constructor
-      · have : 0 ≤ (b - a) * i / 2 ^ k := by positivity
-        linarith only [this]
-      · calc a + (b - a) * i / 2 ^ k ≤ a + (b - a) * 2 ^ k / 2 ^ k := by gcongr; exact_mod_cast hi
-          _ = b := by field_simp
     have A (i : ℕ) (hi : i ∈ Ico 0 (2 ^ k)) : dist (g i) (g (i + 1)) ≤ 10 * δ + C := by
       calc dist (g i) (g (i + 1)) ≤ Λ * |(a + (b-a) * i/2^k) - (a + (b-a) * (i + 1)/2^k)| + C := by
             dsimp [g]
             convert h (a + (b - a) * i / 2 ^ k) (a + (b - a) * ↑(i + 1) / 2 ^ k) ?_ ?_
             · norm_cast
-            · apply this
+            · apply hi_mem
               exact Ico_subset_Icc_self hi
-            · apply this
+            · apply hi_mem
               refine ⟨?_, hi.2⟩
               positivity
         _ = Λ * (b - a) / 2 ^ k + C := by
@@ -315,9 +318,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
             gcongr
             rwa [div_le_iff]
             positivity
-    have hG_nonempty (x : X) : (proj_set x G).Nonempty := sorry
---         apply (rule proj_set_nonempty_of_proper) using geodesic_segment_topology[OF \<open>geodesic_segment G\<close>] by auto
-    let p := fun i ↦ if i = 0 then pa else if i = 2^k then pb else (hG_nonempty  (g i)).choose
+    let p := fun i ↦ if i = 0 then pa else if i = 2^k then pb else (hG_nonempty (g i)).choose
     have B (i : ℕ) (hi : i ∈ Icc 0 (2 ^ k)) : p i ∈ proj_set (g i) G := by
       dsimp only [p]
       split_ifs with hi' hi'
@@ -328,7 +329,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
       · exact (hG_nonempty _).choose_spec
     have C (i : ℕ) (hi : i ∈ Icc 0 (2 ^ k)) : dist (p i) (g i) ≥ 5 * δ * k + 15/2 * δ + C/2 := by
       calc 5 * δ * k + 15/2 * δ + C/2 ≤ D := hk'.1
-        _ ≤ infDist (g i) G := hG' _ <| this _ hi
+        _ ≤ infDist (g i) G := hG' _ <| hi_mem hi
         _ = dist (p i) (g i) := sorry
 --         using that proj_setD(2)[OF B[OF that]] by (simp add: metric_space_class.dist_commute)
     have : dist (p 0) (p (2^k)) ≤ 5 * deltaG X := Main _ _ g _ B C A hC
@@ -392,97 +393,98 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
         ring
       all_goals positivity
   have : k ≤ N := by linarith only [hN.1] -- removed `(2:ℝ) ^ k ≠ 0`, use `positivity`
-  have : (2:ℝ) ^ (N - k) = 2 ^ N / 2 ^ k := by
-    field_simp
+  have hNk₁ : 2 ^ (N - k) * 2 ^ k = 2 ^ N := by
     rw [← pow_add]
     congr! 1
     apply Nat.sub_add_cancel this
-  sorry
+  have hNk₂ : (2:ℝ) ^ (N - k) = 2 ^ N / 2 ^ k := by
+    field_simp
+    exact_mod_cast hNk₁
 
---     text \<open>Define $2^N$ points along the path, separated by at most $10δ$, and their projections.\<close>
---     define g::"nat → 'a" where "g = (\<lambda>i. f(a + (b-a) * i/2^N))"
---     have "g 0 = f a" "g(2^N) = f b"
---       unfolding g_def by auto
---     have *: "a + (b-a) * i/2^N ∈ Icc a b" if "i ∈ {0..2^N}" for i::nat
---     proof -
---       have "a + (b - a) * (real i / 2 ^ N) ≤ a + (b-a) * (2^N/2^N)"
---         apply (intro mono_intros) using that \<open>a ≤ b\<close> by auto
---       then show ?thesis using \<open>a ≤ b\<close> by auto
---     qed
---     have A: "dist (g i) (g (Suc i)) ≤ 10 * δ + C" if "i ∈ {0..<2^N}" for i
---     proof -
---       have := calc dist (g i) (g (Suc i)) ≤ lambda * dist (a + (b-a) * i/2^N) (a + (b-a) * (Suc i)/2^N) + C"
---         unfolding g_def apply (intro assms(2) *)
---         using that by auto
---       _ = lambda * (b-a)/2^N + C"
---         unfolding dist_real_def using \<open>a ≤ b\<close> by (auto simp add: algebra_simps divide_simps)
---       _ ≤ 10 * δ + C"
---         using N by simp
---       finally show ?thesis by simp
---     qed
---     define p where "p = (\<lambda>i. if i = 0 then pa else if i = 2^N then pb else SOME p. p ∈ proj_set (g i) G)"
---     have B: "p i ∈ proj_set (g i) G" if "i ∈ {0..2^N}" for i
---     proof (cases "i = 0 \<or> i = 2^N")
---       case True
---       then show ?thesis
---         using \<open>pa ∈ proj_set (f a) G\<close> \<open>pb ∈ proj_set (f b) G\<close> unfolding p_def g_def by auto
---     next
---       case False
---       then have "p i = (SOME p. p ∈ proj_set (g i) G)"
---         unfolding p_def by auto
---       moreover have "proj_set (g i) G \<noteq> {}"
---         apply (rule proj_set_nonempty_of_proper) using geodesic_segment_topology[OF \<open>geodesic_segment G\<close>] by auto
---       ultimately show ?thesis
---         using some_in_eq by auto
---     qed
---     have C: "dist (p i) (g i) ≥ 5 * δ * k + 15/2 * δ + C/2" if "i ∈ {0..2^N}" for i
---     proof -
---       have := calc 5 * δ * k + 15/2 * δ + C/2 ≤ D"
---         using k(1) by simp
---       _ ≤ infDist (g i) G"
---         unfolding g_def apply (rule \<open>∀ t. t ∈ Icc a b → infDist (f t) G ≥ D\<close>) using * that by auto
---       _ = dist (p i) (g i)"
+  /- Define `2 ^ N` points along the path, separated by at most `10 * δ`, and their projections. -/
+  let g : ℕ → X := fun i ↦ f (a + (b-a) * i / 2^N)
+  have hg_endpoints : g 0 = f a ∧ g (2^N) = f b := by simp [g]
+  have A (i : ℕ) (hi : i ∈ Ico 0 (2 ^ N)) : dist (g i) (g (i + 1)) ≤ 10 * δ + C := by
+    calc dist (g i) (g (i + 1))
+        ≤ Λ * |(a + (b-a) * i / 2^N) - (a + (b-a) * (i + 1) / 2^N)| + C := by
+          dsimp only [g]
+          convert h _ _ (hi_mem ?_) (hi_mem ?_)
+          · norm_cast
+          · simp only [mem_Ico, zero_le, true_and, mem_Icc] at hi ⊢
+            exact hi.le
+          · simp only [mem_Ico, zero_le, true_and, mem_Icc] at hi ⊢
+            exact hi
+      _ = Λ * (b-a) / 2^N + C := by
+          rw [mul_div_assoc Λ]
+          congr
+          calc _ = |- ((b - a) / 2 ^ N)| := by
+                congr
+                field_simp
+                ring
+            _ = _ := by
+                rw [abs_neg, abs_of_nonneg]
+                positivity
+      _ ≤ 10 * δ + C := by gcongr; exact hN.2.1.le
+  let p : ℕ → X := fun i ↦ if i = 0 then pa else if i = 2^N then pb else (hG_nonempty (g i)).choose
+  have B (i : ℕ) (hi : i ∈ Icc 0 (2 ^ N)) : p i ∈ proj_set (g i) G := by
+    dsimp only [p]
+    split_ifs with hi' hi'
+    · rw [hi', hg_endpoints.1]
+      exact hpa
+    · rw [hi', hg_endpoints.2]
+      exact hpb
+    · exact (hG_nonempty _).choose_spec
+  have C (i : ℕ) (hi : i ∈ Icc 0 (2 ^ N)) : dist (p i) (g i) ≥ 5 * δ * k + 15/2 * δ + C/2 := by
+    calc 5 * δ * k + 15/2 * δ + C/2 ≤ D := hk'.1
+      _ ≤ infDist (g i) G := hG' _ <| hi_mem hi
+      _ = dist (p i) (g i) := sorry
 --         using that proj_setD(2)[OF B[OF that]] by (simp add: metric_space_class.dist_commute)
---       finally show ?thesis by simp
---     qed
---     text \<open>Use the basic statement to show that, along packets of size $2^k$, the projections
---     are within $5δ$ of each other.\<close>
---     have I: "dist (p (2^k * j)) (p (2^k * (Suc j))) ≤ 5 * δ" if "j ∈ {0..<2^(N-k)}" for j
---     proof -
---       have I: "i + 2^k * j ∈ {0..2^N}" if "i ∈ {0..2^k}" for i
---       proof -
---         have := calc i + 2 ^ k * j ≤ 2^k + 2^k * (2^(N-k)-1)"
+  /- Use the basic statement to show that, along packets of size `2 ^ k`, the projections
+  are within `5 * δ` of each other. -/
+  have I (j : ℕ) (hj : j ∈ Ico 0 (2 ^ (N - k))) : dist (p (2^k * j)) (p (2^k * (j + 1))) ≤ 5 * δ := by
+    have I (i : ℕ) (hi : i ∈ Icc 0 (2 ^ k)) : i + 2^k * j ∈ Icc 0 (2^N) := by
+      obtain ⟨h1, h2⟩ := hi
+      refine ⟨by positivity, ?_⟩
+      calc i + 2 ^ k * j ≤ 2^k + 2^k * (2^(N-k)-1) := by
+            gcongr
+            have := hj.2
+            omega
+        _ = 2^N := by
+            rw [← hNk₁]
+            clear_value N
+            have : 2 ^ (N - k) ≥ 1 := Nat.one_le_pow _ _ <| by norm_num
+            zify [this]
+            ring
+    have I' (i : ℕ) (hi : i ∈ Ico 0 (2 ^ k)) : i + 2^k * j ∈ Ico 0 (2^N) := by
+      obtain ⟨h1, h2⟩ := hi
+      refine ⟨by positivity, ?_⟩
+      calc i + 2 ^ k * j < 2^k + 2^k * (2^(N-k)-1) := sorry
 --           apply (intro mono_intros) using that \<open>j ∈ {0..<2^(N-k)}\<close> by auto
---         _ = 2^N"
+        _ = 2^N := sorry
 --           using \<open>k +1 ≤ N\<close> by (auto simp add: algebra_simps semiring_normalization_rules(26))
---         finally show ?thesis by auto
---       qed
---       have I': "i + 2^k * j ∈ {0..<2^N}" if "i ∈ {0..<2^k}" for i
---       proof -
---         have := calc i + 2 ^ k * j < 2^k + 2^k * (2^(N-k)-1)"
---           apply (intro mono_intros) using that \<open>j ∈ {0..<2^(N-k)}\<close> by auto
---         _ = 2^N"
---           using \<open>k +1 ≤ N\<close> by (auto simp add: algebra_simps semiring_normalization_rules(26))
---         finally show ?thesis by auto
---       qed
---       define g' where "g' = (\<lambda>i. g (i + 2^k * j))"
---       define p' where "p' = (\<lambda>i. p (i + 2^k * j))"
---       have := calc dist (p' 0) (p' (2^k)) ≤ 5 * deltaG X"
---         apply (rule Main[where ?g = g' and ?c = C]) unfolding p'_def g'_def using A B C I I' \<open>C ≥ 0\<close> by auto
---       _ ≤ 5 * δ"
---         using \<open>deltaG X < δ\<close> by auto
---       finally show ?thesis
---         unfolding p'_def by auto
---     qed
---     text \<open>Control the total distance by adding the contributions of blocks of size $2^k$.\<close>
---     have *: "dist (p 0) (p(2^k * j)) ≤ (\<Sum>i<j. dist (p (2^k * i)) (p (2^k * (Suc i))))" for j
+    let g' : ℕ → X := fun i ↦ g (i + 2^k * j)
+    let p' : ℕ → X := fun i ↦ p (i + 2^k * j)
+    calc dist (p (2 ^ k * j)) (p (2 ^ k * (j + 1)))
+          = dist (p' 0) (p' (2^k)) := by congr <;> ring
+        _ ≤ 5 * deltaG X := by
+            apply Main (g := g') _ _ _ (fun i hi ↦ B _ ?_) (fun i hi ↦ C _ ?_) (fun i hi ↦ ?_) hC
+            · apply I _ hi
+            · apply I _ hi
+            · dsimp [g']
+              convert A (i + 2 ^ k * j) ?_ using 3
+              · ring
+              apply I' _ hi
+        _ ≤ 5 * δ := by gcongr
+  /- Control the total distance by adding the contributions of blocks of size `2 ^ k`. -/
+  sorry
+--     have *: "dist (p 0) (p(2^k * j)) ≤ (\<Sum>i < j. dist (p (2^k * i)) (p (2^k * (Suc i))))" for j
 --     proof (induction j)
 --       case (Suc j)
 --       have := calc dist (p 0) (p(2^k * (Suc j))) ≤ dist (p 0) (p(2^k * j)) + dist (p(2^k * j)) (p(2^k * (Suc j)))"
 --         by (intro mono_intros)
---       _ ≤ (\<Sum>i<j. dist (p (2^k * i)) (p (2^k * (Suc i)))) + dist (p(2^k * j)) (p(2^k * (Suc j)))"
+--       _ ≤ (\<Sum>i < j. dist (p (2^k * i)) (p (2^k * (Suc i)))) + dist (p(2^k * j)) (p(2^k * (Suc j)))"
 --         using Suc.IH by auto
---       _ = (\<Sum>i<Suc j. dist (p (2^k * i)) (p (2^k * (Suc i))))"
+--       _ = (\<Sum>i < Suc j. dist (p (2^k * i)) (p (2^k * (Suc i))))"
 --         by auto
 --       finally show ?case by simp
 --     qed (auto)
