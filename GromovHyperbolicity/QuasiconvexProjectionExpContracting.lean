@@ -238,7 +238,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
   have hk₁ : k ≤ (D - C/2 - 15/2 * δ) / (5 * δ) ∧ (D - C/2 - 15/2 * δ) / (5 * δ) ≤ k + 1 := by
     constructor
     · apply Nat.floor_le
-      have : 0 ≤ D - C / 2 - 15 / 2 * δ := by linarith
+      have : 0 ≤ D - C / 2 - 15 / 2 * δ := by linarith only [hD]
       positivity
     · apply le_of_lt
       norm_cast
@@ -336,43 +336,68 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
     left
     simpa [p] using this
 
-  sorry
-
---   next
---     text \<open>Now, the case where the path is long. We introduce $N$ such that it is roughly of length
---     $2^N \cdot 10 δ$.\<close>
---     case False
---     have *: "10 * δ * 2^k ≤ lambda * (b-a)" using False by simp
---     have "lambda * (b-a) > 0"
---       using \<open>delta > 0\<close> False \<open>0 ≤ lambda\<close> assms(3) less_eq_real_def mult_le_0_iff by auto
---     then have "a < b" "lambda > 0"
---       using \<open>a ≤ b\<close> \<open>lambda ≥ 0\<close> less_eq_real_def by auto
---     define n where "n = nat(floor(log 2 (lambda * (b-a)/(10 * δ))))"
---     have "log 2 (lambda * (b-a)/(10 * δ)) ≥ log 2 (2^k)"
---       apply (subst log_le_cancel_iff)
---       using * \<open>delta > 0\<close> \<open>a < b\<close> \<open>lambda > 0\<close> by (auto simp add: divide_simps algebra_simps)
---     moreover have "log 2 (2^k) = k"
---       by simp
+  /- Now, the case where the path is long. We introduce `N` such that it is roughly of length
+  `2 ^ N * 10 * δ`. -/
+  push_neg at h_split
+  have : Λ * (b-a) > 0 := lt_trans (by positivity) h_split
+  have : a < b ∧ 0 < Λ := by constructor <;> nlinarith only [this, hΛ, hab]
+  let n : ℕ := Nat.floor (log (Λ * (b-a) / (10 * δ)) / log 2)
+  have A :=
+  calc log (Λ * (b-a) / (10 * δ))
+      ≥ log (2^k) := by
+        gcongr
+        rw [le_div_iff]
+        · convert h_split.le using 1
+          ring
+        · positivity
+    _ = k * log 2 := by simp
 --     ultimately have A: "log 2 (lambda * (b-a)/(10 * δ)) ≥ k" by auto
---     have **: "int n = floor(log 2 (lambda * (b-a)/(10 * δ)))"
---       unfolding n_def apply (rule nat_0_le) using A by auto
---     then have "log 2 (2^n) ≤ log 2 (lambda * (b-a)/(10 * δ))"
---       apply (subst log_nat_power, auto) by linarith
---     then have I: "2^n ≤ lambda * (b-a)/(10 * δ)"
---       using \<open>0 < lambda * (b - a)\<close> \<open>0 < δ\<close>
---       by (simp add: le_log_iff powr_realpow)
---     have "log 2 (lambda * (b-a)/(10 * δ)) ≤ log 2 (2^(n+1))"
---       apply (subst log_nat_power, auto) using ** by linarith
---     then have J: "lambda * (b-a)/(10 * δ) ≤ 2^(n+1)"
---       using \<open>0 < lambda * (b - a)\<close> \<open>0 < δ\<close> by auto
---     have K: "k ≤ n" using A ** by linarith
---     define N where "N = n+1"
---     have N: "k+1 ≤ N" "lambda * (b-a) / 2^N ≤ 10 *delta" "2 ^ N ≤ lambda * (b - a) / (5 * δ)"
---       using I J K \<open>delta > 0\<close> unfolding N_def by (auto simp add: divide_simps algebra_simps)
---     then have "2 ^ k \<noteq> (0::real)" "k ≤ N"
---       by auto
---     then have "(2^(N-k)::real) = 2^N/2^k"
---       by (metis (no_types) add_diff_cancel_left' le_Suc_ex nonzero_mult_div_cancel_left power_add)
+  have : log (2 ^ n) ≤ log (Λ * (b-a) / (10 * δ)) := by
+    have : (n:ℝ) ≤ _ := Nat.floor_le ?_
+    rw [le_div_iff] at this
+    · simpa using this
+    · positivity
+    calc _ ≥ (k * log 2) / log 2 := by gcongr
+      _ ≥ 0 := by positivity
+  have I : 2 ^ n ≤ Λ * (b-a) / (10 * δ) := by
+    rwa [log_le_log_iff] at this
+    all_goals positivity
+  have h₂ : log (Λ * (b-a) / (10 * δ)) < log (2 ^ (n+1)) := by
+    have : _ < (↑(n + 1) : ℝ) := Nat.lt_succ_floor _
+    rw [div_lt_iff] at this
+    · simpa [mul_comm] using this
+    positivity
+  have J : Λ * (b-a) / (10 * δ) < 2 ^ (n+1) := by
+    rwa [log_lt_log_iff] at h₂
+    all_goals positivity
+  have K : k ≤ n := by
+    simp only [log_pow, Nat.cast_add, Nat.cast_one] at h₂
+    have := A.trans_lt h₂
+    have' := lt_of_mul_lt_mul_right this <| by positivity
+    norm_cast at this
+    rw [Nat.lt_succ] at this
+    exact this
+  let N : ℕ := n+1
+  have hN : k + 1 ≤ N ∧ Λ * (b-a) / 2 ^ N < 10 * δ ∧ 2 ^ N ≤ Λ * (b - a) / (5 * δ) := by
+    dsimp [N]
+    constructor
+    · gcongr
+    constructor
+    · rw [div_lt_iff] at J ⊢
+      · convert J using 1
+        ring
+      all_goals positivity
+    · rw [le_div_iff] at I ⊢
+      · convert I using 1
+        ring
+      all_goals positivity
+  have : k ≤ N := by linarith only [hN.1] -- removed `(2:ℝ) ^ k ≠ 0`, use `positivity`
+  have : (2:ℝ) ^ (N - k) = 2 ^ N / 2 ^ k := by
+    field_simp
+    rw [← pow_add]
+    congr! 1
+    apply Nat.sub_add_cancel this
+  sorry
 
 --     text \<open>Define $2^N$ points along the path, separated by at most $10δ$, and their projections.\<close>
 --     define g::"nat → 'a" where "g = (\<lambda>i. f(a + (b-a) * i/2^N))"
