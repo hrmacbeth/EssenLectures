@@ -10,7 +10,7 @@ used in the Gouëzel-Shchur quantitative Morse lemma. -/
 
 variable {X : Type*} [MetricSpace X] [Gromov_hyperbolic_space X] [GeodesicSpace X]
 
-open Gromov_hyperbolic_space
+open Gromov_hyperbolic_space BigOperators
 
 variable {G : Set X}
 
@@ -476,39 +476,41 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
               apply I' _ hi
         _ ≤ 5 * δ := by gcongr
   /- Control the total distance by adding the contributions of blocks of size `2 ^ k`. -/
-  sorry
---     have *: "dist (p 0) (p(2^k * j)) ≤ (\<Sum>i < j. dist (p (2^k * i)) (p (2^k * (Suc i))))" for j
---     proof (induction j)
---       case (Suc j)
---       have := calc dist (p 0) (p(2^k * (Suc j))) ≤ dist (p 0) (p(2^k * j)) + dist (p(2^k * j)) (p(2^k * (Suc j)))"
---         by (intro mono_intros)
---       _ ≤ (\<Sum>i < j. dist (p (2^k * i)) (p (2^k * (Suc i)))) + dist (p(2^k * j)) (p(2^k * (Suc j)))"
---         using Suc.IH by auto
---       _ = (\<Sum>i < Suc j. dist (p (2^k * i)) (p (2^k * (Suc i))))"
---         by auto
---       finally show ?case by simp
---     qed (auto)
---     have := calc dist pa pb = dist (p 0) (p (2^N))"
+  have (j : ℕ) : dist (p 0) (p (2^k * j))
+      ≤ (∑ i in Finset.range j, dist (p (2^k * i)) (p (2^k * (i + 1)))) := by
+    induction' j with j hj
+    · simp
+    simp only [Nat.succ_eq_add_one] at * -- FIXME remove in 4.8.0
+    calc dist (p 0) (p (2^k * (j + 1)))
+        ≤ dist (p 0) (p (2^k * j)) + dist (p (2^k * j)) (p (2^k * (j + 1))) := dist_triangle ..
+      _ ≤ (∑ i in Finset.range j, dist (p (2^k * i)) (p (2^k * (i + 1))))
+            + dist (p (2^k * j)) (p (2^k * (j + 1))) := by gcongr
+      _ = (∑ i in Finset.range (j + 1), dist (p (2^k * i)) (p (2^k * (i + 1)))) := by
+          rw [Finset.sum_range_succ]
+  clear C
+  calc dist pa pb = dist (p 0) (p (2^N)) := sorry
 --       unfolding p_def by auto
---     _ = dist (p 0) (p (2^k * 2^(N-k)))"
+    _ = dist (p 0) (p (2^k * 2^(N-k))) := sorry
 --       using \<open>k +1 ≤ N\<close> by (auto simp add: semiring_normalization_rules(26))
---     _ ≤ (\<Sum>i<2^(N-k). dist (p (2^k * i)) (p (2^k * (Suc i))))"
+    _ ≤ (∑ i in Finset.range (2^(N-k)), dist (p (2^k * i)) (p (2^k * (i + 1)))) := sorry
 --       using * by auto
---     _ ≤ (\<Sum>(i::nat)<2^(N-k). 5 * δ)"
+    _ ≤ (∑ i in Finset.range (2^(N-k)), 5 * δ) := sorry
 --       apply (rule sum_mono) using I by auto
---     _ = 5 * δ * 2^(N-k)"
+    _ = 5 * δ * 2^(N-k) := sorry
 --       by auto
---     _ = 5 * δ * 2^N * (1/ 2^k)"
+    _ = 5 * δ * 2^N * (1/ 2^k) := sorry
 --       unfolding \<open>(2^(N-k)::real) = 2^N/2^k\<close> by simp
---     _ ≤ 5 * δ * (2 * lambda * (b-a)/(10 * δ)) * (2 * exp(15/2/5 * log 2) * exp(- ((D-C/2) * log 2 / (5 * δ))))"
+    _ ≤ 5 * δ * (2 * Λ * (b-a)/(10 * δ)) * (2 * exp (15/2/5 * log 2) * exp (- ((D-C/2) * log 2 / (5 * δ)))) := sorry
 --       apply (intro mono_intros) using \<open>delta > 0\<close> \<open>lambda > 0\<close> \<open>a < b\<close> hk N by auto
---     _ = (2 * exp(15/2/5 * log 2)) * lambda * (b-a) * exp(-(D-C/2) * log 2 / (5 * δ))"
+    _ = (2 * exp (15/2/5 * log 2)) * Λ * (b-a) * exp (-(D-C/2) * log 2 / (5 * δ)) := sorry
+    _ = _ := ?_
 --       using \<open>delta > 0\<close> by (auto simp add: algebra_simps divide_simps)
 --     finally show ?thesis
 --       unfolding \<open>exp(15/2/5 * log 2) = 2 * exp(1/2 * ln (2::real))\<close> by auto
 --   qed
 -- qed
 
+#exit
 /-- We deduce from the previous result that a projection on a quasiconvex set is also
 exponentially contracting. To do this, one uses the contraction of a projection on a geodesic, and
 one adds up the additional errors due to the quasi-convexity. In particular, the projections on the
