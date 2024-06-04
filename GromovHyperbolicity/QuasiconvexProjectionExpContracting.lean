@@ -533,12 +533,11 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
 exponentially contracting. To do this, one uses the contraction of a projection on a geodesic, and
 one adds up the additional errors due to the quasi-convexity. In particular, the projections on the
 original quasiconvex set or the geodesic do not have to coincide, but they are within distance at
-most $C + 8 δ$. -/
+most `C + 8 * δ`. -/
 -- **Lemma 2.5**
--- (in Gromov_hyperbolic_space_geodesic)
 lemma quasiconvex_projection_exp_contracting
     (hKG : quasiconvex K G) {f : ℝ → X}
-    (h : ∀ x y, x ∈ Icc a b → y ∈ Icc a b → dist (f x) (f y) ≤ Λ * dist x y + C)
+    (h : ∀ x y, x ∈ Icc a b → y ∈ Icc a b → dist (f x) (f y) ≤ Λ * |x - y| + C) -- NB changed from `dist x y` in original
     (hab : a ≤ b) (hpaG : pa ∈ proj_set (f a) G) (hpbG : pb ∈ proj_set (f b) G)
     (hG : ∀ t, t ∈ Icc a b → infDist (f t) G ≥ D)
     (hD : D ≥ 15/2 * δ + K + C/2)
@@ -546,95 +545,71 @@ lemma quasiconvex_projection_exp_contracting
     dist pa pb ≤ 2 * K + 8 * δ
       + max (5 * deltaG X)
           ((4 * exp (1/2 * log 2)) * Λ * (b-a) * exp (-(D - K - C/2) * log 2 / (5 * δ))) := by
-  sorry
--- proof -
---   obtain H where H: "geodesic_segment_between H pa pb" "∀ q. q ∈ H → infDist q G ≤ K"
---     using quasiconvexD[OF assms(1) proj_setD(1)[OF \<open>pa ∈ proj_set (f a) G\<close>] proj_setD(1)[OF \<open>pb ∈ proj_set (f b) G\<close>]] by auto
---   obtain qa where qa: "qa ∈ proj_set (f a) H"
---     using proj_set_nonempty_of_proper[of H "f a"] geodesic_segment_topology[OF geodesic_segmentI[OF H(1)]] by auto
---   obtain qb where qb: "qb ∈ proj_set (f b) H"
---     using proj_set_nonempty_of_proper[of H "f b"] geodesic_segment_topology[OF geodesic_segmentI[OF H(1)]] by auto
+  obtain ⟨H, hH₁, hH₂⟩ : ∃ H, geodesic_segment_between H pa pb ∧ ∀ q, q ∈ H → infDist q G ≤ K :=
+    hKG.2 _ hpaG.1 _ hpbG.1
+  obtain ⟨qa, hqa⟩ : ∃ qa, qa ∈ proj_set (f a) H := by
+    apply proj_set_nonempty_of_compact
+    · apply (geodesic_segment_topology ⟨_, _, hH₁⟩).1
+    · apply (geodesic_segment_topology ⟨_, _, hH₁⟩).2.2.2.2.2
+  obtain ⟨qb, hqb⟩ : ∃ qb, qb ∈ proj_set (f b) H := by
+    apply proj_set_nonempty_of_compact
+    · apply (geodesic_segment_topology ⟨_, _, hH₁⟩).1
+    · apply (geodesic_segment_topology ⟨_, _, hH₁⟩).2.2.2.2.2
+  have hG_nonempty : G.Nonempty := ⟨_, hpaG.1⟩
+  have I (t : ℝ) (ht : t ∈ Icc a b) : infDist (f t) H ≥ D - K := by
+    have : Nonempty H := by simpa only [nonempty_subtype] using (geodesic_segment_endpoints hH₁).2.2
+    rw [infDist_eq_iInf, ge_iff_le, le_ciInf_iff]
+    · rintro ⟨h, h_mem_H⟩
+      dsimp
+      suffices D - dist (f t) h ≤ K by linarith only [this]
+      apply le_of_forall_le_of_dense
+      intro x hx
+      have := hH₂ h h_mem_H |>.trans_lt hx
+      rw [infDist_lt_iff hG_nonempty] at this
+      obtain ⟨g, hgG, hgha⟩ := this
+      have :=
+      calc D ≤ dist (f t) g := by
+            apply (hG _ ht).trans
+            apply infDist_le_dist_of_mem hgG
+        _ ≤ dist (f t) h + dist h g := dist_triangle ..
+      linarith only [this, hgha]
+    · refine ⟨0, ?_⟩
+      simp only [lowerBounds, mem_range, Subtype.exists, exists_prop, forall_exists_index, and_imp,
+        forall_apply_eq_imp_iff₂, mem_setOf_eq]
+      intros
+      positivity
 
---   have I: "infDist (f t) H ≥ D - K" if "t ∈ Icc a b" for t
---   proof -
---     have *: "D - K ≤ dist (f t) h" if "h ∈ H" for h
---     proof -
---       have "D - K - dist (f t) h ≤ e" if "e > 0" for e
---       proof -
---         have *: "infDist h G < K + e" using H(2)[OF \<open>h ∈ H\<close>] \<open>e > 0\<close> by auto
---         obtain g where g: "g ∈ G" "dist h g < K + e"
---           using infDist_almost_attained[OF *] proj_setD(1)[OF \<open>pa ∈ proj_set (f a) G\<close>] by auto
---         have := calc D ≤ dist (f t) g"
---           using \<open>∀ t. t ∈ Icc a b → infDist (f t) G ≥ D\<close>[OF \<open>t ∈ Icc a b\<close>] infDist_le[OF \<open>g ∈ G\<close>, of "f t"] by auto
---         _ ≤ dist (f t) h + dist h g"
---           by (intro mono_intros)
---         _ ≤ dist (f t) h + K + e"
---           using g(2) by auto
---         finally show ?thesis by auto
---       qed
---       then have *: "D - K - dist (f t) h ≤ 0"
---         using dense_ge by blast
---       then show ?thesis by simp
---     qed
---     have "D - K ≤ Inf (dist (f t) ` H)"
---       apply (rule cInf_greatest) using * H(1) by auto
---     then show "D - K ≤ infDist (f t) H"
---       apply (subst infDist_notempty) using H(1) by auto
---   qed
---   have Q: "dist qa qb ≤ max (5 * deltaG X) ((4 * exp(1/2 * log 2)) * lambda * (b-a) * exp(-((D - K)-C/2 ) * log 2 / (5 * delta)))"
---     apply (rule geodesic_projection_exp_contracting[OF geodesic_segmentI[OF \<open>geodesic_segment_between H pa pb\<close>] assms(2) assms(3)])
---     using qa qb I assms by auto
+  have Q : dist qa qb ≤ max (5 * deltaG X) ((4 * exp (1/2 * log 2))
+          * Λ * (b-a) * exp (-((D - K)-C/2 ) * log 2 / (5 * δ))) := by
+    refine geodesic_projection_exp_contracting ⟨_, _, hH₁⟩ h hab hqa hqb I ?_ hδ hC hΛ
+    linarith only [hD]
 
---   have A: "dist pa qa ≤ 4 * delta + K"
---   proof -
---     have "dist (f a) pa - dist (f a) qa - K ≤ e" if "e > 0" for e::real
---     proof -
---       have *: "infDist qa G < K + e" using H(2)[OF proj_setD(1)[OF qa]] \<open>e > 0\<close> by auto
---       obtain g where g: "g ∈ G" "dist qa g < K + e"
---         using infDist_almost_attained[OF *] proj_setD(1)[OF \<open>pa ∈ proj_set (f a) G\<close>] by auto
---       have := calc dist (f a) pa ≤ dist (f a) g"
---         unfolding proj_setD(2)[OF \<open>pa ∈ proj_set (f a) G\<close>] using infDist_le[OF \<open>g ∈ G\<close>, of "f a"] by simp
---       _ ≤ dist (f a) qa + dist qa g"
---         by (intro mono_intros)
---       _ ≤ dist (f a) qa + K + e"
---         using g(2) by auto
---       finally show ?thesis by simp
---     qed
---     then have I: "dist (f a) pa - dist (f a) qa - K ≤ 0"
---       using dense_ge by blast
---     have := calc dist (f a) qa + dist qa pa ≤ dist (f a) pa + 4 * deltaG X"
---       apply (rule dist_along_geodesic[OF geodesic_segmentI[OF H(1)]]) using qa H(1) by auto
---     _ ≤ dist (f a) qa + K + 4 * delta"
---       using I assms by auto
---     finally show ?thesis
---       by (simp add: metric_space_class.dist_commute)
---   qed
---   have B: "dist qb pb ≤ 4 * delta + K"
---   proof -
---     have "dist (f b) pb - dist (f b) qb - K ≤ e" if "e > 0" for e::real
---     proof -
---       have *: "infDist qb G < K + e" using H(2)[OF proj_setD(1)[OF qb]] \<open>e > 0\<close> by auto
---       obtain g where g: "g ∈ G" "dist qb g < K + e"
---         using infDist_almost_attained[OF *] proj_setD(1)[OF \<open>pa ∈ proj_set (f a) G\<close>] by auto
---       have := calc dist (f b) pb ≤ dist (f b) g"
---         unfolding proj_setD(2)[OF \<open>pb ∈ proj_set (f b) G\<close>] using infDist_le[OF \<open>g ∈ G\<close>, of "f b"] by simp
---       _ ≤ dist (f b) qb + dist qb g"
---         by (intro mono_intros)
---       _ ≤ dist (f b) qb + K + e"
---         using g(2) by auto
---       finally show ?thesis by simp
---     qed
---     then have I: "dist (f b) pb - dist (f b) qb - K ≤ 0"
---       using dense_ge by blast
---     have := calc dist (f b) qb + dist qb pb ≤ dist (f b) pb + 4 * deltaG X"
---       apply (rule dist_along_geodesic[OF geodesic_segmentI[OF H(1)]]) using qb H(1) by auto
---     _ ≤ dist (f b) qb + K + 4 * delta"
---       using I assms by auto
---     finally show ?thesis
---       by simp
---   qed
---   have "dist pa pb ≤ dist pa qa + dist qa qb + dist qb pb"
---     by (intro mono_intros)
---   then show ?thesis
---     using Q A B by auto
--- qed
+  have A : dist pa qa ≤ 4 * δ + K := by
+    suffices dist pa qa - 4 * δ ≤ K by linarith only [this]
+    apply le_of_forall_le_of_dense
+    intro x hx
+    obtain ⟨g, hgG, hgha⟩ : ∃ y ∈ G, dist qa y < x := by
+      have := hH₂ qa hqa.1 |>.trans_lt hx
+      rwa [← infDist_lt_iff hG_nonempty]
+    have h₁ :=
+    calc dist (f a) pa ≤ dist (f a) g := proj_set_dist_le hgG hpaG
+      _ ≤ dist (f a) qa + dist qa g := dist_triangle ..
+    have h₂ := dist_along_geodesic ⟨_, _, hH₁⟩ hqa (geodesic_segment_endpoints hH₁).1
+    rw [dist_comm pa]
+    linarith only [h₁, h₂, hgha, hδ]
+
+  have B : dist qb pb ≤ 4 * δ + K := by
+    suffices dist qb pb - 4 * δ ≤ K by linarith only [this]
+    apply le_of_forall_le_of_dense
+    intro x hx
+    obtain ⟨g, hgG, hghb⟩ : ∃ y ∈ G, dist qb y < x := by
+      have := hH₂ qb hqb.1 |>.trans_lt hx
+      rwa [← infDist_lt_iff hG_nonempty]
+    have h₁ :=
+    calc dist (f b) pb ≤ dist (f b) g := proj_set_dist_le hgG hpbG
+      _ ≤ dist (f b) qb + dist qb g := dist_triangle ..
+    have h₂ := dist_along_geodesic ⟨_, _, hH₁⟩ hqb (geodesic_segment_endpoints hH₁).2.1
+    linarith only [h₁, h₂, hghb, hδ]
+
+  have : dist pa pb ≤ dist pa qa + dist qa qb + dist qb pb := dist_triangle4 ..
+  linarith only [A, B, Q, this]
