@@ -155,7 +155,6 @@ projections on $H$ are on the other side of $\pi_z$ compared to $f(z)$, so one d
 anything, and in the end it gives genuinely better bounds (making it possible to gain roughly
 $10 \delta$ in the final estimate).
 \end{itemize} -/
--- (in Gromov_hyperbolic_space_geodesic)
 lemma Morse_Gromov_theorem_aux1
     (f : ℝ → X)
     (hf : ContinuousOn f (Icc a b))
@@ -165,27 +164,26 @@ lemma Morse_Gromov_theorem_aux1
     (hz : z ∈ Icc a b)
     (hδ : δ > deltaG X) :
     infDist (f z) G ≤ Λ ^ 2 * (11/2 * C + 91 * δ) := by
-  sorry
-#exit
-proof -
-  have "C ≥ 0" "lambda ≥ 1" using quasi_isometry_onD assms by auto
-  have "delta > 0" using assms delta_nonneg order_trans by linarith
+  have := hf'.C_nonneg
+  have := hf'.one_le_lambda
+  have : Inhabited X := ⟨f 0⟩
+  have : 0 < δ := by linarith only [hδ, delta_nonneg X]
 
-  text \<open>We give their values to the parameters $L$, $D$ and $\alpha$ that we will use in the proof.
+  /- We give their values to the parameters `L`, `D` and `α` that we will use in the proof.
   We also define two constants $K$ and $K_{mult}$ that appear in the precise formulation of the
-  bounds. Their values have no precise meaning, they are just the outcome of the computation\<close>
-  define alpha::real where "alpha = 12/100"
-  have alphaaux:"alpha > 0" "alpha ≤ 1" unfolding alpha_def by auto
-  define L::real where "L = 18 * delta"
-  define D::real where "D = 55 * delta"
-  define K where "K = alpha * log 2 / (5 * (4 + (L + 2 * delta)/D) * delta * lambda)"
-  have "K > 0" "L > 0" "D > 0" unfolding K_def L_def D_def using \<open>delta > 0\<close> \<open>lambda ≥ 1\<close> alpha_def by auto
-  have Laux: "L ≥ 18 * delta" "D ≥ 50 * delta" "L ≤ D" "D ≤ 4 * L" unfolding L_def D_def using \<open>delta > 0\<close> by auto
-  have Daux: "8 * delta ≤ (1 - alpha) * D" unfolding alpha_def D_def using \<open>delta > 0\<close> by auto
-  define Kmult where "Kmult = ((L + 4 * delta)/(L - 13 * delta)) * ((4 * exp(1/2 * log 2)) * lambda * exp (- (1 - alpha) * D * log 2 / (5 * delta)) / K)"
-  have "Kmult > 0" unfolding Kmult_def using Laux \<open>delta > 0\<close> \<open>K > 0\<close> \<open>lambda ≥ 1\<close> by (auto simp add: divide_simps)
+  bounds. Their values have no precise meaning, they are just the outcome of the computation. -/
+  let α : ℝ := 12/100
+  -- have alphaaux:"α > 0" "α ≤ 1" unfolding alpha_def by auto
+  let L : ℝ := 18 * δ
+  let D : ℝ := 55 * δ
+  let K : ℝ := α * log 2 / (5 * (4 + (L + 2 * δ)/D) * δ * Λ)
+  -- have "K > 0" "L > 0" "D > 0" unfolding K_def L_def D_def using \<open>δ > 0\<close> \<open>Λ ≥ 1\<close> alpha_def by auto
+  -- have Laux: "L ≥ 18 * δ" "D ≥ 50 * δ" "L ≤ D" "D ≤ 4 * L" unfolding L_def D_def using \<open>δ > 0\<close> by auto
+  -- have Daux: "8 * δ ≤ (1 - α) * D" unfolding alpha_def D_def using \<open>δ > 0\<close> by auto
+  let Kmult : ℝ := ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp (1/2 * log 2)) * Λ * exp (- (1 - α) * D * log 2 / (5 * δ)) / K)
+  -- have "Kmult > 0" unfolding Kmult_def using Laux \<open>δ > 0\<close> \<open>K > 0\<close> \<open>Λ ≥ 1\<close> by (auto simp add: divide_simps)
 
-  text \<open>We prove that, for any pair of points to the left and to the right of $f(z)$, the distance
+  /- We prove that, for any pair of points to the left and to the right of $f(z)$, the distance
   from $f(z)$ to a geodesic between these points is controlled. We prove this by reducing to a
   closer pair of points, i.e., this is an inductive argument over real numbers. However, we
   formalize it as an artificial induction over natural numbers, as this is how induction works
@@ -195,21 +193,62 @@ proof -
   The main inductive bound that we will prove is the following. In this bound, the first term is
   what comes from the trivial cases 1 and 2.1 in the description of the proof before the statement
   of the theorem, while the most interesting term is the second term, corresponding to the induction
-  per se.\<close>
-  have Main: "∀ um uM. um ∈ {a..z} → uM ∈ {z..b}
-          → uM - um ≤ n * (1/4) * delta / lambda
-          → Gromov_product_at (f z) (f um) (f uM) ≤ lambda^2 * (D + (3/2) * L + delta + 11/2 * C) - 2 * delta + Kmult * (1 - exp(- K * (uM - um)))"
-    for n::nat
+  per se. -/
+  have Main (n : ℕ) : ∀ um uM, um ∈ Icc a z → uM ∈ Icc z b
+        → uM - um ≤ n * (1/4) * δ / Λ
+        → Gromov_product_at (f z) (f um) (f uM)
+          ≤ Λ^2 * (D + (3/2) * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um))) := by
+    sorry
+
+  /- The main induction is over. To conclude, one should apply its result to the original
+  geodesic segment joining the points $f(a)$ and $f(b)$. -/
+  obtain ⟨n, hn⟩ : ∃ n : ℕ, (b - a)/((1/4) * δ / Λ) ≤ n := exists_nat_ge _
+  have : b - a ≤ n * (1/4) * δ / Λ := by
+    rw [div_le_iff] at hn
+    · convert hn using 1
+      ring
+    · positivity
+  calc infDist (f z) G
+      ≤ Gromov_product_at (f z) (f a) (f b) + 2 * deltaG X := infDist_triangle_side _ hGf
+    _ ≤ (Λ^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (-K * (b - a)))) + 2 * δ := by
+        gcongr
+        refine Main n a b ?_ ?_ this
+        · exact ⟨by rfl, hz.1⟩
+        · exact ⟨hz.2, by rfl⟩
+    _ = Λ^2 * (D + 3/2 * L + δ + 11/2 * C) + Kmult * (1 - exp (-K * (b - a))) := by ring
+    _ ≤ Λ^2 * (D + 3/2 * L + δ + 11/2 * C) + Kmult * (1 - 0) := by
+        gcongr
+        · dsimp [Kmult, L, D]
+          ring_nf
+          positivity
+        · positivity
+    _ = Λ^2 * (11/2 * C + (3200 * exp (-459/50*log 2)/log 2 + 83) * δ) := by
+        dsimp [Kmult, K, L, D, α]
+        ring_nf
+        field_simp
+        rw [mul_assoc Λ, ← exp_add]
+        ring_nf
+    _ ≤ Λ^2 * (11/2 * C + 91 * δ) := by
+        gcongr
+        suffices 3200 * rexp (-459 / 50 * log 2) / log 2 ≤ 8 by linarith only [this]
+        rw [div_le_iff_of_neg]
+        · suffices 400 * rexp (-459 / 50 * log 2) ≥ log 2 by linarith only [this]
+          sorry
+        · sorry
+    -- apply (intro mono_intros, simp add: divide_simps, approximation 14)
+    -- using \<open>δ > 0\<close> by auto
+
+#exit
   proof (induction n)
     text \<open>Trivial base case of the induction\<close>
     case 0
     then have *: "z = um" "z = uM" by auto
     then have := calc Gromov_product_at (f z) (f um) (f uM) = 0" by auto
-    _ ≤ 1 * (D + (3/2) * L + delta + 11/2 * C) - 2 * delta + 0 * (1 - exp(- K * (uM - um)))"
-      using Laux \<open>C ≥ 0\<close> \<open>delta > 0\<close> by auto
-    _ ≤ lambda^2 * (D + (3/2) * L + delta + 11/2 * C) - 2 * delta + Kmult * (1 - exp(- K * (uM - um)))"
+    _ ≤ 1 * (D + (3/2) * L + δ + 11/2 * C) - 2 * δ + 0 * (1 - exp(- K * (uM - um)))"
+      using Laux \<open>C ≥ 0\<close> \<open>δ > 0\<close> by auto
+    _ ≤ Λ^2 * (D + (3/2) * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp(- K * (uM - um)))"
       apply (intro mono_intros)
-      using \<open>C ≥ 0\<close> \<open>delta > 0\<close> Laux \<open>D > 0\<close> \<open>K > 0\<close> "0.prems" \<open>lambda ≥ 1\<close> \<open>Kmult > 0\<close> by auto
+      using \<open>C ≥ 0\<close> \<open>δ > 0\<close> Laux \<open>D > 0\<close> \<open>K > 0\<close> "0.prems" \<open>Λ ≥ 1\<close> \<open>Kmult > 0\<close> by auto
     finally show ?case by auto
   next
     case (Suc n)
@@ -218,11 +257,11 @@ proof -
       text \<open>If $f(z)$ is already close to the geodesic, there is nothing to do, and we do not need
       the induction assumption. This is case 1 in the description above.\<close>
       case True
-      have := calc L ≤ 1 * (D + (3/2) * L + delta + 11/2 * C) - 2 * delta + 0 * (1 - exp(- K * (uM - um)))"
-        using Laux \<open>C ≥ 0\<close> \<open>delta > 0\<close> by auto
-      _ ≤ lambda^2 * (D + (3/2) * L + delta + 11/2 * C) - 2 * delta + Kmult * (1 - exp(- K * (uM - um)))"
+      have := calc L ≤ 1 * (D + (3/2) * L + δ + 11/2 * C) - 2 * δ + 0 * (1 - exp(- K * (uM - um)))"
+        using Laux \<open>C ≥ 0\<close> \<open>δ > 0\<close> by auto
+      _ ≤ Λ^2 * (D + (3/2) * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp(- K * (uM - um)))"
         apply (intro mono_intros)
-        using \<open>C ≥ 0\<close> \<open>delta > 0\<close> Laux \<open>D > 0\<close> "Suc.prems" \<open>K > 0\<close> \<open>lambda ≥ 1\<close> \<open>Kmult > 0\<close> by auto
+        using \<open>C ≥ 0\<close> \<open>δ > 0\<close> Laux \<open>D > 0\<close> "Suc.prems" \<open>K > 0\<close> \<open>Λ ≥ 1\<close> \<open>Kmult > 0\<close> by auto
       finally show ?thesis using True by auto
     next
       text \<open>We come to the interesting case where $f(z)$ is far away from a geodesic between
@@ -236,8 +275,8 @@ proof -
       define m where "m = geodesic_segment_param {f um‒f uM} (f um) (Gromov_product_at (f um) (f z) (f uM))"
       have "dist (f z) m ≤ Gromov_product_at (f z) (f um) (f uM) + 2 * deltaG(TYPE('a))"
         unfolding m_def by (rule dist_triangle_side_middle, auto)
-      then have *: "dist (f z) m ≤ Gromov_product_at (f z) (f um) (f uM) + 2 * delta"
-        using \<open>deltaG(TYPE('a)) < delta\<close> by auto
+      then have *: "dist (f z) m ≤ Gromov_product_at (f z) (f um) (f uM) + 2 * δ"
+        using \<open>deltaG(TYPE('a)) < δ\<close> by auto
       have := calc Gromov_product_at (f z) (f um) (f uM) ≤ infDist (f z) {f um‒f uM}"
         by (intro mono_intros, auto)
       _ ≤ dist (f z) m"
@@ -255,7 +294,7 @@ proof -
         unfolding pi_z_def H_def by (rule geodesic_segment_param(6)[where ?y = m], auto simp add: **)
       moreover have "dist (f z) m = dist (f z) pi_z + dist pi_z m"
         apply (rule geodesic_segment_dist[of H, symmetric]) using \<open>pi_z ∈ H\<close> unfolding H_def by auto
-      ultimately have "dist pi_z m ≤ 2 * delta"
+      ultimately have "dist pi_z m ≤ 2 * δ"
         using * by auto
 
       text \<open>Introduce the notation $p$ for some projection on the geodesic $H$.\<close>
@@ -285,7 +324,7 @@ proof -
       finally have Dum: "dist (p um) (f z) = dist (p um) pi_z + dist pi_z (f z)" by auto
 
       text \<open>Choose a point $f(ym)$ whose projection on $H$ is roughly at distance $L$ of $pi_z$.\<close>
-      have "\<exists>ym ∈ {um..z}. (dist (p um) (p ym) ∈ {(L + dist pi_z (p um)) - 4 * delta - 2 * 0 .. L + dist pi_z (p um)})
+      have "\<exists>ym ∈ {um..z}. (dist (p um) (p ym) ∈ {(L + dist pi_z (p um)) - 4 * δ - 2 * 0 .. L + dist pi_z (p um)})
                     ∀  (∀ r ∈ {um..ym}. dist (p um) (p r) ≤ L + dist pi_z (p um))"
       proof (rule quasi_convex_projection_small_gaps[where ?f = f and ?G = H])
         show "continuous_on {um..z} f"
@@ -293,17 +332,17 @@ proof -
           using \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> by auto
         show "um ≤ z" using \<open>um ∈ {a..z}\<close> by auto
         show "quasiconvex 0 H" using quasiconvex_of_geodesic geodesic_segmentI H by auto
-        show "deltaG TYPE('a) < delta" by fact
+        show "deltaG TYPE('a) < δ" by fact
         have "L + dist pi_z (p um) ≤ dist (f z) pi_z + dist pi_z (p um)"
           using False Dpi_z by (simp add: metric_space_class.dist_commute)
         then have "L + dist pi_z (p um) ≤ dist (p um) (f z)"
           using Dum by (simp add: metric_space_class.dist_commute)
-        then show "L + dist pi_z (p um) ∈ {4 * delta + 2 * 0..dist (p um) (p z)}"
-          using \<open>delta > 0\<close> False L_def pz by auto
+        then show "L + dist pi_z (p um) ∈ {4 * δ + 2 * 0..dist (p um) (p z)}"
+          using \<open>δ > 0\<close> False L_def pz by auto
         show "p ym ∈ proj_set (f ym) H" for ym using p by simp
       qed
       then obtain ym where ym : "ym ∈ {um..z}"
-                                "dist (p um) (p ym) ∈ {(L + dist pi_z (p um)) - 4 * delta - 2 * 0 .. L + dist pi_z (p um)}"
+                                "dist (p um) (p ym) ∈ {(L + dist pi_z (p um)) - 4 * δ - 2 * 0 .. L + dist pi_z (p um)}"
                                 "∀ r. r ∈ {um..ym} → dist (p um) (p r) ≤ L + dist pi_z (p um)"
         by blast
       have *: "continuous_on {um..ym} (\<lambda>r. infDist (f r) H)"
@@ -337,7 +376,7 @@ proof -
       finally have DuM: "dist (p uM) (f z) = dist (p uM) pi_z + dist pi_z (f z)" by auto
 
       text \<open>Choose a point $f(yM)$ whose projection on $H$ is roughly at distance $L$ of $pi_z$.\<close>
-      have "\<exists>yM ∈ {z..uM}. dist (p uM) (p yM) ∈ {(L + dist pi_z (p uM)) - 4* delta - 2 * 0 .. L + dist pi_z (p uM)}
+      have "\<exists>yM ∈ {z..uM}. dist (p uM) (p yM) ∈ {(L + dist pi_z (p uM)) - 4* δ - 2 * 0 .. L + dist pi_z (p uM)}
                     ∀  (∀ r ∈ {yM..uM}. dist (p uM) (p r) ≤ L + dist pi_z (p uM))"
       proof (rule quasi_convex_projection_small_gaps'[where ?f = f and ?G = H])
         show "continuous_on {z..uM} f"
@@ -345,17 +384,17 @@ proof -
           using \<open>uM ∈ {z..b}\<close> \<open>z ∈ Icc a b\<close> by auto
         show "z ≤ uM" using \<open>uM ∈ {z..b}\<close> by auto
         show "quasiconvex 0 H" using quasiconvex_of_geodesic geodesic_segmentI H by auto
-        show "deltaG TYPE('a) < delta" by fact
+        show "deltaG TYPE('a) < δ" by fact
         have "L + dist pi_z (p uM) ≤ dist (f z) pi_z + dist pi_z (p uM)"
           using False Dpi_z by (simp add: metric_space_class.dist_commute)
         then have "L + dist pi_z (p uM) ≤ dist (p uM) (f z)"
           using DuM by (simp add: metric_space_class.dist_commute)
-        then show "L + dist pi_z (p uM) ∈ {4 * delta + 2 * 0..dist (p z) (p uM)}"
-          using \<open>delta > 0\<close> False L_def pz by (auto simp add: metric_space_class.dist_commute)
+        then show "L + dist pi_z (p uM) ∈ {4 * δ + 2 * 0..dist (p z) (p uM)}"
+          using \<open>δ > 0\<close> False L_def pz by (auto simp add: metric_space_class.dist_commute)
         show "p yM ∈ proj_set (f yM) H" for yM using p by simp
       qed
       then obtain yM where yM: "yM ∈ {z..uM}"
-                              "dist (p uM) (p yM) ∈ {(L + dist pi_z (p uM)) - 4* delta - 2 * 0 .. L + dist pi_z (p uM)}"
+                              "dist (p uM) (p yM) ∈ {(L + dist pi_z (p uM)) - 4* δ - 2 * 0 .. L + dist pi_z (p uM)}"
                               "∀ r. r ∈ {yM..uM} → dist (p uM) (p r) ≤ L + dist pi_z (p uM)"
         by blast
       have *: "continuous_on {yM..uM} (\<lambda>r. infDist (f r) H)"
@@ -400,10 +439,10 @@ proof -
         case True
         have := calc dist pi_z (p x) ≤ dist pi_z m + dist m (p x)"
           by (intro mono_intros)
-        _ ≤ 2 * delta + 2 * delta"
-          using \<open>dist pi_z m ≤ 2 * delta\<close> True by auto
+        _ ≤ 2 * δ + 2 * δ"
+          using \<open>dist pi_z m ≤ 2 * δ\<close> True by auto
         finally show ?thesis
-          using Laux \<open>delta > 0\<close> by auto
+          using Laux \<open>δ > 0\<close> by auto
       next
         case False
         have := calc dist pi_z (p x) = abs(dist pi_z m - dist (p x) m)"
@@ -417,7 +456,7 @@ proof -
       text \<open>Auxiliary fact for later use:
       The distance between two points in $[um, ym]$ and $[yM, uM]$ can be controlled using
       the distances of their images under $f$ to $H$, thanks to the quasi-isometry property.\<close>
-      have D: "dist rm rM ≤ lambda * (infDist (f rm) H + (L + C + 2 * delta) + infDist (f rM) H)"
+      have D: "dist rm rM ≤ Λ * (infDist (f rm) H + (L + C + 2 * δ) + infDist (f rM) H)"
         if "rm ∈ {um..ym}" "rM ∈ {yM..uM}" for rm rM
       proof -
         have *: "dist m (p rm) ≤ L + dist m pi_z" "dist m (p rM) ≤ L + dist m pi_z"
@@ -428,24 +467,24 @@ proof -
         _ ≤ L + dist m pi_z"
           unfolding abs_le_iff using * apply (auto simp add: metric_space_class.dist_commute)
           by (metis diff_add_cancel le_add_same_cancel1 metric_space_class.zero_le_dist order_trans)+
-        finally have *: "dist (p rm) (p rM) ≤ L + 2 * delta"
-          using \<open>dist pi_z m ≤ 2 * delta\<close> by (simp add: metric_space_class.dist_commute)
+        finally have *: "dist (p rm) (p rM) ≤ L + 2 * δ"
+          using \<open>dist pi_z m ≤ 2 * δ\<close> by (simp add: metric_space_class.dist_commute)
 
         have := calc (1/lambda) * dist rm rM - C ≤ dist (f rm) (f rM)"
-          apply (rule quasi_isometry_onD(2)[OF \<open>lambda C-quasi_isometry_on Icc a b f\<close>])
+          apply (rule quasi_isometry_onD(2)[OF \<open>Λ C-quasi_isometry_on Icc a b f\<close>])
           using \<open>rm ∈ {um..ym}\<close> \<open>ym ∈ {um..z}\<close> \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> \<open>rM ∈ {yM..uM}\<close> \<open>yM ∈ {z..uM}\<close> \<open>uM ∈ {z..b}\<close> by auto
         _ ≤ dist (f rm) (p rm) + dist (p rm) (p rM) + dist (p rM) (f rM)"
           by (intro mono_intros)
-        _ ≤ infDist (f rm) H + L + 2 * delta + infDist (f rM) H"
+        _ ≤ infDist (f rm) H + L + 2 * δ + infDist (f rM) H"
           using * proj_setD(2)[OF p] by (simp add: metric_space_class.dist_commute)
         finally show ?thesis
-          using \<open>lambda ≥ 1\<close> by (simp add: algebra_simps divide_simps)
+          using \<open>Λ ≥ 1\<close> by (simp add: algebra_simps divide_simps)
       qed
       text \<open>Auxiliary fact for later use in the inductive argument:
       the distance from $f(z)$ to $pi_z$ is controlled by the distance from $f(z)$ to any
       intermediate geodesic between points in $f[um, ym]$ and $f[yM, uM]$, up to a constant
       essentially given by $L$. This is a variation around Lemma 5 in~\<^cite>\<open>"shchur"\<close>.\<close>
-      have Rec: "Gromov_product_at (f z) (f um) (f uM) ≤ Gromov_product_at (f z) (f rm) (f rM) + (L + 4 * delta)" if "rm ∈ {um..ym}" "rM ∈ {yM..uM}" for rm rM
+      have Rec: "Gromov_product_at (f z) (f um) (f uM) ≤ Gromov_product_at (f z) (f rm) (f rM) + (L + 4 * δ)" if "rm ∈ {um..ym}" "rM ∈ {yM..uM}" for rm rM
       proof -
         have *: "dist (f rm) (p rm) + dist (p rm) (f z) ≤ dist (f rm) (f z) + 4 * deltaG(TYPE('a))"
           apply (rule dist_along_geodesic[of H]) using p H_def by auto
@@ -503,7 +542,7 @@ proof -
         _ ≤ Gromov_product_at (f z) (f rm) (f rM) + 2 * deltaG(TYPE('a))"
           by (intro mono_intros)
         finally show ?thesis
-          using \<open>deltaG(TYPE('a)) < delta\<close> by auto
+          using \<open>deltaG(TYPE('a)) < δ\<close> by auto
       qed
 
       text \<open>We have proved the basic facts we will need in the main argument. This argument starts
@@ -516,17 +555,17 @@ proof -
         in $f[yM, uM]$ which are close to $H$. Then one can conclude directly, without relying
         on the inductive argument, thanks to the quasi-isometry property.\<close>
         case 1
-        have I: "Gromov_product_at (f z) (f closestm) (f closestM) ≤ lambda^2 * (D + L / 2 + delta + 11/2 * C) - 6 * delta"
-        proof (cases "dist (f closestm) (f closestM) ≤ 12 * delta")
+        have I: "Gromov_product_at (f z) (f closestm) (f closestM) ≤ Λ^2 * (D + L / 2 + δ + 11/2 * C) - 6 * δ"
+        proof (cases "dist (f closestm) (f closestM) ≤ 12 * δ")
           case True
           have "1/lambda * dist closestm closestM - C ≤ dist (f closestm) (f closestM)"
             using quasi_isometry_onD(2)[OF assms(2)] \<open>closestm ∈ {um..ym}\<close> \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> \<open>ym ∈ {um..z}\<close>
             \<open>closestM ∈ {yM..uM}\<close> \<open>uM ∈ {z..b}\<close> \<open>z ∈ Icc a b\<close> \<open>yM ∈ {z..uM}\<close> by auto
-          then have := calc dist closestm closestM ≤ lambda * dist (f closestm) (f closestM) + lambda * C"
-            using \<open>lambda ≥ 1\<close> by (auto simp add: divide_simps algebra_simps)
-          _ ≤ lambda * (12 * delta) + lambda * C"
-            apply (intro mono_intros True) using \<open>lambda ≥ 1\<close> by auto
-          finally have M: "dist closestm closestM ≤ lambda * (12 * delta + C)"
+          then have := calc dist closestm closestM ≤ Λ * dist (f closestm) (f closestM) + Λ * C"
+            using \<open>Λ ≥ 1\<close> by (auto simp add: divide_simps algebra_simps)
+          _ ≤ Λ * (12 * δ) + Λ * C"
+            apply (intro mono_intros True) using \<open>Λ ≥ 1\<close> by auto
+          finally have M: "dist closestm closestM ≤ Λ * (12 * δ + C)"
             by (auto simp add: algebra_simps)
 
           have := calc 2 * Gromov_product_at (f z) (f closestm) (f closestM) ≤ dist (f closestm) (f z) + dist (f z) (f (closestM))"
@@ -535,47 +574,47 @@ proof -
             apply (intro mono_intros quasi_isometry_onD(1)[OF assms(2)])
             using \<open>closestm ∈ {um..ym}\<close> \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> \<open>ym ∈ {um..z}\<close>
             \<open>closestM ∈ {yM..uM}\<close> \<open>uM ∈ {z..b}\<close> \<open>z ∈ Icc a b\<close> \<open>yM ∈ {z..uM}\<close> by auto
-          _ = lambda * dist closestm closestM + 1 * 2 * C"
+          _ = Λ * dist closestm closestM + 1 * 2 * C"
             unfolding dist_real_def using \<open>closestm ∈ {um..ym}\<close> \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> \<open>ym ∈ {um..z}\<close>
             \<open>closestM ∈ {yM..uM}\<close> \<open>uM ∈ {z..b}\<close> \<open>z ∈ Icc a b\<close> \<open>yM ∈ {z..uM}\<close> by (auto simp add: algebra_simps)
-          _ ≤ lambda * (lambda * (12 * delta + C)) + lambda^2 * 2 * C"
-            apply (intro mono_intros M) using \<open>lambda ≥ 1\<close> \<open>C ≥ 0\<close> by auto
-          _ = lambda^2 * (24 * delta + 3 * C) - lambda^2 * 12 * delta"
+          _ ≤ Λ * (lambda * (12 * δ + C)) + Λ^2 * 2 * C"
+            apply (intro mono_intros M) using \<open>Λ ≥ 1\<close> \<open>C ≥ 0\<close> by auto
+          _ = Λ^2 * (24 * δ + 3 * C) - Λ^2 * 12 * δ"
             by (simp add: algebra_simps power2_eq_square)
-          _ ≤ lambda^2 * ((2 * D + L + 2 * delta) + 11 * C) - 1 * 12 * delta"
-            apply (intro mono_intros) using Laux \<open>lambda ≥ 1\<close> \<open>C ≥ 0\<close> \<open>delta > 0\<close> by auto
+          _ ≤ Λ^2 * ((2 * D + L + 2 * δ) + 11 * C) - 1 * 12 * δ"
+            apply (intro mono_intros) using Laux \<open>Λ ≥ 1\<close> \<open>C ≥ 0\<close> \<open>δ > 0\<close> by auto
           finally show ?thesis
             by (auto simp add: divide_simps algebra_simps)
         next
           case False
-          have := calc dist closestm closestM ≤ lambda * (dm + dM + L + 2 * delta + C)"
+          have := calc dist closestm closestM ≤ Λ * (dm + dM + L + 2 * δ + C)"
             using D[OF \<open>closestm ∈ {um..ym}\<close> \<open>closestM ∈ {yM..uM}\<close>] dm_def dM_def by (auto simp add: algebra_simps)
-          _ ≤ lambda * ((D + 4 * C) + (D + 4 * C) + L + 2 * delta + C)"
-            apply (intro mono_intros) using 1 \<open>lambda ≥ 1\<close> by auto
-          _ ≤ lambda * (2 * D + L + 2 * delta + 9 * C)"
-            using \<open>lambda ≥ 1\<close> \<open>C ≥ 0\<close> by auto
-          finally have M: "dist closestm closestM ≤ lambda * (2 * D + L + 2 * delta + 9 * C)"
+          _ ≤ Λ * ((D + 4 * C) + (D + 4 * C) + L + 2 * δ + C)"
+            apply (intro mono_intros) using 1 \<open>Λ ≥ 1\<close> by auto
+          _ ≤ Λ * (2 * D + L + 2 * δ + 9 * C)"
+            using \<open>Λ ≥ 1\<close> \<open>C ≥ 0\<close> by auto
+          finally have M: "dist closestm closestM ≤ Λ * (2 * D + L + 2 * δ + 9 * C)"
             by (auto simp add: algebra_simps divide_simps metric_space_class.dist_commute)
 
           have := calc dist (f closestm) (f z) + dist (f z) (f (closestM)) ≤ (lambda * dist closestm z + C) + (lambda * dist z closestM + C)"
             apply (intro mono_intros quasi_isometry_onD(1)[OF assms(2)])
             using \<open>closestm ∈ {um..ym}\<close> \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> \<open>ym ∈ {um..z}\<close>
             \<open>closestM ∈ {yM..uM}\<close> \<open>uM ∈ {z..b}\<close> \<open>z ∈ Icc a b\<close> \<open>yM ∈ {z..uM}\<close> by auto
-          _ = lambda * dist closestm closestM + 1 * 2 * C"
+          _ = Λ * dist closestm closestM + 1 * 2 * C"
             unfolding dist_real_def using \<open>closestm ∈ {um..ym}\<close> \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> \<open>ym ∈ {um..z}\<close>
             \<open>closestM ∈ {yM..uM}\<close> \<open>uM ∈ {z..b}\<close> \<open>z ∈ Icc a b\<close> \<open>yM ∈ {z..uM}\<close> by (auto simp add: algebra_simps)
-          _ ≤ lambda * (lambda * (2 * D + L + 2 * delta + 9 * C)) + lambda^2 * 2 * C"
-            apply (intro mono_intros M) using \<open>lambda ≥ 1\<close> \<open>C ≥ 0\<close> by auto
-          finally have "dist (f closestm) (f z) + dist (f z) (f closestM) ≤ lambda^2 * (2 * D + L + 2 * delta + 11 * C)"
+          _ ≤ Λ * (lambda * (2 * D + L + 2 * δ + 9 * C)) + Λ^2 * 2 * C"
+            apply (intro mono_intros M) using \<open>Λ ≥ 1\<close> \<open>C ≥ 0\<close> by auto
+          finally have "dist (f closestm) (f z) + dist (f z) (f closestM) ≤ Λ^2 * (2 * D + L + 2 * δ + 11 * C)"
             by (simp add: algebra_simps power2_eq_square)
           then show ?thesis
             unfolding Gromov_product_at_def using False by (simp add: metric_space_class.dist_commute algebra_simps divide_simps)
         qed
-        have := calc Gromov_product_at (f z) (f um) (f uM) ≤ Gromov_product_at (f z) (f closestm) (f closestM) + 1 * L + 4 * delta + 0 * (1 - exp (- K * (uM - um)))"
+        have := calc Gromov_product_at (f z) (f um) (f uM) ≤ Gromov_product_at (f z) (f closestm) (f closestM) + 1 * L + 4 * δ + 0 * (1 - exp (- K * (uM - um)))"
           using Rec[OF \<open>closestm ∈ {um..ym}\<close> \<open>closestM ∈ {yM..uM}\<close>] by simp
-        _ ≤ (lambda^2 * (D + L / 2 + delta + 11/2 * C) - 6 * delta) + lambda^2 * L + 4 * delta + Kmult * (1 - exp (- K * (uM - um)))"
+        _ ≤ (lambda^2 * (D + L / 2 + δ + 11/2 * C) - 6 * δ) + Λ^2 * L + 4 * δ + Kmult * (1 - exp (- K * (uM - um)))"
           apply (intro mono_intros I)
-          using Laux \<open>lambda ≥ 1\<close> \<open>delta > 0\<close> \<open>Kmult > 0\<close> \<open>um ∈ {a..z}\<close> \<open>uM ∈ {z..b}\<close> \<open>K > 0\<close> by auto
+          using Laux \<open>Λ ≥ 1\<close> \<open>δ > 0\<close> \<open>Kmult > 0\<close> \<open>um ∈ {a..z}\<close> \<open>uM ∈ {z..b}\<close> \<open>K > 0\<close> by auto
         finally show ?thesis
           by (simp add: algebra_simps)
         text \<open>End of the easy case 2.1\<close>
@@ -590,29 +629,29 @@ proof -
         case 2
         then have I: "D + 4 * C ≤ dm" "dM ≤ dm" by auto
         define V where "V = (\<lambda>k::nat. (\<Union>g∈H. cball g ((2^k - 1) * dm)))"
-        define QC where "QC = (\<lambda>k::nat. if k = 0 then 0 else 8 * delta)"
-        have "QC k ≥ 0" for k unfolding QC_def using \<open>delta > 0\<close> by auto
+        define QC where "QC = (\<lambda>k::nat. if k = 0 then 0 else 8 * δ)"
+        have "QC k ≥ 0" for k unfolding QC_def using \<open>δ > 0\<close> by auto
         have Q: "quasiconvex (0 + 8 * deltaG(TYPE('a))) (V k)" for k
           unfolding V_def apply (rule quasiconvex_thickening) using geodesic_segmentI[OF H]
           by (auto simp add: quasiconvex_of_geodesic)
         have "quasiconvex (QC k) (V k)" for k
           apply (cases "k = 0")
           apply (simp add: V_def QC_def quasiconvex_of_geodesic geodesic_segmentI[OF H])
-          apply (rule quasiconvex_mono[OF _ Q[of k]]) using \<open>deltaG(TYPE('a)) < delta\<close> QC_def by auto
+          apply (rule quasiconvex_mono[OF _ Q[of k]]) using \<open>deltaG(TYPE('a)) < δ\<close> QC_def by auto
         text \<open>Define $q(k, x)$ to be the projection of $f(x)$ on $V_k$.\<close>
         define q::"nat → real → 'a" where "q = (\<lambda>k x. geodesic_segment_param {p x‒f x} (p x) ((2^k - 1) * dm))"
 
         text \<open>The inductive argument\<close>
-        have Ind_k: "(Gromov_product_at (f z) (f um) (f uM) ≤ lambda^2 * (D + 3/2 * L + delta + 11/2 * C) - 2 * delta + Kmult * (1 - exp(- K * (uM - um))))
-              \<or> (\<exists>x ∈ {um..ym}. (∀ w ∈ {um..x}. dist (f w) (p w) ≥ (2^(k+1)-1) * dm) ∀  dist (q k um) (q k x) ≥ L - 4 * delta + 7 * QC k)" for k
+        have Ind_k: "(Gromov_product_at (f z) (f um) (f uM) ≤ Λ^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp(- K * (uM - um))))
+              \<or> (\<exists>x ∈ {um..ym}. (∀ w ∈ {um..x}. dist (f w) (p w) ≥ (2^(k+1)-1) * dm) ∀  dist (q k um) (q k x) ≥ L - 4 * δ + 7 * QC k)" for k
         proof (induction k)
           text \<open>Base case: there is a point far enough from $q 0 um$ on $H$. This is just the point $ym$,
           by construction.\<close>
           case 0
-          have *: "\<exists>x∈ {um..ym}. (∀ w ∈ {um..x}. dist (f w) (p w) ≥ (2^(0+1)-1) * dm) ∀  dist (q 0 um) (q 0 x) ≥ L - 4 * delta + 7 * QC 0"
+          have *: "\<exists>x∈ {um..ym}. (∀ w ∈ {um..x}. dist (f w) (p w) ≥ (2^(0+1)-1) * dm) ∀  dist (q 0 um) (q 0 x) ≥ L - 4 * δ + 7 * QC 0"
           proof (rule bexI[of _ ym], auto simp add: V_def q_def QC_def)
             show "um ≤ ym" using \<open>ym ∈ {um..z}\<close> by auto
-            show "L - 4 * delta ≤ dist (p um) (p ym)"
+            show "L - 4 * δ ≤ dist (p um) (p ym)"
               using ym(2) apply auto using metric_space_class.zero_le_dist[of pi_z "p um"] by linarith
             show "∀ y. um ≤ y → y ≤ ym → dm ≤ dist (f y) (p y)"
               using dm_def closestm proj_setD(2)[OF p] by auto
@@ -627,12 +666,12 @@ proof -
           properties at step $k+1$.\<close>
           case Suck: (Suc k)
           show ?case
-          proof (cases "Gromov_product_at (f z) (f um) (f uM) ≤ lambda\<^sup>2 * (D + 3/2 * L + delta + 11/2 * C) - 2 * delta + Kmult * (1 - exp (- K * (uM - um)))")
+          proof (cases "Gromov_product_at (f z) (f um) (f uM) ≤ Λ\<^sup>2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um)))")
             case True
             then show ?thesis by simp
           next
             case False
-            then obtain x where x: "x ∈ {um..ym}" "dist (q k um) (q k x) ≥ L - 4 * delta + 7 * QC k"
+            then obtain x where x: "x ∈ {um..ym}" "dist (q k um) (q k x) ≥ L - 4 * δ + 7 * QC k"
                                    "∀ w. w ∈ {um..x} → dist (f w) (p w) ≥ (2^(k+1)-1) * dm"
               using Suck.IH by auto
 
@@ -650,20 +689,20 @@ proof -
               apply (intro mono_intros) using I \<open>L > 0\<close> \<open>D > 0\<close> by auto
             finally have "L + C ≤ (L/D) * dm"
               by simp
-            moreover have "2 * delta ≤ (2 * delta)/D * dm"
-              using I \<open>C ≥ 0\<close> \<open>delta > 0\<close> \<open>D > 0\<close> by (auto simp add: algebra_simps divide_simps)
-            ultimately have aux2: "L + C + 2 * delta ≤ ((L + 2 * delta)/D) * dm"
+            moreover have "2 * δ ≤ (2 * δ)/D * dm"
+              using I \<open>C ≥ 0\<close> \<open>δ > 0\<close> \<open>D > 0\<close> by (auto simp add: algebra_simps divide_simps)
+            ultimately have aux2: "L + C + 2 * δ ≤ ((L + 2 * δ)/D) * dm"
               by (auto simp add: algebra_simps divide_simps)
-            have aux3: "(1-alpha) * D + alpha * 2^k * dm ≤ dm * 2^k - C/2 - QC k"
+            have aux3: "(1-α) * D + α * 2^k * dm ≤ dm * 2^k - C/2 - QC k"
             proof (cases "k = 0")
               case True
               show ?thesis
                  using I \<open>C ≥ 0\<close> unfolding True QC_def alpha_def by auto
             next
               case False
-              have := calc C/2 + QC k + (1-alpha) * D ≤ 2 * (1-alpha) * dm"
+              have := calc C/2 + QC k + (1-α) * D ≤ 2 * (1-α) * dm"
                 using I \<open>C ≥ 0\<close> unfolding QC_def alpha_def using False Laux by auto
-              _ ≤ 2^k * (1-alpha) * dm"
+              _ ≤ 2^k * (1-α) * dm"
                 apply (intro mono_intros) using False alphaaux I \<open>D > 0\<close> \<open>C ≥ 0\<close> by auto
               finally show ?thesis
                 by (simp add: algebra_simps)
@@ -672,24 +711,24 @@ proof -
             text \<open>Construct a point $w$ such that its projection on $V_k$ is close to that of $um$
             and therefore far away from that of $x$. This is just the intermediate value theorem
             (with some care as the closest point projection is not continuous).\<close>
-            have "\<exists>w ∈ {um..x}. (dist (q k um) (q k w) ∈ {(9 * delta + 4 * QC k) - 4 * delta - 2 * QC k .. 9 * delta + 4 * QC k})
-                    ∀  (∀ v ∈ {um..w}. dist (q k um) (q k v) ≤ 9 * delta + 4 * QC k)"
+            have "\<exists>w ∈ {um..x}. (dist (q k um) (q k w) ∈ {(9 * δ + 4 * QC k) - 4 * δ - 2 * QC k .. 9 * δ + 4 * QC k})
+                    ∀  (∀ v ∈ {um..w}. dist (q k um) (q k v) ≤ 9 * δ + 4 * QC k)"
             proof (rule quasi_convex_projection_small_gaps[where ?f = f and ?G = "V k"])
               show "continuous_on {um..x} f"
                 apply (rule continuous_on_subset[OF \<open>continuous_on Icc a b f\<close>])
                 using \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> \<open>ym ∈ {um..z}\<close> \<open>x ∈ {um..ym}\<close> by auto
               show "um ≤ x" using \<open>x ∈ {um..ym}\<close> by auto
               show "quasiconvex (QC k) (V k)" by fact
-              show "deltaG TYPE('a) < delta" by fact
-              show "9 * delta + 4 * QC k ∈ {4 * delta + 2 * QC k..dist (q k um) (q k x)}"
-                using x(2) \<open>delta > 0\<close> \<open>QC k ≥ 0\<close> Laux by auto
+              show "deltaG TYPE('a) < δ" by fact
+              show "9 * δ + 4 * QC k ∈ {4 * δ + 2 * QC k..dist (q k um) (q k x)}"
+                using x(2) \<open>δ > 0\<close> \<open>QC k ≥ 0\<close> Laux by auto
               show "q k w ∈ proj_set (f w) (V k)" if "w ∈ {um..x}" for w
                 unfolding V_def q_def apply (rule proj_set_thickening)
                 using aux p x(3)[OF that] by (auto simp add: metric_space_class.dist_commute)
             qed
             then obtain w where w: "w ∈ {um..x}"
-                                   "dist (q k um) (q k w) ∈ {(9 * delta + 4 * QC k) - 4 * delta - 2 * QC k .. 9 * delta + 4 * QC k}"
-                                   "∀ v. v ∈ {um..w} → dist (q k um) (q k v) ≤ 9 * delta + 4 * QC k"
+                                   "dist (q k um) (q k w) ∈ {(9 * δ + 4 * QC k) - 4 * δ - 2 * QC k .. 9 * δ + 4 * QC k}"
+                                   "∀ v. v ∈ {um..w} → dist (q k um) (q k v) ≤ 9 * δ + 4 * QC k"
               by auto
             text \<open>There are now two cases to be considered: either one can find a point $v$ between
             $um$ and $w$ which is close enough to $H$. Then this point will satisfy~\eqref{eq:xvK},
@@ -729,32 +768,32 @@ proof -
               inequality to put it in the form we will need, as an upper bound on $(x-v) \exp(-2^k dm)$.\<close>
               have "infDist (f v) H ≤ (2^(k+2)-1) * dm"
                 using v proj_setD(2)[OF p[of v]] by auto
-              have := calc dist v closestM ≤ lambda * (infDist (f v) H + (L + C + 2 * delta) + infDist (f closestM) H)"
+              have := calc dist v closestM ≤ Λ * (infDist (f v) H + (L + C + 2 * δ) + infDist (f closestM) H)"
                 apply (rule D)
                 using \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> \<open>x ∈ {um..ym}\<close> \<open>ym ∈ {um..z}\<close> \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> \<open>closestM ∈ {yM..uM}\<close> \<open>yM ∈ {z..uM}\<close> \<open>uM ∈ {z..b}\<close> by auto
-              _ ≤ lambda * ((2^(k+2)-1) * dm + 1 * (L + C + 2 * delta) + dM)"
+              _ ≤ Λ * ((2^(k+2)-1) * dm + 1 * (L + C + 2 * δ) + dM)"
                 apply (intro mono_intros \<open>infDist (f v) H ≤ (2^(k+2)-1) * dm\<close>)
-                using dM_def \<open>lambda ≥ 1\<close> \<open>L > 0\<close> \<open>C ≥ 0\<close> \<open>delta > 0\<close> by (auto simp add: metric_space_class.dist_commute)
-              _ ≤ lambda * ((2^(k+2)-1) * dm + 2^k * (((L + 2 * delta)/D) * dm) + dm)"
-                apply (intro mono_intros) using I \<open>lambda ≥ 1\<close> \<open>C ≥ 0\<close> \<open>delta > 0\<close> \<open>L > 0\<close> aux2 by auto
-              _ = lambda * 2^k * (4 + (L + 2 * delta)/D) * dm"
+                using dM_def \<open>Λ ≥ 1\<close> \<open>L > 0\<close> \<open>C ≥ 0\<close> \<open>δ > 0\<close> by (auto simp add: metric_space_class.dist_commute)
+              _ ≤ Λ * ((2^(k+2)-1) * dm + 2^k * (((L + 2 * δ)/D) * dm) + dm)"
+                apply (intro mono_intros) using I \<open>Λ ≥ 1\<close> \<open>C ≥ 0\<close> \<open>δ > 0\<close> \<open>L > 0\<close> aux2 by auto
+              _ = Λ * 2^k * (4 + (L + 2 * δ)/D) * dm"
                 by (simp add: algebra_simps)
-              finally have *: "dist v closestM / (lambda * (4 + (L + 2 * delta)/D)) ≤ 2^k * dm"
-                using \<open>lambda ≥ 1\<close> \<open>L > 0\<close> \<open>D > 0\<close> \<open>delta > 0\<close> by (simp add: divide_simps, simp add: algebra_simps)
+              finally have *: "dist v closestM / (lambda * (4 + (L + 2 * δ)/D)) ≤ 2^k * dm"
+                using \<open>Λ ≥ 1\<close> \<open>L > 0\<close> \<open>D > 0\<close> \<open>δ > 0\<close> by (simp add: divide_simps, simp add: algebra_simps)
               text \<open>We reformulate this control inside of an exponential, as this is the form we
               will use later on.\<close>
-              have := calc exp(- (alpha * (2^k * dm) * log 2 / (5 * delta))) ≤ exp(-(alpha * (dist v closestM / (lambda * (4 + (L + 2 * delta)/D))) * log 2 / (5 * delta)))"
-                apply (intro mono_intros *) using alphaaux \<open>delta > 0\<close> by auto
+              have := calc exp(- (α * (2^k * dm) * log 2 / (5 * δ))) ≤ exp(-(α * (dist v closestM / (lambda * (4 + (L + 2 * δ)/D))) * log 2 / (5 * δ)))"
+                apply (intro mono_intros *) using alphaaux \<open>δ > 0\<close> by auto
               _ = exp(-K * dist v closestM)"
                 unfolding K_def by (simp add: divide_simps)
               _ = exp(-K * (closestM - v))"
                 unfolding dist_real_def using \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> \<open>x ∈ {um..ym}\<close> \<open>ym ∈ {um..z}\<close> \<open>yM ∈ {z..uM}\<close> \<open>closestM ∈ {yM..uM}\<close> \<open>K > 0\<close> by auto
-              finally have "exp(- (alpha * (2^k * dm) * log 2 / (5 * delta))) ≤ exp(-K * (closestM - v))"
+              finally have "exp(- (α * (2^k * dm) * log 2 / (5 * δ))) ≤ exp(-K * (closestM - v))"
                 by simp
               text \<open>Plug in $x-v$ to get the final form of this inequality.\<close>
-              then have := calc K * (x - v) * exp(- (alpha * (2^k * dm) * log 2 / (5 * delta))) ≤ K * (x - v) * exp(-K * (closestM - v))"
+              then have := calc K * (x - v) * exp(- (α * (2^k * dm) * log 2 / (5 * δ))) ≤ K * (x - v) * exp(-K * (closestM - v))"
                 apply (rule mult_left_mono)
-                using \<open>delta > 0\<close> \<open>lambda ≥ 1\<close> \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> \<open>K > 0\<close> by auto
+                using \<open>δ > 0\<close> \<open>Λ ≥ 1\<close> \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> \<open>K > 0\<close> by auto
               _ = ((1 + K * (x - v)) - 1) * exp(- K * (closestM - v))"
                 by (auto simp add: algebra_simps)
               _ ≤ (exp (K * (x - v)) - 1) * exp(-K * (closestM - v))"
@@ -763,7 +802,7 @@ proof -
                 by (simp add: algebra_simps mult_exp_exp)
               _ ≤ exp(-K * (closestM - x)) - exp(-K * (uM - um))"
                 using \<open>K > 0\<close> \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> \<open>x ∈ {um..ym}\<close> \<open>ym ∈ {um..z}\<close> \<open>yM ∈ {z..uM}\<close> \<open>closestM ∈ {yM..uM}\<close> by auto
-              finally have B: "(x - v) * exp(- alpha * 2^k * dm * log 2 / (5 * delta)) ≤
+              finally have B: "(x - v) * exp(- α * 2^k * dm * log 2 / (5 * δ)) ≤
                                   (exp(-K * (closestM - x)) - exp(-K * (uM-um)))/K"
                 using \<open>K > 0\<close> by (auto simp add: divide_simps algebra_simps)
               text \<open>End of substep 1\<close>
@@ -773,21 +812,21 @@ proof -
               to the exponential contraction property of the projection on the quasi-convex set $V_k$.
               This leads to a uniform lower bound for $(x-v) \exp(-2^k dm)$, which has been upper bounded
               in Substep 1.\<close>
-              have := calc L - 4 * delta + 7 * QC k ≤ dist (q k um) (q k x)"
+              have := calc L - 4 * δ + 7 * QC k ≤ dist (q k um) (q k x)"
                 using x by simp
               _ ≤ dist (q k um) (q k v) + dist (q k v) (q k x)"
                 by (intro mono_intros)
-              _ ≤ (9 * delta + 4 * QC k) + dist (q k v) (q k x)"
+              _ ≤ (9 * δ + 4 * QC k) + dist (q k v) (q k x)"
                 using w(3)[of v] \<open>v ∈ {um..w}\<close> by auto
-              finally have := calc L - 13 * delta + 3 * QC k ≤ dist (q k v) (q k x)"
+              finally have := calc L - 13 * δ + 3 * QC k ≤ dist (q k v) (q k x)"
                 by simp
-              _ ≤ 3 * QC k + max (5 * deltaG(TYPE('a))) ((4 * exp(1/2 * log 2)) * lambda * (x - v) * exp(-(dm * 2^k - C/2 - QC k) * log 2 / (5 * delta)))"
+              _ ≤ 3 * QC k + max (5 * deltaG(TYPE('a))) ((4 * exp(1/2 * log 2)) * Λ * (x - v) * exp(-(dm * 2^k - C/2 - QC k) * log 2 / (5 * δ)))"
               proof (cases "k = 0")
                 text \<open>We use different statements for the projection in the case $k = 0$ (projection on
                 a geodesic) and $k > 0$ (projection on a quasi-convex set) as the bounds are better in
                 the first case, which is the most important one for the final value of the constant.\<close>
                 case True
-                have "dist (q k v) (q k x) ≤ max (5 * deltaG(TYPE('a))) ((4 * exp(1/2 * log 2)) * lambda * (x - v) * exp(-(dm * 2^k - C/2) * log 2 / (5 * delta)))"
+                have "dist (q k v) (q k x) ≤ max (5 * deltaG(TYPE('a))) ((4 * exp(1/2 * log 2)) * Λ * (x - v) * exp(-(dm * 2^k - C/2) * log 2 / (5 * δ)))"
                 proof (rule geodesic_projection_exp_contracting[where ?G = "V k" and ?f = f])
                   show "geodesic_segment (V k)" unfolding True V_def using geodesic_segmentI[OF H] by auto
                   show "v ≤ x" using \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> by auto
@@ -797,20 +836,20 @@ proof -
                   show "q k x ∈ proj_set (f x) (V k)"
                     unfolding q_def V_def apply (rule proj_set_thickening)
                     using aux p[of x] x(3)[of x] \<open>w ∈ {um..x}\<close> by (auto simp add: metric_space_class.dist_commute)
-                  show "15/2 * delta + C/2 ≤ dm * 2^k"
+                  show "15/2 * δ + C/2 ≤ dm * 2^k"
                     apply (rule order_trans[of _ dm])
-                    using I \<open>delta > 0\<close> \<open>C ≥ 0\<close> Laux unfolding QC_def by auto
-                  show "deltaG TYPE('a) < delta" by fact
+                    using I \<open>δ > 0\<close> \<open>C ≥ 0\<close> Laux unfolding QC_def by auto
+                  show "deltaG TYPE('a) < δ" by fact
                   show "∀ t. t ∈ {v..x} → dm * 2 ^ k ≤ infDist (f t) (V k)"
                     using aux4 by auto
-                  show "0 ≤ C" "0 ≤ lambda" using \<open>C ≥ 0\<close> \<open>lambda ≥ 1\<close> by auto
-                  show "dist (f x1) (f x2) ≤ lambda * dist x1 x2 + C" if "x1 ∈ {v..x}" "x2 ∈ {v..x}" for x1 x2
+                  show "0 ≤ C" "0 ≤ Λ" using \<open>C ≥ 0\<close> \<open>Λ ≥ 1\<close> by auto
+                  show "dist (f x1) (f x2) ≤ Λ * dist x1 x2 + C" if "x1 ∈ {v..x}" "x2 ∈ {v..x}" for x1 x2
                     using quasi_isometry_onD(1)[OF assms(2)] that \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> \<open>x ∈ {um..ym}\<close> \<open>ym ∈ {um..z}\<close> \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> by auto
                 qed
                 then show ?thesis unfolding QC_def True by auto
               next
                 case False
-                have "dist (q k v) (q k x) ≤ 2 * QC k + 8 * delta + max (5 * deltaG(TYPE('a))) ((4 * exp(1/2 * log 2)) * lambda * (x - v) * exp(-(dm * 2^k - QC k -C/2) * log 2 / (5 * delta)))"
+                have "dist (q k v) (q k x) ≤ 2 * QC k + 8 * δ + max (5 * deltaG(TYPE('a))) ((4 * exp(1/2 * log 2)) * Λ * (x - v) * exp(-(dm * 2^k - QC k -C/2) * log 2 / (5 * δ)))"
                 proof (rule quasiconvex_projection_exp_contracting[where ?G = "V k" and ?f = f])
                   show "quasiconvex (QC k) (V k)" by fact
                   show "v ≤ x" using \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> by auto
@@ -820,29 +859,29 @@ proof -
                   show "q k x ∈ proj_set (f x) (V k)"
                     unfolding q_def V_def apply (rule proj_set_thickening)
                     using aux p[of x] x(3)[of x] \<open>w ∈ {um..x}\<close> by (auto simp add: metric_space_class.dist_commute)
-                  show "15/2 * delta + QC k + C/2 ≤ dm * 2^k"
+                  show "15/2 * δ + QC k + C/2 ≤ dm * 2^k"
                     apply (rule order_trans[of _ dm])
-                    using I \<open>delta > 0\<close> \<open>C ≥ 0\<close> Laux unfolding QC_def by auto
-                  show "deltaG TYPE('a) < delta" by fact
+                    using I \<open>δ > 0\<close> \<open>C ≥ 0\<close> Laux unfolding QC_def by auto
+                  show "deltaG TYPE('a) < δ" by fact
                   show "∀ t. t ∈ {v..x} → dm * 2 ^ k ≤ infDist (f t) (V k)"
                     using aux4 by auto
-                  show "0 ≤ C" "0 ≤ lambda" using \<open>C ≥ 0\<close> \<open>lambda ≥ 1\<close> by auto
-                  show "dist (f x1) (f x2) ≤ lambda * dist x1 x2 + C" if "x1 ∈ {v..x}" "x2 ∈ {v..x}" for x1 x2
+                  show "0 ≤ C" "0 ≤ Λ" using \<open>C ≥ 0\<close> \<open>Λ ≥ 1\<close> by auto
+                  show "dist (f x1) (f x2) ≤ Λ * dist x1 x2 + C" if "x1 ∈ {v..x}" "x2 ∈ {v..x}" for x1 x2
                     using quasi_isometry_onD(1)[OF assms(2)] that \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> \<open>x ∈ {um..ym}\<close> \<open>ym ∈ {um..z}\<close> \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> by auto
                 qed
                 then show ?thesis unfolding QC_def using False by (auto simp add: algebra_simps)
               qed
-              finally have "L - 13 * delta ≤ max (5 * deltaG(TYPE('a))) ((4 * exp(1/2 * log 2)) * lambda * (x - v) * exp(-(dm * 2^k - C/2 - QC k) * log 2 / (5 * delta)))"
+              finally have "L - 13 * δ ≤ max (5 * deltaG(TYPE('a))) ((4 * exp(1/2 * log 2)) * Λ * (x - v) * exp(-(dm * 2^k - C/2 - QC k) * log 2 / (5 * δ)))"
                 by auto
-              then have := calc L - 13 * delta ≤ (4 * exp(1/2 * log 2)) * lambda * (x - v) * exp(-(dm * 2^k - C/2 - QC k) * log 2 / (5 * delta))"
-                using \<open>delta > deltaG(TYPE('a))\<close> Laux by auto
+              then have := calc L - 13 * δ ≤ (4 * exp(1/2 * log 2)) * Λ * (x - v) * exp(-(dm * 2^k - C/2 - QC k) * log 2 / (5 * δ))"
+                using \<open>δ > deltaG(TYPE('a))\<close> Laux by auto
               text \<open>We separate the exponential gain coming from the contraction into two parts, one
               to be spent to improve the constant, and one for the inductive argument.\<close>
-              _ ≤ (4 * exp(1/2 * log 2)) * lambda * (x - v) * exp(-((1-alpha) * D + alpha * 2^k * dm) * log 2 / (5 * delta))"
-                apply (intro mono_intros) using aux3 \<open>delta > 0\<close> \<open>lambda ≥ 1\<close> \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> by auto
-              _ = (4 * exp(1/2 * log 2)) * lambda * (x - v) * (exp(-(1-alpha) * D * log 2 / (5 * delta)) * exp(-alpha * 2^k * dm * log 2 / (5 * delta)))"
+              _ ≤ (4 * exp(1/2 * log 2)) * Λ * (x - v) * exp(-((1-α) * D + α * 2^k * dm) * log 2 / (5 * δ))"
+                apply (intro mono_intros) using aux3 \<open>δ > 0\<close> \<open>Λ ≥ 1\<close> \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> by auto
+              _ = (4 * exp(1/2 * log 2)) * Λ * (x - v) * (exp(-(1-α) * D * log 2 / (5 * δ)) * exp(-α * 2^k * dm * log 2 / (5 * δ)))"
                 unfolding mult_exp_exp by (auto simp add: algebra_simps divide_simps)
-              finally have A: "L - 13 * delta ≤ (4 * exp(1/2 * log 2)) * lambda * exp(-(1-alpha) * D * log 2 / (5 * delta)) * ((x - v) * exp(-alpha * 2^k * dm * log 2 / (5 * delta)))"
+              finally have A: "L - 13 * δ ≤ (4 * exp(1/2 * log 2)) * Λ * exp(-(1-α) * D * log 2 / (5 * δ)) * ((x - v) * exp(-α * 2^k * dm * log 2 / (5 * δ)))"
                 by (simp add: algebra_simps)
               text \<open>This is the end of the second substep.\<close>
 
@@ -850,43 +889,43 @@ proof -
               that $closestM - x$ (the endpoints of the new geodesic we want to consider in the
               inductive argument) are quantitatively closer than $uM - um$, which means that we
               will be able to use the inductive assumption over this new geodesic.\<close>
-              _ ≤ (4 * exp(1/2 * log 2)) * lambda * exp 0 * ((x - v) * exp 0)"
-                apply (intro mono_intros) using \<open>delta > 0\<close> \<open>lambda ≥ 1\<close> \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> alphaaux \<open>D > 0\<close> \<open>C ≥ 0\<close> I
+              _ ≤ (4 * exp(1/2 * log 2)) * Λ * exp 0 * ((x - v) * exp 0)"
+                apply (intro mono_intros) using \<open>δ > 0\<close> \<open>Λ ≥ 1\<close> \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> alphaaux \<open>D > 0\<close> \<open>C ≥ 0\<close> I
                 by (auto simp add: divide_simps mult_nonpos_nonneg)
-              _ = (4 * exp(1/2 * log 2)) * lambda * (x-v)"
+              _ = (4 * exp(1/2 * log 2)) * Λ * (x-v)"
                 by simp
-              _ ≤ 20 * lambda * (x - v)"
+              _ ≤ 20 * Λ * (x - v)"
                 apply (intro mono_intros, approximation 10)
-                using \<open>delta > 0\<close> \<open>lambda ≥ 1\<close> \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> by auto
-              finally have "x - v ≥ (1/4) * delta / lambda"
-                using \<open>lambda ≥ 1\<close> L_def \<open>delta > 0\<close> by (simp add: divide_simps algebra_simps)
-              then have := calc closestM - x + (1/4) * delta / lambda ≤ closestM - v"
+                using \<open>δ > 0\<close> \<open>Λ ≥ 1\<close> \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> by auto
+              finally have "x - v ≥ (1/4) * δ / Λ"
+                using \<open>Λ ≥ 1\<close> L_def \<open>δ > 0\<close> by (simp add: divide_simps algebra_simps)
+              then have := calc closestM - x + (1/4) * δ / Λ ≤ closestM - v"
                 by simp
               _ ≤ uM - um"
                 using \<open>closestM ∈ {yM..uM}\<close> \<open>v ∈ {um..w}\<close> by auto
-              _ ≤ Suc n * (1/4) * delta / lambda" by fact
-              finally have "closestM - x ≤ n * (1/4) * delta / lambda"
+              _ ≤ Suc n * (1/4) * δ / Λ" by fact
+              finally have "closestM - x ≤ n * (1/4) * δ / Λ"
                 unfolding Suc_eq_plus1 by (auto simp add: algebra_simps add_divide_distrib)
 
               text \<open>Conclusion of the proof: combine the lower bound of the second substep with
               the upper bound of the first substep to get a definite gain when one goes from
               the old geodesic to the new one. Then, apply the inductive assumption to the new one
               to conclude the desired inequality for the old one.\<close>
-              have := calc L + 4 * delta = ((L + 4 * delta)/(L - 13 * delta)) * (L - 13 * delta)"
-                using Laux \<open>delta > 0\<close> by (simp add: algebra_simps divide_simps)
-              _ ≤ ((L + 4 * delta)/(L - 13 * delta)) * ((4 * exp(1/2 * log 2)) * lambda * exp (- (1 - alpha) * D * log 2 / (5 * delta)) * ((x - v) * exp (- alpha * 2 ^ k * dm * log 2 / (5 * delta))))"
-                apply (rule mult_left_mono) using A Laux \<open>delta > 0\<close> by (auto simp add: divide_simps)
-              _ ≤ ((L + 4 * delta)/(L - 13 * delta)) * ((4 * exp(1/2 * log 2)) * lambda * exp (- (1 - alpha) * D * log 2 / (5 * delta)) * ((exp(-K * (closestM - x)) - exp(-K * (uM - um)))/K))"
-                apply (intro mono_intros B) using Laux \<open>delta > 0\<close> \<open>lambda ≥ 1\<close> by (auto simp add: divide_simps)
-              finally have C: "L + 4 * delta ≤ Kmult * (exp(-K * (closestM - x)) - exp(-K * (uM - um)))"
+              have := calc L + 4 * δ = ((L + 4 * δ)/(L - 13 * δ)) * (L - 13 * δ)"
+                using Laux \<open>δ > 0\<close> by (simp add: algebra_simps divide_simps)
+              _ ≤ ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp(1/2 * log 2)) * Λ * exp (- (1 - α) * D * log 2 / (5 * δ)) * ((x - v) * exp (- α * 2 ^ k * dm * log 2 / (5 * δ))))"
+                apply (rule mult_left_mono) using A Laux \<open>δ > 0\<close> by (auto simp add: divide_simps)
+              _ ≤ ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp(1/2 * log 2)) * Λ * exp (- (1 - α) * D * log 2 / (5 * δ)) * ((exp(-K * (closestM - x)) - exp(-K * (uM - um)))/K))"
+                apply (intro mono_intros B) using Laux \<open>δ > 0\<close> \<open>Λ ≥ 1\<close> by (auto simp add: divide_simps)
+              finally have C: "L + 4 * δ ≤ Kmult * (exp(-K * (closestM - x)) - exp(-K * (uM - um)))"
                 unfolding Kmult_def by auto
 
-              have := calc Gromov_product_at (f z) (f um) (f uM) ≤ Gromov_product_at (f z) (f x) (f closestM) + (L + 4 * delta)"
+              have := calc Gromov_product_at (f z) (f um) (f uM) ≤ Gromov_product_at (f z) (f x) (f closestM) + (L + 4 * δ)"
                 apply (rule Rec) using \<open>closestM ∈ {yM..uM}\<close> \<open>x ∈ {um..ym}\<close> \<open>ym ∈ {um..z}\<close> by auto
-              _ ≤ (lambda^2 * (D + 3/2 * L + delta + 11/2 * C) - 2 * delta + Kmult * (1 - exp(- K * (closestM - x)))) + (Kmult * (exp(-K * (closestM - x)) - exp(-K * (uM-um))))"
+              _ ≤ (lambda^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp(- K * (closestM - x)))) + (Kmult * (exp(-K * (closestM - x)) - exp(-K * (uM-um))))"
                 apply (intro mono_intros C Suc.IH)
-                using \<open>x ∈ {um..ym}\<close> \<open>ym ∈ {um..z}\<close> \<open>um ∈ {a..z}\<close> \<open>closestM ∈ {yM..uM}\<close> \<open>yM ∈ {z..uM}\<close> \<open>uM ∈ {z..b}\<close> \<open>closestM - x ≤ n * (1/4) * delta / lambda\<close> by auto
-              _ = (lambda^2 * (D + 3/2 * L + delta + 11/2 * C) - 2 * delta + Kmult * (1 - exp(- K * (uM - um))))"
+                using \<open>x ∈ {um..ym}\<close> \<open>ym ∈ {um..z}\<close> \<open>um ∈ {a..z}\<close> \<open>closestM ∈ {yM..uM}\<close> \<open>yM ∈ {z..uM}\<close> \<open>uM ∈ {z..b}\<close> \<open>closestM - x ≤ n * (1/4) * δ / Λ\<close> by auto
+              _ = (lambda^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp(- K * (uM - um))))"
                 unfolding K_def by (simp add: algebra_simps)
               finally show ?thesis by auto
               text \<open>End of the first subcase, when there is a good point $v$ between $um$ and $w$.\<close>
@@ -894,7 +933,7 @@ proof -
               case False
               text \<open>Second subcase: between $um$ and $w$, all points are far away from $V_k$. We
               will show that this implies that $w$ is admissible for the step $k+1$.\<close>
-              have "\<exists>w∈{um..ym}. (∀ v∈{um..w}. (2 ^ (Suc k + 1) - 1) * dm ≤ dist (f v) (p v)) ∀  L - 4 * delta + 7 * QC (Suc k) ≤ dist (q (Suc k) um) (q (Suc k) w)"
+              have "\<exists>w∈{um..ym}. (∀ v∈{um..w}. (2 ^ (Suc k + 1) - 1) * dm ≤ dist (f v) (p v)) ∀  L - 4 * δ + 7 * QC (Suc k) ≤ dist (q (Suc k) um) (q (Suc k) w)"
               proof (rule bexI[of _ w], auto)
                 show "um ≤ w" "w ≤ ym" using \<open>w ∈ {um..x}\<close> \<open>x ∈ {um..ym}\<close> by auto
                 show "(4 * 2 ^ k - 1) * dm ≤ dist (f x) (p x)" if "um ≤ x" "x ≤ w" for x
@@ -913,23 +952,23 @@ proof -
                   unfolding q_def V_def apply (rule proj_set_thickening'[of _ "f w"])
                   using p x(3)[of w] \<open>x ∈ {um..ym}\<close> \<open>w ∈ {um..x}\<close> aux by (auto simp add: algebra_simps metric_space_class.dist_commute)
 
-                have := calc 5 * delta + 2 * QC k ≤ dist (q k um) (q k w)" using w(2) by simp
+                have := calc 5 * δ + 2 * QC k ≤ dist (q k um) (q k w)" using w(2) by simp
                 _ ≤ max (5 * deltaG(TYPE('a)) + 2 * QC k)
                                       (dist (q (k + 1) um) (q (k + 1) w) - dist (q k um) (q (k + 1) um) - dist (q k w) (q (k + 1) w) + 10 * deltaG(TYPE('a)) + 4 * QC k)"
                   by (rule proj_along_quasiconvex_contraction[OF \<open>quasiconvex (QC k) (V k)\<close> i j])
-                finally have "5 * delta + 2 * QC k ≤ dist (q (k + 1) um) (q (k + 1) w) - dist (q k um) (q (k + 1) um) - dist (q k w) (q (k + 1) w) + 10 * deltaG(TYPE('a)) + 4 * QC k"
-                  using \<open>deltaG(TYPE('a)) < delta\<close> by auto
-                then have "0 ≤ dist (q (k + 1) um) (q (k + 1) w) + 5 * delta + 2 * QC k - dist (q k um) (q (k + 1) um) - dist (q k w) (q (k + 1) w)"
-                  using \<open>deltaG(TYPE('a)) < delta\<close> by auto
-                _ = dist (q (k + 1) um) (q (k + 1) w) + 5 * delta + 2 * QC k - 2^(k+1) * dm"
+                finally have "5 * δ + 2 * QC k ≤ dist (q (k + 1) um) (q (k + 1) w) - dist (q k um) (q (k + 1) um) - dist (q k w) (q (k + 1) w) + 10 * deltaG(TYPE('a)) + 4 * QC k"
+                  using \<open>deltaG(TYPE('a)) < δ\<close> by auto
+                then have "0 ≤ dist (q (k + 1) um) (q (k + 1) w) + 5 * δ + 2 * QC k - dist (q k um) (q (k + 1) um) - dist (q k w) (q (k + 1) w)"
+                  using \<open>deltaG(TYPE('a)) < δ\<close> by auto
+                _ = dist (q (k + 1) um) (q (k + 1) w) + 5 * δ + 2 * QC k - 2^(k+1) * dm"
                   by (simp only: \<open>dist (q k w) (q (k+1) w) = 2^k * dm\<close> \<open>dist (q k um) (q (k+1) um) = 2^k * dm\<close>, auto)
-                finally have *: "2^(k+1) * dm - 5 * delta - 2 * QC k ≤ dist (q (k+1) um) (q (k+1) w)"
-                  using \<open>deltaG(TYPE('a)) < delta\<close> by auto
-                have := calc L - 4 * delta + 7 * QC (k+1) ≤ 2 * dm - 5 * delta - 2 * QC k"
-                  unfolding QC_def L_def using \<open>delta > 0\<close> Laux I \<open>C ≥ 0\<close> by auto
-                _ ≤ 2^(k+1) * dm - 5 * delta - 2 * QC k"
+                finally have *: "2^(k+1) * dm - 5 * δ - 2 * QC k ≤ dist (q (k+1) um) (q (k+1) w)"
+                  using \<open>deltaG(TYPE('a)) < δ\<close> by auto
+                have := calc L - 4 * δ + 7 * QC (k+1) ≤ 2 * dm - 5 * δ - 2 * QC k"
+                  unfolding QC_def L_def using \<open>δ > 0\<close> Laux I \<open>C ≥ 0\<close> by auto
+                _ ≤ 2^(k+1) * dm - 5 * δ - 2 * QC k"
                   using aux by (auto simp add: algebra_simps)
-                finally show "L - 4 * delta + 7 * QC (Suc k) ≤ dist (q (Suc k) um) (q (Suc k) w)"
+                finally show "L - 4 * δ + 7 * QC (Suc k) ≤ dist (q (Suc k) um) (q (Suc k) w)"
                   using * by auto
               qed
               then show ?thesis
@@ -940,7 +979,7 @@ proof -
         text \<open>This is the end of the main induction over $k$. To conclude, choose $k$ large enough
         so that the second alternative in this induction is impossible. It follows that the first
         alternative holds, i.e., the desired inequality is true.\<close>
-        have "dm > 0" using I \<open>delta > 0\<close> \<open>C ≥ 0\<close> Laux by auto
+        have "dm > 0" using I \<open>δ > 0\<close> \<open>C ≥ 0\<close> Laux by auto
         have "\<exists>k. 2^k > dist (f um) (p um)/dm + 1"
           by (simp add: real_arch_pow)
         then obtain k where "2^k > dist (f um) (p um)/dm + 1"
@@ -951,7 +990,7 @@ proof -
           by (intro mono_intros, auto)
         finally have "\<not>((2 ^ (k + 1) - 1) * dm ≤ dist (f um) (p um))"
           by simp
-        then show "Gromov_product_at (f z) (f um) (f uM) ≤ lambda\<^sup>2 * (D + 3/2 * L + delta + 11/2 * C) - 2 * delta + Kmult * (1 - exp (- K * (uM - um)))"
+        then show "Gromov_product_at (f z) (f um) (f uM) ≤ Λ\<^sup>2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um)))"
           using Ind_k[of k] by auto
         text \<open>end of the case where $D + 4 * C \leq dm$ and $dM \leq dm$.\<close>
       next
@@ -962,25 +1001,25 @@ proof -
         changed regarding the direction of inequalities.\<close>
         then have I: "D + 4 * C ≤ dM" "dm ≤ dM" by auto
         define V where "V = (\<lambda>k::nat. (\<Union>g∈H. cball g ((2^k - 1) * dM)))"
-        define QC where "QC = (\<lambda>k::nat. if k = 0 then 0 else 8 * delta)"
-        have "QC k ≥ 0" for k unfolding QC_def using \<open>delta > 0\<close> by auto
+        define QC where "QC = (\<lambda>k::nat. if k = 0 then 0 else 8 * δ)"
+        have "QC k ≥ 0" for k unfolding QC_def using \<open>δ > 0\<close> by auto
         have Q: "quasiconvex (0 + 8 * deltaG(TYPE('a))) (V k)" for k
           unfolding V_def apply (rule quasiconvex_thickening) using geodesic_segmentI[OF H]
           by (auto simp add: quasiconvex_of_geodesic)
         have "quasiconvex (QC k) (V k)" for k
           apply (cases "k = 0")
           apply (simp add: V_def QC_def quasiconvex_of_geodesic geodesic_segmentI[OF H])
-          apply (rule quasiconvex_mono[OF _ Q[of k]]) using \<open>deltaG(TYPE('a)) < delta\<close> QC_def by auto
+          apply (rule quasiconvex_mono[OF _ Q[of k]]) using \<open>deltaG(TYPE('a)) < δ\<close> QC_def by auto
         define q::"nat → real → 'a" where "q = (\<lambda>k x. geodesic_segment_param {p x‒f x} (p x) ((2^k - 1) * dM))"
 
-        have Ind_k: "(Gromov_product_at (f z) (f um) (f uM) ≤ lambda^2 * (D + 3/2 * L + delta + 11/2 * C) - 2 * delta + Kmult * (1 - exp(- K * (uM - um))))
-              \<or> (\<exists>x ∈ {yM..uM}. (∀ y ∈ {x..uM}. dist (f y) (p y) ≥ (2^(k+1)-1) * dM) ∀  dist (q k uM) (q k x) ≥ L - 4 * delta + 7 * QC k)" for k
+        have Ind_k: "(Gromov_product_at (f z) (f um) (f uM) ≤ Λ^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp(- K * (uM - um))))
+              \<or> (\<exists>x ∈ {yM..uM}. (∀ y ∈ {x..uM}. dist (f y) (p y) ≥ (2^(k+1)-1) * dM) ∀  dist (q k uM) (q k x) ≥ L - 4 * δ + 7 * QC k)" for k
         proof (induction k)
           case 0
-          have *: "\<exists>x∈ {yM..uM}. (∀ y ∈ {x..uM}. dist (f y) (p y) ≥ (2^(0+1)-1) * dM) ∀  dist (q 0 uM) (q 0 x) ≥ L - 4 * delta + 7 * QC 0"
+          have *: "\<exists>x∈ {yM..uM}. (∀ y ∈ {x..uM}. dist (f y) (p y) ≥ (2^(0+1)-1) * dM) ∀  dist (q 0 uM) (q 0 x) ≥ L - 4 * δ + 7 * QC 0"
           proof (rule bexI[of _ yM], auto simp add: V_def q_def QC_def)
             show "yM ≤ uM" using \<open>yM ∈ {z..uM}\<close> by auto
-            show "L -4 * delta ≤ dist (p uM) (p yM)"
+            show "L -4 * δ ≤ dist (p uM) (p yM)"
               using yM(2) apply auto using metric_space_class.zero_le_dist[of pi_z "p uM"] by linarith
             show "∀ y. y ≤ uM → yM ≤ y → dM ≤ dist (f y) (p y)"
               using dM_def closestM proj_setD(2)[OF p] by auto
@@ -990,12 +1029,12 @@ proof -
         next
           case Suck: (Suc k)
           show ?case
-          proof (cases "Gromov_product_at (f z) (f um) (f uM) ≤ lambda\<^sup>2 * (D + 3/2 * L + delta + 11/2 * C) - 2 * delta + Kmult * (1 - exp (- K * (uM - um)))")
+          proof (cases "Gromov_product_at (f z) (f um) (f uM) ≤ Λ\<^sup>2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um)))")
             case True
             then show ?thesis by simp
           next
             case False
-            then obtain x where x: "x ∈ {yM..uM}" "dist (q k uM) (q k x) ≥ L - 4 * delta + 7 * QC k"
+            then obtain x where x: "x ∈ {yM..uM}" "dist (q k uM) (q k x) ≥ L - 4 * δ + 7 * QC k"
                                    "∀ w. w ∈ {x..uM} → dist (f w) (p w) ≥ (2^(k+1)-1) * dM"
               using Suck.IH by auto
             have aux: "(2 ^ k - 1) * dM ≤ (2*2^k-1) * dM" "0 ≤ 2 * 2 ^ k - (1::real)" "dM ≤ dM * 2 ^ k"
@@ -1011,43 +1050,43 @@ proof -
               apply (intro mono_intros) using I \<open>L > 0\<close> \<open>D > 0\<close> by auto
             finally have "L + C ≤ (L/D) * dM"
               by simp
-             moreover have "2 * delta ≤ (2 * delta)/D * dM"
-              using I \<open>C ≥ 0\<close> \<open>delta > 0\<close> \<open>D > 0\<close> by (auto simp add: algebra_simps divide_simps)
-            ultimately have aux2: "L + C + 2 * delta ≤ ((L + 2 * delta)/D) * dM"
+             moreover have "2 * δ ≤ (2 * δ)/D * dM"
+              using I \<open>C ≥ 0\<close> \<open>δ > 0\<close> \<open>D > 0\<close> by (auto simp add: algebra_simps divide_simps)
+            ultimately have aux2: "L + C + 2 * δ ≤ ((L + 2 * δ)/D) * dM"
               by (auto simp add: algebra_simps divide_simps)
-            have aux3: "(1-alpha) * D + alpha * 2^k * dM ≤ dM * 2^k - C/2 - QC k"
+            have aux3: "(1-α) * D + α * 2^k * dM ≤ dM * 2^k - C/2 - QC k"
             proof (cases "k = 0")
               case True
               show ?thesis
                  using I \<open>C ≥ 0\<close> unfolding True QC_def alpha_def by auto
             next
               case False
-              have := calc C/2 + QC k + (1-alpha) * D ≤ 2 * (1-alpha) * dM"
+              have := calc C/2 + QC k + (1-α) * D ≤ 2 * (1-α) * dM"
                 using I \<open>C ≥ 0\<close> unfolding QC_def alpha_def using False Laux by auto
-              _ ≤ 2^k * (1-alpha) * dM"
+              _ ≤ 2^k * (1-α) * dM"
                 apply (intro mono_intros) using False alphaaux I \<open>D > 0\<close> \<open>C ≥ 0\<close> by auto
               finally show ?thesis
                 by (simp add: algebra_simps)
             qed
 
-            have "\<exists>w ∈ {x..uM}. (dist (q k uM) (q k w) ∈ {(9 * delta + 4 * QC k) - 4 * delta - 2 * QC k .. 9 * delta + 4 * QC k})
-                    ∀  (∀ v ∈ {w..uM}. dist (q k uM) (q k v) ≤ 9 * delta + 4 * QC k)"
+            have "\<exists>w ∈ {x..uM}. (dist (q k uM) (q k w) ∈ {(9 * δ + 4 * QC k) - 4 * δ - 2 * QC k .. 9 * δ + 4 * QC k})
+                    ∀  (∀ v ∈ {w..uM}. dist (q k uM) (q k v) ≤ 9 * δ + 4 * QC k)"
             proof (rule quasi_convex_projection_small_gaps'[where ?f = f and ?G = "V k"])
               show "continuous_on {x..uM} f"
                 apply (rule continuous_on_subset[OF \<open>continuous_on Icc a b f\<close>])
                 using \<open>uM ∈ {z..b}\<close> \<open>z ∈ Icc a b\<close> \<open>yM ∈ {z..uM}\<close> \<open>x ∈ {yM..uM}\<close> by auto
               show "x ≤ uM" using \<open>x ∈ {yM..uM}\<close> by auto
               show "quasiconvex (QC k) (V k)" by fact
-              show "deltaG TYPE('a) < delta" by fact
-              show "9 * delta + 4 * QC k ∈ {4 * delta + 2 * QC k..dist (q k x) (q k uM)}"
-                using x(2) \<open>delta > 0\<close> \<open>QC k ≥ 0\<close> Laux by (auto simp add: metric_space_class.dist_commute)
+              show "deltaG TYPE('a) < δ" by fact
+              show "9 * δ + 4 * QC k ∈ {4 * δ + 2 * QC k..dist (q k x) (q k uM)}"
+                using x(2) \<open>δ > 0\<close> \<open>QC k ≥ 0\<close> Laux by (auto simp add: metric_space_class.dist_commute)
               show "q k w ∈ proj_set (f w) (V k)" if "w ∈ {x..uM}" for w
                 unfolding V_def q_def apply (rule proj_set_thickening)
                 using aux p x(3)[OF that] by (auto simp add: metric_space_class.dist_commute)
             qed
             then obtain w where w: "w ∈ {x..uM}"
-                                   "dist (q k uM) (q k w) ∈ {(9 * delta + 4 * QC k) - 4 * delta - 2 * QC k .. 9 * delta + 4 * QC k}"
-                                   "∀ v. v ∈ {w..uM} → dist (q k uM) (q k v) ≤ 9 * delta + 4 * QC k"
+                                   "dist (q k uM) (q k w) ∈ {(9 * δ + 4 * QC k) - 4 * δ - 2 * QC k .. 9 * δ + 4 * QC k}"
+                                   "∀ v. v ∈ {w..uM} → dist (q k uM) (q k v) ≤ 9 * δ + 4 * QC k"
               by auto
             show ?thesis
             proof (cases "\<exists>v ∈ {w..uM}. dist (f v) (p v) ≤ (2^(k+2)-1) * dM")
@@ -1076,30 +1115,30 @@ proof -
 
               have "infDist (f v) H ≤ (2^(k+2)-1) * dM"
                 using v proj_setD(2)[OF p[of v]] by auto
-              have := calc dist closestm v ≤ lambda * (infDist (f closestm) H + (L + C + 2 * delta) + infDist (f v) H)"
+              have := calc dist closestm v ≤ Λ * (infDist (f closestm) H + (L + C + 2 * δ) + infDist (f v) H)"
                 apply (rule D)
                 using \<open>v ∈ {w..uM}\<close> \<open>w ∈ {x..uM}\<close> \<open>x ∈ {yM..uM}\<close> \<open>yM ∈ {z..uM}\<close> \<open>uM ∈ {z..b}\<close> \<open>z ∈ Icc a b\<close> \<open>closestm ∈ {um..ym}\<close> \<open>ym ∈ {um..z}\<close> \<open>um ∈ {a..z}\<close> by auto
-              _ ≤ lambda * (dm + 1 * (L + C + 2 * delta) + (2^(k+2)-1) * dM)"
+              _ ≤ Λ * (dm + 1 * (L + C + 2 * δ) + (2^(k+2)-1) * dM)"
                 apply (intro mono_intros \<open>infDist (f v) H ≤ (2^(k+2)-1) * dM\<close>)
-                using dm_def \<open>lambda ≥ 1\<close> \<open>L > 0\<close> \<open>C ≥ 0\<close> \<open>delta > 0\<close> by (auto simp add: metric_space_class.dist_commute)
-              _ ≤ lambda * (dM + 2^k * (((L + 2 * delta)/D) * dM) + (2^(k+2)-1) * dM)"
-                apply (intro mono_intros) using I \<open>lambda ≥ 1\<close> \<open>C ≥ 0\<close> \<open>delta > 0\<close> \<open>L > 0\<close> aux2 by auto
-              _ = lambda * 2^k * (4 + (L + 2 * delta)/D) * dM"
+                using dm_def \<open>Λ ≥ 1\<close> \<open>L > 0\<close> \<open>C ≥ 0\<close> \<open>δ > 0\<close> by (auto simp add: metric_space_class.dist_commute)
+              _ ≤ Λ * (dM + 2^k * (((L + 2 * δ)/D) * dM) + (2^(k+2)-1) * dM)"
+                apply (intro mono_intros) using I \<open>Λ ≥ 1\<close> \<open>C ≥ 0\<close> \<open>δ > 0\<close> \<open>L > 0\<close> aux2 by auto
+              _ = Λ * 2^k * (4 + (L + 2 * δ)/D) * dM"
                 by (simp add: algebra_simps)
-              finally have *: "dist closestm v / (lambda * (4 + (L + 2 * delta)/D)) ≤ 2^k * dM"
-                using \<open>lambda ≥ 1\<close> \<open>L > 0\<close> \<open>D > 0\<close> \<open>delta > 0\<close> by (simp add: divide_simps, simp add: algebra_simps)
+              finally have *: "dist closestm v / (lambda * (4 + (L + 2 * δ)/D)) ≤ 2^k * dM"
+                using \<open>Λ ≥ 1\<close> \<open>L > 0\<close> \<open>D > 0\<close> \<open>δ > 0\<close> by (simp add: divide_simps, simp add: algebra_simps)
 
-              have := calc exp(- (alpha * (2^k * dM) * log 2 / (5 * delta))) ≤ exp(-(alpha * (dist closestm v / (lambda * (4 + (L + 2 * delta)/D))) * log 2 / (5 * delta)))"
-                apply (intro mono_intros *) using alphaaux \<open>delta > 0\<close> by auto
+              have := calc exp(- (α * (2^k * dM) * log 2 / (5 * δ))) ≤ exp(-(α * (dist closestm v / (lambda * (4 + (L + 2 * δ)/D))) * log 2 / (5 * δ)))"
+                apply (intro mono_intros *) using alphaaux \<open>δ > 0\<close> by auto
               _ = exp(-K * dist closestm v)"
                 unfolding K_def by (simp add: divide_simps)
               _ = exp(-K * (v - closestm))"
                 unfolding dist_real_def using \<open>v ∈ {w..uM}\<close> \<open>w ∈ {x..uM}\<close> \<open>x ∈ {yM..uM}\<close> \<open>yM ∈ {z..uM}\<close> \<open>ym ∈ {um..z}\<close> \<open>closestm ∈ {um..ym}\<close> \<open>K > 0\<close> by auto
-              finally have "exp(- (alpha * (2^k * dM) * log 2 / (5 * delta))) ≤ exp(-K * (v - closestm))"
+              finally have "exp(- (α * (2^k * dM) * log 2 / (5 * δ))) ≤ exp(-K * (v - closestm))"
                 by simp
-              then have := calc K * (v - x) * exp(- (alpha * (2^k * dM) * log 2 / (5 * delta))) ≤ K * (v - x) * exp(-K * (v - closestm))"
+              then have := calc K * (v - x) * exp(- (α * (2^k * dM) * log 2 / (5 * δ))) ≤ K * (v - x) * exp(-K * (v - closestm))"
                 apply (rule mult_left_mono)
-                using \<open>delta > 0\<close> \<open>lambda ≥ 1\<close> \<open>v ∈ {w..uM}\<close> \<open>w ∈ {x..uM}\<close> \<open>K > 0\<close> by auto
+                using \<open>δ > 0\<close> \<open>Λ ≥ 1\<close> \<open>v ∈ {w..uM}\<close> \<open>w ∈ {x..uM}\<close> \<open>K > 0\<close> by auto
               _ = ((1 + K * (v - x)) - 1) * exp(- K * (v - closestm))"
                 by (auto simp add: algebra_simps)
               _ ≤ (exp (K * (v - x)) - 1) * exp(-K * (v - closestm))"
@@ -1108,24 +1147,24 @@ proof -
                 by (simp add: algebra_simps mult_exp_exp)
               _ ≤ exp(-K * (x - closestm)) - exp(-K * (uM - um))"
                 using \<open>K > 0\<close> \<open>v ∈ {w..uM}\<close> \<open>w ∈ {x..uM}\<close> \<open>x ∈ {yM..uM}\<close> \<open>yM ∈ {z..uM}\<close> \<open>ym ∈ {um..z}\<close> \<open>closestm ∈ {um..ym}\<close> by auto
-              finally have B: "(v - x) * exp(- alpha * 2^k * dM * log 2 / (5 * delta)) ≤
+              finally have B: "(v - x) * exp(- α * 2^k * dM * log 2 / (5 * δ)) ≤
                                   (exp(-K * (x - closestm)) - exp(-K * (uM - um)))/K"
                 using \<open>K > 0\<close> by (auto simp add: divide_simps algebra_simps)
 
               text \<open>The projections of $f(v)$ and $f(x)$ on the cylinder $V_k$ are well separated,
               by construction. This implies that $v$ and $x$ themselves are well separated.\<close>
-              have := calc L - 4 * delta + 7 * QC k ≤ dist (q k uM) (q k x)"
+              have := calc L - 4 * δ + 7 * QC k ≤ dist (q k uM) (q k x)"
                 using x by simp
               _ ≤ dist (q k uM) (q k v) + dist (q k v) (q k x)"
                 by (intro mono_intros)
-              _ ≤ (9 * delta + 4 * QC k) + dist (q k v) (q k x)"
+              _ ≤ (9 * δ + 4 * QC k) + dist (q k v) (q k x)"
                 using w(3)[of v] \<open>v ∈ {w..uM}\<close> by auto
-              finally have := calc L - 13 * delta + 3 * QC k ≤ dist (q k x) (q k v)"
+              finally have := calc L - 13 * δ + 3 * QC k ≤ dist (q k x) (q k v)"
                 by (simp add: metric_space_class.dist_commute)
-              _ ≤ 3 * QC k + max (5 * deltaG(TYPE('a))) ((4 * exp(1/2 * log 2)) * lambda * (v - x) * exp(-(dM * 2^k - C/2 - QC k) * log 2 / (5 * delta)))"
+              _ ≤ 3 * QC k + max (5 * deltaG(TYPE('a))) ((4 * exp(1/2 * log 2)) * Λ * (v - x) * exp(-(dM * 2^k - C/2 - QC k) * log 2 / (5 * δ)))"
               proof (cases "k = 0")
                 case True
-                have "dist (q k x) (q k v) ≤ max (5 * deltaG(TYPE('a))) ((4 * exp(1/2 * log 2)) * lambda * (v - x) * exp(-(dM * 2^k - C/2) * log 2 / (5 * delta)))"
+                have "dist (q k x) (q k v) ≤ max (5 * deltaG(TYPE('a))) ((4 * exp(1/2 * log 2)) * Λ * (v - x) * exp(-(dM * 2^k - C/2) * log 2 / (5 * δ)))"
                 proof (rule geodesic_projection_exp_contracting[where ?G = "V k" and ?f = f])
                   show "geodesic_segment (V k)" unfolding V_def True using geodesic_segmentI[OF H] by auto
                   show "x ≤ v" using \<open>v ∈ {w..uM}\<close> \<open>w ∈ {x..uM}\<close> by auto
@@ -1135,19 +1174,19 @@ proof -
                   show "q k x ∈ proj_set (f x) (V k)"
                     unfolding q_def V_def apply (rule proj_set_thickening)
                     using aux p[of x] x(3)[of x] \<open>w ∈ {x..uM}\<close> by (auto simp add: metric_space_class.dist_commute)
-                  show "15/2 * delta + C/2 ≤ dM * 2^k"
-                    using I \<open>delta > 0\<close> \<open>C ≥ 0\<close> Laux unfolding QC_def True by auto
-                  show "deltaG TYPE('a) < delta" by fact
+                  show "15/2 * δ + C/2 ≤ dM * 2^k"
+                    using I \<open>δ > 0\<close> \<open>C ≥ 0\<close> Laux unfolding QC_def True by auto
+                  show "deltaG TYPE('a) < δ" by fact
                   show "∀ t. t ∈ {x..v} → dM * 2 ^ k ≤ infDist (f t) (V k)"
                     using aux4 by auto
-                  show "0 ≤ C" "0 ≤ lambda" using \<open>C ≥ 0\<close> \<open>lambda ≥ 1\<close> by auto
-                  show "dist (f x1) (f x2) ≤ lambda * dist x1 x2 + C" if "x1 ∈ {x..v}" "x2 ∈ {x..v}" for x1 x2
+                  show "0 ≤ C" "0 ≤ Λ" using \<open>C ≥ 0\<close> \<open>Λ ≥ 1\<close> by auto
+                  show "dist (f x1) (f x2) ≤ Λ * dist x1 x2 + C" if "x1 ∈ {x..v}" "x2 ∈ {x..v}" for x1 x2
                     using quasi_isometry_onD(1)[OF assms(2)] that \<open>v ∈ {w..uM}\<close> \<open>w ∈ {x..uM}\<close> \<open>x ∈ {yM..uM}\<close> \<open>yM ∈ {z..uM}\<close> \<open>uM ∈ {z..b}\<close> \<open>z ∈ Icc a b\<close> by auto
                 qed
                 then show ?thesis unfolding QC_def True by auto
               next
                 case False
-                have "dist (q k x) (q k v) ≤ 2 * QC k + 8 * delta + max (5 * deltaG(TYPE('a))) ((4 * exp(1/2 * log 2)) * lambda * (v - x) * exp(-(dM * 2^k - QC k - C/2) * log 2 / (5 * delta)))"
+                have "dist (q k x) (q k v) ≤ 2 * QC k + 8 * δ + max (5 * deltaG(TYPE('a))) ((4 * exp(1/2 * log 2)) * Λ * (v - x) * exp(-(dM * 2^k - QC k - C/2) * log 2 / (5 * δ)))"
                 proof (rule quasiconvex_projection_exp_contracting[where ?G = "V k" and ?f = f])
                   show "quasiconvex (QC k) (V k)" by fact
                   show "x ≤ v" using \<open>v ∈ {w..uM}\<close> \<open>w ∈ {x..uM}\<close> by auto
@@ -1157,67 +1196,67 @@ proof -
                   show "q k x ∈ proj_set (f x) (V k)"
                     unfolding q_def V_def apply (rule proj_set_thickening)
                     using aux p[of x] x(3)[of x] \<open>w ∈ {x..uM}\<close> by (auto simp add: metric_space_class.dist_commute)
-                  show "15/2 * delta + QC k + C/2 ≤ dM * 2^k"
+                  show "15/2 * δ + QC k + C/2 ≤ dM * 2^k"
                     apply (rule order_trans[of _ dM])
-                    using I \<open>delta > 0\<close> \<open>C ≥ 0\<close> Laux unfolding QC_def by auto
-                  show "deltaG TYPE('a) < delta" by fact
+                    using I \<open>δ > 0\<close> \<open>C ≥ 0\<close> Laux unfolding QC_def by auto
+                  show "deltaG TYPE('a) < δ" by fact
                   show "∀ t. t ∈ {x..v} → dM * 2 ^ k ≤ infDist (f t) (V k)"
                     using aux4 by auto
-                  show "0 ≤ C" "0 ≤ lambda" using \<open>C ≥ 0\<close> \<open>lambda ≥ 1\<close> by auto
-                  show "dist (f x1) (f x2) ≤ lambda * dist x1 x2 + C" if "x1 ∈ {x..v}" "x2 ∈ {x..v}" for x1 x2
+                  show "0 ≤ C" "0 ≤ Λ" using \<open>C ≥ 0\<close> \<open>Λ ≥ 1\<close> by auto
+                  show "dist (f x1) (f x2) ≤ Λ * dist x1 x2 + C" if "x1 ∈ {x..v}" "x2 ∈ {x..v}" for x1 x2
                     using quasi_isometry_onD(1)[OF assms(2)] that \<open>v ∈ {w..uM}\<close> \<open>w ∈ {x..uM}\<close> \<open>x ∈ {yM..uM}\<close> \<open>yM ∈ {z..uM}\<close> \<open>uM ∈ {z..b}\<close> \<open>z ∈ Icc a b\<close> by auto
                 qed
                 then show ?thesis unfolding QC_def using False by (auto simp add: algebra_simps)
               qed
-              finally have "L - 13 * delta ≤ max (5 * deltaG(TYPE('a))) ((4 * exp(1/2 * log 2)) * lambda * (v - x) * exp(-(dM * 2^k - C/2 - QC k) * log 2 / (5 * delta)))"
+              finally have "L - 13 * δ ≤ max (5 * deltaG(TYPE('a))) ((4 * exp(1/2 * log 2)) * Λ * (v - x) * exp(-(dM * 2^k - C/2 - QC k) * log 2 / (5 * δ)))"
                 by auto
-              then have := calc L - 13 * delta ≤ (4 * exp(1/2 * log 2)) * lambda * (v - x) * exp(-(dM * 2^k - C/2 - QC k) * log 2 / (5 * delta))"
-                using \<open>delta > deltaG(TYPE('a))\<close> Laux by auto
-              _ ≤ (4 * exp(1/2 * log 2)) * lambda * (v - x) * exp(-((1-alpha) * D + alpha * 2^k * dM) * log 2 / (5 * delta))"
-                apply (intro mono_intros) using aux3 \<open>delta > 0\<close> \<open>lambda ≥ 1\<close> \<open>v ∈ {w..uM}\<close> \<open>w ∈ {x..uM}\<close> by auto
-              _ = (4 * exp(1/2 * log 2)) * lambda * (v - x) * (exp(-(1-alpha) * D * log 2 / (5 * delta)) * exp(-alpha * 2^k * dM * log 2 / (5 * delta)))"
+              then have := calc L - 13 * δ ≤ (4 * exp(1/2 * log 2)) * Λ * (v - x) * exp(-(dM * 2^k - C/2 - QC k) * log 2 / (5 * δ))"
+                using \<open>δ > deltaG(TYPE('a))\<close> Laux by auto
+              _ ≤ (4 * exp(1/2 * log 2)) * Λ * (v - x) * exp(-((1-α) * D + α * 2^k * dM) * log 2 / (5 * δ))"
+                apply (intro mono_intros) using aux3 \<open>δ > 0\<close> \<open>Λ ≥ 1\<close> \<open>v ∈ {w..uM}\<close> \<open>w ∈ {x..uM}\<close> by auto
+              _ = (4 * exp(1/2 * log 2)) * Λ * (v - x) * (exp(-(1-α) * D * log 2 / (5 * δ)) * exp(-α * 2^k * dM * log 2 / (5 * δ)))"
                 unfolding mult_exp_exp by (auto simp add: algebra_simps divide_simps)
-              finally have A: "L - 13 * delta ≤ (4 * exp(1/2 * log 2)) * lambda * exp(-(1-alpha) * D * log 2 / (5 * delta)) * ((v - x) * exp(-alpha * 2^k * dM * log 2 / (5 * delta)))"
+              finally have A: "L - 13 * δ ≤ (4 * exp(1/2 * log 2)) * Λ * exp(-(1-α) * D * log 2 / (5 * δ)) * ((v - x) * exp(-α * 2^k * dM * log 2 / (5 * δ)))"
                 by (simp add: algebra_simps)
 
-              _ ≤ (4 * exp(1/2 * log 2)) * lambda * exp 0 * ((v - x) * exp 0)"
-                apply (intro mono_intros) using \<open>delta > 0\<close> \<open>lambda ≥ 1\<close> \<open>v ∈ {w..uM}\<close> \<open>w ∈ {x..uM}\<close> alphaaux \<open>D > 0\<close> \<open>C ≥ 0\<close> I
+              _ ≤ (4 * exp(1/2 * log 2)) * Λ * exp 0 * ((v - x) * exp 0)"
+                apply (intro mono_intros) using \<open>δ > 0\<close> \<open>Λ ≥ 1\<close> \<open>v ∈ {w..uM}\<close> \<open>w ∈ {x..uM}\<close> alphaaux \<open>D > 0\<close> \<open>C ≥ 0\<close> I
                 by (auto simp add: divide_simps mult_nonpos_nonneg)
-              _ = (4 * exp(1/2 * log 2)) * lambda * (v - x)"
+              _ = (4 * exp(1/2 * log 2)) * Λ * (v - x)"
                 by simp
-              _ ≤ 20 * lambda * (v - x)"
+              _ ≤ 20 * Λ * (v - x)"
                 apply (intro mono_intros, approximation 10)
-                using \<open>delta > 0\<close> \<open>lambda ≥ 1\<close> \<open>v ∈ {w..uM}\<close> \<open>w ∈ {x..uM}\<close> by auto
-              finally have "v - x ≥ (1/4) * delta / lambda"
-                using \<open>lambda ≥ 1\<close> L_def \<open>delta > 0\<close> by (simp add: divide_simps algebra_simps)
-              then have := calc x - closestm + (1/4) * delta / lambda ≤ v - closestm"
+                using \<open>δ > 0\<close> \<open>Λ ≥ 1\<close> \<open>v ∈ {w..uM}\<close> \<open>w ∈ {x..uM}\<close> by auto
+              finally have "v - x ≥ (1/4) * δ / Λ"
+                using \<open>Λ ≥ 1\<close> L_def \<open>δ > 0\<close> by (simp add: divide_simps algebra_simps)
+              then have := calc x - closestm + (1/4) * δ / Λ ≤ v - closestm"
                 by simp
               _ ≤ uM - um"
                 using \<open>closestm ∈ {um..ym}\<close> \<open>v ∈ {w..uM}\<close> by auto
-              _ ≤ Suc n * (1/4) * delta / lambda" by fact
-              finally have "x - closestm ≤ n * (1/4) * delta / lambda"
+              _ ≤ Suc n * (1/4) * δ / Λ" by fact
+              finally have "x - closestm ≤ n * (1/4) * δ / Λ"
                 unfolding Suc_eq_plus1 by (auto simp add: algebra_simps add_divide_distrib)
 
-              have := calc L + 4 * delta = ((L + 4 * delta)/(L - 13 * delta)) * (L - 13 * delta)"
-                using Laux \<open>delta > 0\<close> by (simp add: algebra_simps divide_simps)
-              _ ≤ ((L + 4 * delta)/(L - 13 * delta)) * ((4 * exp(1/2 * log 2)) * lambda * exp (- (1 - alpha) * D * log 2 / (5 * delta)) * ((v - x) * exp (- alpha * 2 ^ k * dM * log 2 / (5 * delta))))"
-                apply (rule mult_left_mono) using A Laux \<open>delta > 0\<close> by (auto simp add: divide_simps)
-              _ ≤ ((L + 4 * delta)/(L - 13 * delta)) * ((4 * exp(1/2 * log 2)) * lambda * exp (- (1 - alpha) * D * log 2 / (5 * delta)) * ((exp(-K * (x - closestm)) - exp(-K * (uM - um)))/K))"
-                apply (intro mono_intros B) using Laux \<open>delta > 0\<close> \<open>lambda ≥ 1\<close> by (auto simp add: divide_simps)
-              finally have C: "L + 4 * delta ≤ Kmult * (exp(-K * (x - closestm)) - exp(-K * (uM - um)))"
+              have := calc L + 4 * δ = ((L + 4 * δ)/(L - 13 * δ)) * (L - 13 * δ)"
+                using Laux \<open>δ > 0\<close> by (simp add: algebra_simps divide_simps)
+              _ ≤ ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp(1/2 * log 2)) * Λ * exp (- (1 - α) * D * log 2 / (5 * δ)) * ((v - x) * exp (- α * 2 ^ k * dM * log 2 / (5 * δ))))"
+                apply (rule mult_left_mono) using A Laux \<open>δ > 0\<close> by (auto simp add: divide_simps)
+              _ ≤ ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp(1/2 * log 2)) * Λ * exp (- (1 - α) * D * log 2 / (5 * δ)) * ((exp(-K * (x - closestm)) - exp(-K * (uM - um)))/K))"
+                apply (intro mono_intros B) using Laux \<open>δ > 0\<close> \<open>Λ ≥ 1\<close> by (auto simp add: divide_simps)
+              finally have C: "L + 4 * δ ≤ Kmult * (exp(-K * (x - closestm)) - exp(-K * (uM - um)))"
                 unfolding Kmult_def by argo
 
-              have := calc Gromov_product_at (f z) (f um) (f uM) ≤ Gromov_product_at (f z) (f closestm) (f x) + (L + 4 * delta)"
+              have := calc Gromov_product_at (f z) (f um) (f uM) ≤ Gromov_product_at (f z) (f closestm) (f x) + (L + 4 * δ)"
                 apply (rule Rec) using \<open>closestm ∈ {um..ym}\<close> \<open>x ∈ {yM..uM}\<close> \<open>yM ∈ {z..uM}\<close> by auto
-              _ ≤ (lambda^2 * (D + 3/2 * L + delta + 11/2 * C) - 2 * delta + Kmult * (1 - exp(- K * (x - closestm)))) + (Kmult * (exp(-K * (x - closestm)) - exp(-K * (uM-um))))"
+              _ ≤ (lambda^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp(- K * (x - closestm)))) + (Kmult * (exp(-K * (x - closestm)) - exp(-K * (uM-um))))"
                 apply (intro mono_intros C Suc.IH)
-                using \<open>x ∈ {yM..uM}\<close> \<open>yM ∈ {z..uM}\<close> \<open>um ∈ {a..z}\<close> \<open>closestm ∈ {um..ym}\<close> \<open>ym ∈ {um..z}\<close> \<open>uM ∈ {z..b}\<close> \<open>x - closestm ≤ n * (1/4) * delta / lambda\<close> by auto
-              _ = (lambda^2 * (D + 3/2 * L + delta + 11/2 * C) - 2 * delta + Kmult * (1 - exp(- K * (uM - um))))"
+                using \<open>x ∈ {yM..uM}\<close> \<open>yM ∈ {z..uM}\<close> \<open>um ∈ {a..z}\<close> \<open>closestm ∈ {um..ym}\<close> \<open>ym ∈ {um..z}\<close> \<open>uM ∈ {z..b}\<close> \<open>x - closestm ≤ n * (1/4) * δ / Λ\<close> by auto
+              _ = (lambda^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp(- K * (uM - um))))"
                 unfolding K_def by (simp add: algebra_simps)
               finally show ?thesis by auto
             next
               case False
-              have "\<exists>w∈{yM..uM}. (∀ r∈{w..uM}. (2 ^ (Suc k + 1) - 1) * dM ≤ dist (f r) (p r)) ∀  L - 4 * delta + 7 * QC (Suc k) ≤ dist (q (Suc k) uM) (q (Suc k) w)"
+              have "\<exists>w∈{yM..uM}. (∀ r∈{w..uM}. (2 ^ (Suc k + 1) - 1) * dM ≤ dist (f r) (p r)) ∀  L - 4 * δ + 7 * QC (Suc k) ≤ dist (q (Suc k) uM) (q (Suc k) w)"
               proof (rule bexI[of _ w], auto)
                 show "w ≤ uM" "yM ≤ w" using \<open>w ∈ {x..uM}\<close> \<open>x ∈ {yM..uM}\<close> by auto
                 show "(4 * 2 ^ k - 1) * dM ≤ dist (f x) (p x)" if "x ≤ uM" "w ≤ x" for x
@@ -1236,23 +1275,23 @@ proof -
                   unfolding q_def V_def apply (rule proj_set_thickening'[of _ "f w"])
                   using p x(3)[of w] \<open>x ∈ {yM..uM}\<close> \<open>w ∈ {x..uM}\<close> aux by (auto simp add: algebra_simps metric_space_class.dist_commute)
 
-                have := calc 5 * delta + 2 * QC k ≤ dist (q k uM) (q k w)" using w(2) by simp
+                have := calc 5 * δ + 2 * QC k ≤ dist (q k uM) (q k w)" using w(2) by simp
                 _ ≤ max (5 * deltaG(TYPE('a)) + 2 * QC k)
                                       (dist (q (k + 1) uM) (q (k + 1) w) - dist (q k uM) (q (k + 1) uM) - dist (q k w) (q (k + 1) w) + 10 * deltaG(TYPE('a)) + 4 * QC k)"
                   by (rule proj_along_quasiconvex_contraction[OF \<open>quasiconvex (QC k) (V k)\<close> i j])
-                finally have "5 * delta + 2 * QC k ≤ dist (q (k + 1) uM) (q (k + 1) w) - dist (q k uM) (q (k + 1) uM) - dist (q k w) (q (k + 1) w) + 10 * deltaG(TYPE('a)) + 4 * QC k"
-                  using \<open>deltaG(TYPE('a)) < delta\<close> by auto
-                then have := calc 0 ≤ dist (q (k + 1) uM) (q (k + 1) w) + 5 * delta + 2 * QC k - dist (q k uM) (q (k + 1) uM) - dist (q k w) (q (k + 1) w)"
-                  using \<open>deltaG(TYPE('a)) < delta\<close> by auto
-                _ = dist (q (k + 1) uM) (q (k + 1) w) + 5 * delta + 2 * QC k - 2^(k+1) * dM"
+                finally have "5 * δ + 2 * QC k ≤ dist (q (k + 1) uM) (q (k + 1) w) - dist (q k uM) (q (k + 1) uM) - dist (q k w) (q (k + 1) w) + 10 * deltaG(TYPE('a)) + 4 * QC k"
+                  using \<open>deltaG(TYPE('a)) < δ\<close> by auto
+                then have := calc 0 ≤ dist (q (k + 1) uM) (q (k + 1) w) + 5 * δ + 2 * QC k - dist (q k uM) (q (k + 1) uM) - dist (q k w) (q (k + 1) w)"
+                  using \<open>deltaG(TYPE('a)) < δ\<close> by auto
+                _ = dist (q (k + 1) uM) (q (k + 1) w) + 5 * δ + 2 * QC k - 2^(k+1) * dM"
                   by (simp only: \<open>dist (q k w) (q (k+1) w) = 2^k * dM\<close> \<open>dist (q k uM) (q (k+1) uM) = 2^k * dM\<close>, auto)
-                finally have *: "2^(k+1) * dM - 5 * delta - 2 * QC k ≤ dist (q (k+1) uM) (q (k+1) w)"
-                  using \<open>deltaG(TYPE('a)) < delta\<close> by auto
-                have := calc L - 4 * delta + 7 * QC (k+1) ≤ 2 * dM - 5 * delta - 2 * QC k"
-                  unfolding QC_def L_def using \<open>delta > 0\<close> Laux I \<open>C ≥ 0\<close> by auto
-                _ ≤ 2^(k+1) * dM - 5 * delta - 2 * QC k"
+                finally have *: "2^(k+1) * dM - 5 * δ - 2 * QC k ≤ dist (q (k+1) uM) (q (k+1) w)"
+                  using \<open>deltaG(TYPE('a)) < δ\<close> by auto
+                have := calc L - 4 * δ + 7 * QC (k+1) ≤ 2 * dM - 5 * δ - 2 * QC k"
+                  unfolding QC_def L_def using \<open>δ > 0\<close> Laux I \<open>C ≥ 0\<close> by auto
+                _ ≤ 2^(k+1) * dM - 5 * δ - 2 * QC k"
                   using aux by (auto simp add: algebra_simps)
-                finally show "L - 4 * delta + 7 * QC (Suc k) ≤ dist (q (Suc k) uM) (q (Suc k) w)"
+                finally show "L - 4 * δ + 7 * QC (Suc k) ≤ dist (q (Suc k) uM) (q (Suc k) w)"
                   using * by auto
               qed
               then show ?thesis
@@ -1260,7 +1299,7 @@ proof -
             qed
           qed
         qed
-        have "dM > 0" using I \<open>delta > 0\<close> \<open>C ≥ 0\<close> Laux by auto
+        have "dM > 0" using I \<open>δ > 0\<close> \<open>C ≥ 0\<close> Laux by auto
         have "\<exists>k. 2^k > dist (f uM) (p uM)/dM + 1"
           by (simp add: real_arch_pow)
         then obtain k where "2^k > dist (f uM) (p uM)/dM + 1"
@@ -1271,32 +1310,11 @@ proof -
           by (intro mono_intros, auto)
         finally have "\<not>((2 ^ (k + 1) - 1) * dM ≤ dist (f uM) (p uM))"
           by simp
-        then show "Gromov_product_at (f z) (f um) (f uM) ≤ lambda\<^sup>2 * (D + 3/2 * L + delta + 11/2 * C) - 2 * delta + Kmult * (1 - exp (- K * (uM - um)))"
+        then show "Gromov_product_at (f z) (f um) (f uM) ≤ Λ\<^sup>2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um)))"
           using Ind_k[of k] by auto
       qed
     qed
   qed
-  text \<open>The main induction is over. To conclude, one should apply its result to the original
-  geodesic segment joining the points $f(a)$ and $f(b)$.\<close>
-  obtain n::nat where "(b - a)/((1/4) * delta / lambda) ≤ n"
-    using real_arch_simple by blast
-  then have "b - a ≤ n * (1/4) * delta / lambda"
-    using \<open>delta > 0\<close> \<open>lambda ≥ 1\<close> by (auto simp add: divide_simps)
-  have := calc infDist (f z) G ≤ Gromov_product_at (f z) (f a) (f b) + 2 * deltaG(TYPE('a))"
-    apply (intro mono_intros) using assms by auto
-  _ ≤ (lambda^2 * (D + 3/2 * L + delta + 11/2 * C) - 2 * delta + Kmult * (1 - exp(-K * (b - a)))) + 2 * delta"
-    apply (intro mono_intros Main[OF _ _ \<open>b - a ≤ n * (1/4) * delta / lambda\<close>]) using assms by auto
-  _ = lambda^2 * (D + 3/2 * L + delta + 11/2 * C) + Kmult * (1 - exp(-K * (b - a)))"
-    by simp
-  _ ≤ lambda^2 * (D + 3/2 * L + delta + 11/2 * C) + Kmult * (1 - 0)"
-    apply (intro mono_intros) using \<open>Kmult > 0\<close> by auto
-  _ = lambda^2 * (11/2 * C + (3200*exp(-459/50*log 2)/log 2 + 83) * delta)"
-    unfolding Kmult_def K_def L_def alpha_def D_def using \<open>delta > 0\<close> \<open>lambda ≥ 1\<close> by (simp add: algebra_simps divide_simps power2_eq_square mult_exp_exp)
-  _ ≤ lambda^2 * (11/2 * C + 91 * delta)"
-    apply (intro mono_intros, simp add: divide_simps, approximation 14)
-    using \<open>delta > 0\<close> by auto
-  finally show ?thesis by (simp add: algebra_simps)
-qed
 
 text \<open>Still assuming that our quasi-isometry is Lipschitz, we will improve slightly on the previous
 result, first going down to the hyperbolicity constant of the space, and also showing that,
@@ -1315,28 +1333,28 @@ lemma (in Gromov_hyperbolic_space_geodesic) Morse_Gromov_theorem_aux2:
   assumes "continuous_on Icc a b f"
           "lambda C-quasi_isometry_on Icc a b f"
           "geodesic_segment_between G (f a) (f b)"
-  shows "hausdorff_distance (f`Icc a b) G ≤ lambda^2 * (11/2 * C + 92 * deltaG(TYPE('a)))"
+  shows "hausdorff_distance (f`Icc a b) G ≤ Λ^2 * (11/2 * C + 92 * deltaG(TYPE('a)))"
 proof (cases "a ≤ b")
   case True
   have "lambda ≥ 1" "C ≥ 0" using quasi_isometry_onD[OF assms(2)] by auto
-  have *: "infDist (f z) G ≤ lambda^2 * (11/2 * C + 91 * delta)" if "z ∈ Icc a b" "delta > deltaG(TYPE('a))" for z delta
+  have *: "infDist (f z) G ≤ Λ^2 * (11/2 * C + 91 * δ)" if "z ∈ Icc a b" "δ > deltaG(TYPE('a))" for z delta
     by (rule Morse_Gromov_theorem_aux1[OF assms(1) assms(2) True assms(3) that])
-  define D where "D = lambda^2 * (11/2 * C + 91 * deltaG(TYPE('a)))"
+  define D where "D = Λ^2 * (11/2 * C + 91 * deltaG(TYPE('a)))"
   have "D ≥ 0" unfolding D_def using \<open>C ≥ 0\<close> by auto
   have I: "infDist (f z) G ≤ D" if "z ∈ Icc a b" for z
   proof -
-    have "(infDist (f z) G/ lambda^2 - 11/2 * C)/91 ≤ delta" if "delta > deltaG(TYPE('a))" for delta
-      using *[OF \<open>z ∈ Icc a b\<close> that] \<open>lambda ≥ 1\<close> by (auto simp add: divide_simps algebra_simps)
-    then have "(infDist (f z) G/ lambda^2 - 11/2 * C)/91 ≤ deltaG(TYPE('a))"
+    have "(infDist (f z) G/ Λ^2 - 11/2 * C)/91 ≤ δ" if "δ > deltaG(TYPE('a))" for delta
+      using *[OF \<open>z ∈ Icc a b\<close> that] \<open>Λ ≥ 1\<close> by (auto simp add: divide_simps algebra_simps)
+    then have "(infDist (f z) G/ Λ^2 - 11/2 * C)/91 ≤ deltaG(TYPE('a))"
       using dense_ge by blast
-    then show ?thesis unfolding D_def using \<open>lambda ≥ 1\<close> by (auto simp add: divide_simps algebra_simps)
+    then show ?thesis unfolding D_def using \<open>Λ ≥ 1\<close> by (auto simp add: divide_simps algebra_simps)
   qed
   show ?thesis
   proof (rule hausdorff_distanceI)
-    show "0 ≤ lambda\<^sup>2 * (11/2 * C + 92 * deltaG TYPE('a))" using \<open>C ≥ 0\<close> by auto
+    show "0 ≤ Λ\<^sup>2 * (11/2 * C + 92 * deltaG TYPE('a))" using \<open>C ≥ 0\<close> by auto
     fix x assume "x ∈ f`Icc a b"
     then obtain z where z: "x = f z" "z ∈ Icc a b" by blast
-    show "infDist x G ≤ lambda\<^sup>2 * (11/2 * C + 92 * deltaG TYPE('a))"
+    show "infDist x G ≤ Λ\<^sup>2 * (11/2 * C + 92 * deltaG TYPE('a))"
       unfolding z(1) by (rule order_trans[OF I[OF \<open>z ∈ Icc a b\<close>]], auto simp add: algebra_simps D_def)
   next
     fix x assume "x ∈ G"
@@ -1415,9 +1433,9 @@ proof (cases "a ≤ b")
       finally show ?thesis
         using tm(2) tM(2) by auto
     qed
-    _ ≤ D + lambda^2 * deltaG TYPE('a)"
-      apply (intro mono_intros) using \<open>lambda ≥ 1\<close> by auto
-    finally show "infDist x (f ` Icc a b) ≤ lambda\<^sup>2 * (11/2 * C + 92 * deltaG TYPE('a))"
+    _ ≤ D + Λ^2 * deltaG TYPE('a)"
+      apply (intro mono_intros) using \<open>Λ ≥ 1\<close> by auto
+    finally show "infDist x (f ` Icc a b) ≤ Λ\<^sup>2 * (11/2 * C + 92 * deltaG TYPE('a))"
       unfolding D_def by (simp add: algebra_simps)
   qed
 next
@@ -1440,7 +1458,7 @@ theorem (in Gromov_hyperbolic_space_geodesic) Morse_Gromov_theorem:
   fixes f::"real → 'a"
   assumes "lambda C-quasi_isometry_on Icc a b f"
           "geodesic_segment_between G (f a) (f b)"
-  shows "hausdorff_distance (f`Icc a b) G ≤ 92 * lambda^2 * (C + deltaG(TYPE('a)))"
+  shows "hausdorff_distance (f`Icc a b) G ≤ 92 * Λ^2 * (C + deltaG(TYPE('a)))"
 proof -
   have C: "C ≥ 0" "lambda ≥ 1" using quasi_isometry_onD[OF assms(1)] by auto
   consider "dist (f a) (f b) ≥ 2 * C ∀  a ≤ b" | "dist (f a) (f b) ≤ 2 * C ∀  a ≤ b" | "b < a"
@@ -1450,17 +1468,17 @@ proof -
     case 1
     have "\<exists>d. continuous_on Icc a b d ∀  d a = f a ∀  d b = f b
                 ∀  (∀ x∈Icc a b. dist (f x) (d x) ≤ 4 * C)
-                ∀  lambda (4 * C)-quasi_isometry_on Icc a b d
-                ∀  (2 * lambda)-lipschitz_on Icc a b d
+                ∀  Λ (4 * C)-quasi_isometry_on Icc a b d
+                ∀  (2 * Λ)-lipschitz_on Icc a b d
                 ∀  hausdorff_distance (f`Icc a b) (d`Icc a b) ≤ 2 * C"
       apply (rule quasi_geodesic_made_lipschitz[OF assms(1)]) using 1 by auto
     then obtain d where d: "d a = f a" "d b = f b"
                         "∀ x. x ∈ Icc a b → dist (f x) (d x) ≤ 4 * C"
                         "lambda (4 * C)-quasi_isometry_on Icc a b d"
-                        "(2 * lambda)-lipschitz_on Icc a b d"
+                        "(2 * Λ)-lipschitz_on Icc a b d"
                         "hausdorff_distance (f`Icc a b) (d`Icc a b) ≤ 2 * C"
       by auto
-    have a: "hausdorff_distance (d`Icc a b) G ≤ lambda^2 * ((11/2) * (4 * C) + 92 * deltaG(TYPE('a)))"
+    have a: "hausdorff_distance (d`Icc a b) G ≤ Λ^2 * ((11/2) * (4 * C) + 92 * deltaG(TYPE('a)))"
       apply (rule Morse_Gromov_theorem_aux2) using d assms lipschitz_on_continuous_on by auto
 
     have := calc hausdorff_distance (f`Icc a b) G ≤
@@ -1468,48 +1486,48 @@ proof -
       apply (rule hausdorff_distance_triangle)
       using 1 apply simp
       by (rule quasi_isometry_on_bounded[OF d(4)], auto)
-    _ ≤ lambda^2 * ((11/2) * (4 * C) + 92 * deltaG(TYPE('a))) + 1 * 2 * C"
+    _ ≤ Λ^2 * ((11/2) * (4 * C) + 92 * deltaG(TYPE('a))) + 1 * 2 * C"
       using a d by auto
-    _ ≤ lambda^2 * ((11/2) * (4 * C) + 92 * deltaG(TYPE('a))) + lambda^2 * 2 * C"
-      apply (intro mono_intros) using \<open>lambda ≥ 1\<close> \<open>C ≥ 0\<close> by auto
-    _ = lambda^2 * (24 * C + 92 * deltaG(TYPE('a)))"
+    _ ≤ Λ^2 * ((11/2) * (4 * C) + 92 * deltaG(TYPE('a))) + Λ^2 * 2 * C"
+      apply (intro mono_intros) using \<open>Λ ≥ 1\<close> \<open>C ≥ 0\<close> by auto
+    _ = Λ^2 * (24 * C + 92 * deltaG(TYPE('a)))"
       by (simp add: algebra_simps divide_simps)
-    _ ≤ lambda^2 * (92 * C + 92 * deltaG(TYPE('a)))"
-      apply (intro mono_intros) using \<open>lambda ≥ 1\<close> \<open>C ≥ 0\<close> by auto
+    _ ≤ Λ^2 * (92 * C + 92 * deltaG(TYPE('a)))"
+      apply (intro mono_intros) using \<open>Λ ≥ 1\<close> \<open>C ≥ 0\<close> by auto
     finally show ?thesis by (auto simp add: algebra_simps)
   next
     case 2
     have := calc (1/lambda) * dist a b - C ≤ dist (f a) (f b)"
       apply (rule quasi_isometry_onD[OF assms(1)]) using 2 by auto
     _ ≤ 2 * C" using 2 by auto
-    finally have "dist a b ≤ 3 * lambda * C"
+    finally have "dist a b ≤ 3 * Λ * C"
       using C by (auto simp add: algebra_simps divide_simps)
-    then have *: "b - a ≤ 3 * lambda * C" using 2 unfolding dist_real_def by auto
+    then have *: "b - a ≤ 3 * Λ * C" using 2 unfolding dist_real_def by auto
     show ?thesis
     proof (rule hausdorff_distanceI2)
-      show "0 ≤ 92 * lambda\<^sup>2 * (C + deltaG TYPE('a))" using C by auto
+      show "0 ≤ 92 * Λ\<^sup>2 * (C + deltaG TYPE('a))" using C by auto
       fix x assume "x ∈ f`Icc a b"
       then obtain t where t: "x = f t" "t ∈ Icc a b" by auto
-      have := calc dist x (f a) ≤ lambda * dist t a + C"
+      have := calc dist x (f a) ≤ Λ * dist t a + C"
         unfolding t(1) using quasi_isometry_onD(1)[OF assms(1) t(2)] 2 by auto
-      _ ≤ lambda * (b - a) + 1 * 1 * C + 0 * 0 * deltaG(TYPE('a))" using t(2) 2 C unfolding dist_real_def by auto
-      _ ≤ lambda * (3 * lambda * C) + lambda^2 * (92-3) * C + lambda^2 * 92 * deltaG(TYPE('a))"
+      _ ≤ Λ * (b - a) + 1 * 1 * C + 0 * 0 * deltaG(TYPE('a))" using t(2) 2 C unfolding dist_real_def by auto
+      _ ≤ Λ * (3 * Λ * C) + Λ^2 * (92-3) * C + Λ^2 * 92 * deltaG(TYPE('a))"
         apply (intro mono_intros *) using C by auto
-      finally have *: "dist x (f a) ≤ 92 * lambda\<^sup>2 * (C + deltaG TYPE('a))"
+      finally have *: "dist x (f a) ≤ 92 * Λ\<^sup>2 * (C + deltaG TYPE('a))"
         by (simp add: algebra_simps power2_eq_square)
-      show "\<exists>y∈G. dist x y ≤ 92 * lambda\<^sup>2 * (C + deltaG TYPE('a))"
+      show "\<exists>y∈G. dist x y ≤ 92 * Λ\<^sup>2 * (C + deltaG TYPE('a))"
         apply (rule bexI[of _ "f a"]) using * 2 assms(2) by auto
     next
       fix x assume "x ∈ G"
       then have := calc dist x (f a) ≤ dist (f a) (f b)"
         by (meson assms geodesic_segment_dist_le geodesic_segment_endpoints(1) local.some_geodesic_is_geodesic_segment(1))
-      _ ≤ 1 * 2 * C + lambda^2 * 0 * deltaG(TYPE('a))"
+      _ ≤ 1 * 2 * C + Λ^2 * 0 * deltaG(TYPE('a))"
         using 2 by auto
-      _ ≤ lambda^2 * 92 * C + lambda^2 * 92 * deltaG(TYPE('a))"
+      _ ≤ Λ^2 * 92 * C + Λ^2 * 92 * deltaG(TYPE('a))"
         apply (intro mono_intros) using C by auto
-      finally have *: "dist x (f a) ≤ 92 * lambda\<^sup>2 * (C + deltaG TYPE('a))"
+      finally have *: "dist x (f a) ≤ 92 * Λ\<^sup>2 * (C + deltaG TYPE('a))"
         by (simp add: algebra_simps)
-      show "\<exists>y∈f`Icc a b. dist x y ≤ 92 * lambda\<^sup>2 * (C + deltaG TYPE('a))"
+      show "\<exists>y∈f`Icc a b. dist x y ≤ 92 * Λ\<^sup>2 * (C + deltaG TYPE('a))"
         apply (rule bexI[of _ "f a"]) using * 2 by auto
     qed
   next
@@ -1528,16 +1546,16 @@ theorem (in Gromov_hyperbolic_space_geodesic) Morse_Gromov_theorem2:
   assumes "lambda C-quasi_isometry_on Icc a b c"
           "lambda C-quasi_isometry_on Icc a b d"
           "c A = d A" "c B = d B"
-  shows "hausdorff_distance (c`Icc a b) (d`Icc a b) ≤ 184 * lambda^2 * (C + deltaG(TYPE('a)))"
+  shows "hausdorff_distance (c`Icc a b) (d`Icc a b) ≤ 184 * Λ^2 * (C + deltaG(TYPE('a)))"
 proof (cases "A ≤ B")
   case False
   then have "hausdorff_distance (c`Icc a b) (d`Icc a b) = 0" by auto
   then show ?thesis using quasi_isometry_onD[OF assms(1)] delta_nonneg by auto
 next
   case True
-  have "hausdorff_distance (c`Icc a b) {c A‒c B} ≤ 92 * lambda^2 * (C + deltaG(TYPE('a)))"
+  have "hausdorff_distance (c`Icc a b) {c A‒c B} ≤ 92 * Λ^2 * (C + deltaG(TYPE('a)))"
     by (rule Morse_Gromov_theorem[OF assms(1)], auto)
-  moreover have "hausdorff_distance {c A‒c B} (d`Icc a b) ≤ 92 * lambda^2 * (C + deltaG(TYPE('a)))"
+  moreover have "hausdorff_distance {c A‒c B} (d`Icc a b) ≤ 92 * Λ^2 * (C + deltaG(TYPE('a)))"
     unfolding \<open>c A = d A\<close> \<open>c B = d B\<close> apply (subst hausdorff_distance_sym)
     by (rule Morse_Gromov_theorem[OF assms(2)], auto)
   moreover have "hausdorff_distance (c`Icc a b) (d`Icc a b) ≤ hausdorff_distance (c`Icc a b) {c A‒c B} + hausdorff_distance {c A‒c B} (d`Icc a b)"
