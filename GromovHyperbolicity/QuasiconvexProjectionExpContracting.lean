@@ -160,26 +160,33 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
             → (∀ i ∈ Ico 0 (2^k), dist (g i) (g (i + 1)) ≤ 10 * δ + c)
             → c ≥ 0
             → dist (p 0) (p (2^k)) ≤ 5 * deltaG X := by
+    induction' k with k hk
+    · intro c g p hp hpg hg hc
+      have H : p 0 ∈ proj_set (g 0) G ∧ p 1 ∈ proj_set (g 1) G ∧ dist (g 0) (g 1) ≤ 10 * δ + c
+          ∧ dist (p 0) (g 0) ≥ 15/2 * δ + c/2 ∧ dist (p 1) (g 1) ≥ 15/2 * δ + c/2 := by
+        refine ⟨hp _ ?_, hp _ ?_, hg _ ?_, ?_, ?_⟩
+        · simp
+        · simp
+        · simp
+        · convert hpg 0 (by simp) using 1
+          simp
+        · convert hpg 1 (by simp) using 1
+          simp
+      calc dist (p 0) (p 1)
+          ≤ max (5 * deltaG X)
+            (dist (g 0) (g 1) - dist (p 0) (g 0) - dist (p 1) (g 1) + 10 * deltaG X) :=
+            proj_along_geodesic_contraction hG H.1 H.2.1
+        _ ≤ max (5 * deltaG X)
+            ((10 * δ + c) - (15/2 * δ + c/2) - (15/2 * δ + c/2) + 10 * deltaG X) := by
+            have := H.2.2.1
+            have := H.2.2.2.1
+            have := H.2.2.2.2
+            gcongr
+        _ ≤ max (5 * deltaG X) (5 * deltaG X) := by
+            gcongr
+            linarith only [hδ]
+        _ = 5 * deltaG X := by simp
     sorry
---   have Main: "∀ c g p. (∀ i ∈ {0..2^k}. p i ∈ proj_set (g i) G)
---             → (∀ i ∈ {0..2^k}. dist (p i) (g i) ≥ 5 * δ * k + 15/2 * δ + c/2)
---             → (∀ i ∈ {0..<2^k}. dist (g i) (g (Suc i)) ≤ 10 * δ + c)
---             → c ≥ 0
---             → dist (p 0) (p (2^k)) ≤ 5 * deltaG X" for k
---   proof (induction k)
---     case 0
---     then have H: "p 0 ∈ proj_set (g 0) G"
---                  "p 1 ∈ proj_set (g 1) G"
---                  "dist (g 0) (g 1) ≤ 10 * δ + c"
---                  "dist (p 0) (g 0) ≥ 15/2 * δ + c/2"
---                  "dist (p 1) (g 1) ≥ 15/2 * δ + c/2"
---       by auto
---     have := calc dist (p 0) (p 1) ≤ max (5 * deltaG X) (dist (g 0) (g 1) - dist (p 0) (g 0) - dist (p 1) (g 1) + 10 * deltaG X)"
---       by (rule proj_along_geodesic_contraction[OF \<open>geodesic_segment G\<close> \<open>p 0 ∈ proj_set (g 0) G\<close> \<open>p 1 ∈ proj_set (g 1) G\<close>])
---     _ ≤ max (5 * deltaG X) (5 * deltaG X)"
---       apply (intro mono_intros) using H \<open>delta > deltaG X\<close> by auto
---     finally show "dist (p 0) (p (2^0)) ≤ 5 * deltaG X"
---       by auto
 --   next
 --     case (Suc k)
 --     have *: "5 * δ * real (k + 1) + 5 * δ = 5 * δ * real (Suc k + 1)"
