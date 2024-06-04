@@ -458,10 +458,17 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
     have I' (i : ℕ) (hi : i ∈ Ico 0 (2 ^ k)) : i + 2^k * j ∈ Ico 0 (2^N) := by
       obtain ⟨h1, h2⟩ := hi
       refine ⟨by positivity, ?_⟩
-      calc i + 2 ^ k * j < 2^k + 2^k * (2^(N-k)-1) := sorry
---           apply (intro mono_intros) using that \<open>j ∈ {0..<2^(N-k)}\<close> by auto
-        _ = 2^N := sorry
---           using \<open>k +1 ≤ N\<close> by (auto simp add: algebra_simps semiring_normalization_rules(26))
+      calc i + 2 ^ k * j < 2^k + 2 ^ k * j := by gcongr
+        _ ≤ 2 ^ k + 2^k * (2^(N-k)-1) := by
+            gcongr
+            have := hj.2
+            omega
+        _ = 2^N := by
+            rw [← hNk₁]
+            clear_value N
+            have : 2 ^ (N - k) ≥ 1 := Nat.one_le_pow _ _ <| by norm_num
+            zify [this]
+            ring
     let g' : ℕ → X := fun i ↦ g (i + 2^k * j)
     let p' : ℕ → X := fun i ↦ p (i + 2^k * j)
     calc dist (p (2 ^ k * j)) (p (2 ^ k * (j + 1)))
