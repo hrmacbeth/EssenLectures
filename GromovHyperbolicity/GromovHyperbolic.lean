@@ -37,11 +37,6 @@ def Gromov_hyperbolic_subset (δ : ℝ) (A : Set X) : Prop :=
 
 variable {δ : ℝ} {A : Set X}
 
-lemma Gromov_hyperbolic_subsetI
-    (h : ∀ x y z t, x ∈ A → y ∈ A → z ∈ A → t ∈ A → dist x y + dist z t ≤ max (dist x z + dist y t) (dist x t + dist y z) + 2 * δ) :
-    Gromov_hyperbolic_subset δ A := by
-  aesop (add unfold safe Gromov_hyperbolic_subset)
-
 /-- When the four points are not all distinct, the above inequality is always satisfied for δ = 0.-/
 lemma Gromov_hyperbolic_ineq_not_distinct {x y z t : X}
     (h : x = y ∨ x = z ∨ x = t ∨ y = z ∨ y = t ∨ z = t) :
@@ -148,9 +143,8 @@ space is still δ-hyperbolic. -/
 instance deltaG_metric_completion : Gromov_hyperbolic_space (UniformSpace.Completion X) where
   deltaG := δ
   hyperb_quad_ineq0 := by
-    apply Gromov_hyperbolic_subsetI
-    intro x y z t
-    simp only [Set.mem_univ, forall_true_left]
+    intro x hx y hy z hz t ht
+    simp only [Set.mem_univ] at *
     induction x, y, z, t using UniformSpace.Completion.induction_on₄
     · apply isClosed_le <;> fun_prop
     · simp only [UniformSpace.Completion.dist_eq]

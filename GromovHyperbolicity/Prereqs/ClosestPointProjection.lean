@@ -16,8 +16,8 @@ assumption. -/
 -- definition distproj::"'a::metric_space \<Rightarrow> 'a set \<Rightarrow> 'a"
 --   where "distproj x A = (if proj_set x A \<noteq> {} then SOME y. y \<in> proj_set x A else x)"
 
-lemma proj_setD {x y : X} {A : Set X} (hxy : y ∈ proj_set x A) : y ∈ A ∧ dist x y = infDist x A :=
-  hxy
+-- lemma proj_setD {x y : X} {A : Set X} (hxy : y ∈ proj_set x A) : y ∈ A ∧ dist x y = infDist x A :=
+--   hxy
 
 -- lemma proj_setI:
 --   assumes "y \<in> A" "dist x y \<le> infdist x A"
