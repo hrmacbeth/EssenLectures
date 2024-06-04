@@ -1,10 +1,7 @@
-import GromovHyperbolicity.GromovHyperbolic.Basic
-import GromovHyperbolicity.ClosestPointProjection
--- import GromovHyperbolicity.GromovHyperbolic.Lemmas
--- import GromovHyperbolicity.MetricTree
--- import GromovHyperbolicity.MorseLemma
-import GromovHyperbolicity.Prereqs
+import GromovHyperbolicity.Prereqs.ClosestPointProjection
+import GromovHyperbolicity.Prereqs.GeodesicSpace
+import GromovHyperbolicity.Prereqs.Misc
+import GromovHyperbolicity.GromovHyperbolic
 import GromovHyperbolicity.QuantitativeMorseLemma
 import GromovHyperbolicity.Quasiconvex
 import GromovHyperbolicity.QuasiconvexProjectionExpContracting
--- import GromovHyperbolicity.QuasiIsometryInvariant

@@ -3,7 +3,7 @@
 -/
 import Mathlib.Topology.Connected.PathConnected
 import Mathlib.Topology.MetricSpace.Isometry
-import GromovHyperbolicity.ClosestPointProjection
+import GromovHyperbolicity.Prereqs.ClosestPointProjection
 
 /-! # Geodesic spaces
 

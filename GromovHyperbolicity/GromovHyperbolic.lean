@@ -2,8 +2,8 @@
     License: BSD -/
 import Mathlib.Topology.MetricSpace.Completion
 import Mathlib.Topology.MetricSpace.HausdorffDistance
-import GromovHyperbolicity.GeodesicSpace
-import GromovHyperbolicity.Prereqs
+import GromovHyperbolicity.Prereqs.GeodesicSpace
+import GromovHyperbolicity.Prereqs.Misc
 
 /-!
 # Gromov hyperbolic spaces

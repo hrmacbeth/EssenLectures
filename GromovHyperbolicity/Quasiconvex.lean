@@ -1,6 +1,6 @@
 /-  Author:  Sébastien Gouëzel   sebastien.gouezel@univ-rennes1.fr
     License: BSD -/
-import GromovHyperbolicity.GromovHyperbolic.Basic
+import GromovHyperbolicity.GromovHyperbolic
 import Mathlib.Tactic.Peel
 
 /-! # Quasiconvexity -/
