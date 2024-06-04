@@ -488,29 +488,39 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
       _ = (∑ i in Finset.range (j + 1), dist (p (2^k * i)) (p (2^k * (i + 1)))) := by
           rw [Finset.sum_range_succ]
   clear C
-  calc dist pa pb = dist (p 0) (p (2^N)) := sorry
---       unfolding p_def by auto
-    _ = dist (p 0) (p (2^k * 2^(N-k))) := sorry
---       using \<open>k +1 ≤ N\<close> by (auto simp add: semiring_normalization_rules(26))
-    _ ≤ (∑ i in Finset.range (2^(N-k)), dist (p (2^k * i)) (p (2^k * (i + 1)))) := sorry
---       using * by auto
-    _ ≤ (∑ i in Finset.range (2^(N-k)), 5 * δ) := sorry
---       apply (rule sum_mono) using I by auto
-    _ = 5 * δ * 2^(N-k) := sorry
---       by auto
-    _ = 5 * δ * 2^N * (1/ 2^k) := sorry
---       unfolding \<open>(2^(N-k)::real) = 2^N/2^k\<close> by simp
-    _ ≤ 5 * δ * (2 * Λ * (b-a)/(10 * δ)) * (2 * exp (15/2/5 * log 2) * exp (- ((D-C/2) * log 2 / (5 * δ)))) := sorry
---       apply (intro mono_intros) using \<open>delta > 0\<close> \<open>lambda > 0\<close> \<open>a < b\<close> hk N by auto
-    _ = (2 * exp (15/2/5 * log 2)) * Λ * (b-a) * exp (-(D-C/2) * log 2 / (5 * δ)) := sorry
-    _ = _ := ?_
---       using \<open>delta > 0\<close> by (auto simp add: algebra_simps divide_simps)
---     finally show ?thesis
---       unfolding \<open>exp(15/2/5 * log 2) = 2 * exp(1/2 * ln (2::real))\<close> by auto
---   qed
--- qed
+  calc dist pa pb = dist (p 0) (p (2^N)) := by simp [p]
+    _ = dist (p 0) (p (2^k * 2^(N-k))) := by
+        rw [← hNk₁]
+        ring_nf
+    _ ≤ (∑ i in Finset.range (2^(N-k)), dist (p (2^k * i)) (p (2^k * (i + 1)))) := this _
+    _ ≤ (∑ i in Finset.range (2^(N-k)), 5 * δ) := by
+        gcongr with i hi
+        apply I
+        simpa using hi
+    _ = 5 * δ * 2^(N-k) := by
+        simp only [Finset.sum_const, Finset.card_range, nsmul_eq_mul, Nat.cast_pow, Nat.cast_ofNat]
+        ring
+    _ = 5 * δ * 2^N * (1/ 2^k) := by rw [hNk₂]; ring
+    _ ≤ 5 * δ * (2 * Λ * (b-a)/(10 * δ)) * (2 * exp (15/2/5 * log 2) * exp (- ((D-C/2) * log 2 / (5 * δ)))) := by
+        gcongr
+        convert hN.2.2 using 1
+        field_simp
+        ring
+    _ = (2 * exp (15/2/5 * log 2)) * Λ * (b-a) * exp (-(D-C/2) * log 2 / (5 * δ)) := by
+        field_simp
+        ring_nf
+    _ = _ := by
+        congrm ?_ * Λ * _ * _
+        calc _ = 2 * (exp (log 2) * exp (1 / 2 * log 2)) := by
+              rw [← exp_add]
+              congrm 2 * exp ?_
+              ring
+          _ = _ := by
+              rw [exp_log]
+              · ring
+              positivity
+    _ ≤  _ := le_max_right _ _
 
-#exit
 /-- We deduce from the previous result that a projection on a quasiconvex set is also
 exponentially contracting. To do this, one uses the contraction of a projection on a geodesic, and
 one adds up the additional errors due to the quasi-convexity. In particular, the projections on the
