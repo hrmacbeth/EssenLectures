@@ -15,42 +15,31 @@ points in `x` can be joined by a geodesic that remains within distance `C` of `x
 require this for all geodesics, up to changing `C`, as two geodesics between the same endpoints
 remain within uniformly bounded distance. We use the first definition to ensure that a geodesic is
 0-quasi-convex. -/
-def quasiconvex (C : ℝ) (X : Set M) : Prop :=
-  C ≥ 0 ∧ (∀ x ∈ X, ∀ y ∈ X, ∃ G, geodesic_segment_between G x y ∧ (∀ z ∈ G, infDist z X ≤ C))
+structure quasiconvex (C : ℝ) (X : Set M) : Prop :=
+  (C_nonneg : 0 ≤ C)
+  (exists_nearby_geodesic {x y : M} (_ : x ∈ X) (_ : y ∈ X) :
+    ∃ G, geodesic_segment_between G x y ∧ (∀ z ∈ G, infDist z X ≤ C))
 
 variable {C D : ℝ} {X G : Set M}
 
-lemma quasiconvexD (h : quasiconvex C X) {x y : M} (hx : x ∈ X) (hy : y∈X) :
-    ∃ G, geodesic_segment_between G x y ∧ (∀ z ∈ G, infDist z X ≤ C) := by
-  aesop (add norm unfold quasiconvex)
+lemma quasiconvex_of_geodesic {G : Set M} (hG : geodesic_segment G) : quasiconvex 0 G where
+  C_nonneg := by simp
+  exists_nearby_geodesic {x y} (hx hy) := by
+    obtain ⟨H, hHG, hHxy⟩ := geodesic_subsegment_exists hG hx hy
+    refine ⟨H, hHxy, ?_⟩
+    intro _ _
+    rw [infDist_zero_of_mem]
+    aesop
 
-lemma quasiconvexC (h : quasiconvex C X) : C ≥ 0 := by
-  aesop (add norm unfold quasiconvex)
+lemma quasiconvex_empty (hC : C ≥ 0) : quasiconvex C (∅ : Set M) where
+  C_nonneg := by aesop
+  exists_nearby_geodesic := by aesop
 
-lemma quasiconvexI (hC : C ≥ 0)
-    (hCX : ∀ x y, x ∈ X → y ∈ X → (∃ G, geodesic_segment_between G x y ∧ (∀ z ∈ G, infDist z X ≤ C))) :
-    quasiconvex C X := by
-  aesop (add norm unfold quasiconvex)
-
-lemma quasiconvex_of_geodesic {G : Set M} (hG : geodesic_segment G) : quasiconvex 0 G := by
-  apply quasiconvexI
-  · simp
-  intro x y hx hy
-  obtain ⟨H, hHG, hHxy⟩ : ∃ H, H ⊆ G ∧ geodesic_segment_between H x y :=
-    geodesic_subsegment_exists hG hx hy
-  refine ⟨H, hHxy, ?_⟩
-  intro _ _
-  rw [infDist_zero_of_mem]
-  aesop
-
-lemma quasiconvex_empty (hC : C ≥ 0) : quasiconvex C (∅ : Set M) := by
-  aesop (add norm unfold quasiconvex)
-
-lemma quasiconvex_mono (hCD : C ≤ D) (hC : quasiconvex C G) : quasiconvex D G := by
-  obtain ⟨h1, h2⟩ := hC
-  refine ⟨by linarith, ?_⟩
-  peel h2
-  linarith
+lemma quasiconvex_mono (hCD : C ≤ D) (hC : quasiconvex C G) : quasiconvex D G where
+  C_nonneg := by linarith [hC.C_nonneg]
+  exists_nearby_geodesic {x y} (hx hy) := by
+    peel hC.exists_nearby_geodesic hx hy
+    linarith
 
 variable [Gromov_hyperbolic_space M] [GeodesicSpace M]
 
@@ -59,15 +48,14 @@ local notation "δ" => Gromov_hyperbolic_space.deltaG M
 /-- The `r`-neighborhood of a quasi-convex set is still quasi-convex in a hyperbolic space,
 for a constant that does not depend on `r`. -/
 lemma quasiconvex_thickening [Inhabited M] (h : quasiconvex C X) (hr : r ≥ 0) :
-    quasiconvex (C + 8 * δ) (⋃ x ∈ X, closedBall x r) := by
-  classical
-  apply quasiconvexI
-  · have := quasiconvexC h
+    quasiconvex (C + 8 * δ) (⋃ x ∈ X, closedBall x r) where
+  C_nonneg := by
+    have := h.C_nonneg
     have := delta_nonneg M
     positivity
-  intro y z hy hz
-  refine ⟨{y‒z}, sorry, ?_⟩
-  sorry
+  exists_nearby_geodesic {y z} (hy hz) := by
+    refine ⟨{y‒z}, sorry, ?_⟩
+    sorry
 -- proof (rule quasiconvexI)
 --   show "C + 8 * δ ≥ 0" using quasiconvexC[OF assms(1)] by simp
 -- next
@@ -139,7 +127,7 @@ lemma dist_along_quasiconvex (hCG : quasiconvex C G) (hp : p ∈ proj_set x G) (
     dist x p + dist p y ≤ dist x y + 4 * δ + 2 * C := by
   have : p ∈ G := hp.1
   obtain ⟨H, hH₁, hH₂⟩ : ∃ H, geodesic_segment_between H p y ∧ ∀ q ∈ H, infDist q G ≤ C :=
-    quasiconvexD hCG this hy
+    hCG.exists_nearby_geodesic this hy
   obtain ⟨m, hm₁, hm₂⟩ : ∃ m ∈ H, infDist x H = dist x m := by
     apply IsCompact.exists_infDist_eq_dist
     · refine (geodesic_segment_topology ?_).1
@@ -236,7 +224,7 @@ lemma quasi_convex_projection_small_gaps {f p : ℝ → M} {a b : ℝ}
                     ∧ ∀ s ∈ Icc a t, dist (p a) (p s) ≤ d := by
   have : Inhabited M := ⟨f 0⟩
   have : 0 ≤ δ := delta_nonneg M
-  have : 0 ≤ C := quasiconvexC h
+  have : 0 ≤ C := h.C_nonneg
   have hd0 : 0 ≤ d := by linarith [hd.1]
 
 /- The idea is to define the desired point as the last point `u` for which there is a projection

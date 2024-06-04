@@ -546,7 +546,7 @@ lemma quasiconvex_projection_exp_contracting
       + max (5 * deltaG X)
           ((4 * exp (1/2 * log 2)) * Λ * (b-a) * exp (-(D - K - C/2) * log 2 / (5 * δ))) := by
   obtain ⟨H, hH₁, hH₂⟩ : ∃ H, geodesic_segment_between H pa pb ∧ ∀ q, q ∈ H → infDist q G ≤ K :=
-    hKG.2 _ hpaG.1 _ hpbG.1
+    hKG.2 hpaG.1 hpbG.1
   obtain ⟨qa, hqa⟩ : ∃ qa, qa ∈ proj_set (f a) H := by
     apply proj_set_nonempty_of_compact
     · apply (geodesic_segment_topology ⟨_, _, hH₁⟩).1
