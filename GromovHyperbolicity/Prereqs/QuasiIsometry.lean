@@ -16,9 +16,11 @@ isometries.
 When the space is unbounded, one checks easily that $C \geq 0$ and $\lambda \geq 1$. As this
 is the only case of interest (any two bounded sets are quasi-isometric), we incorporate
 this requirement in the definition. -/
-def quasi_isometry_on (lambda C : ℝ)  (s : Set X) (f : X → Y) : Prop :=
-  lambda ≥ 1 ∧ C ≥ 0 ∧ ∀ x ∈ s, ∀ y ∈ s,
-    dist (f x) (f y) ≤ lambda * dist x y + C ∧ dist (f x) (f y) ≥ (1/lambda) * dist x y - C
+structure quasi_isometry_on (lambda C : ℝ) (s : Set X) (f : X → Y) : Prop :=
+  (one_le_lambda : 1 ≤ lambda)
+  (C_nonneg : 0 ≤ C)
+  (upper_bound {x y : X} (_ : x ∈ s) (_ : y ∈ s) : dist (f x) (f y) ≤ lambda * dist x y + C)
+  (lower_bound {x y : X} (_ : x ∈ s) (_ : y ∈ s) : (1/lambda) * dist x y - C ≤ dist (f x) (f y))
 
 #exit
 
