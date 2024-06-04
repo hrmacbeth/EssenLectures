@@ -3,6 +3,7 @@
 -/
 import Mathlib.Topology.Connected.PathConnected
 import Mathlib.Topology.MetricSpace.Isometry
+import GromovHyperbolicity.ClosestPointProjection
 
 /-! # Geodesic spaces
 
@@ -606,13 +607,13 @@ lemma geodesic_segment_topology {G : Set X} (h : geodesic_segment G) :
 --   finally show ?thesis by auto
 -- qed
 
--- text \<open>If a point $y$ is on a geodesic segment between $x$ and its closest projection $p$ on a set $A$,
--- then $p$ is also a closest projection of $y$, and the closest projection set of $y$ is contained in
--- that of $x$.\<close>
-
--- lemma proj_set_geodesic_same_basepoint:
---   assumes "p \<in> proj_set x A" "geodesic_segment_between G p x" "y \<in> G"
---   shows "p \<in> proj_set y A"
+/-- If a point `y` is on a geodesic segment between `x` and its closest projection `p` on a set `A`,
+then `p` is also a closest projection of `y`, and the closest projection set of `y` is contained in
+that of `x`. -/
+lemma proj_set_geodesic_same_basepoint {x y p : X} (hp : p ∈ proj_set x A)
+    (hG : geodesic_segment_between G p x) (hy : y ∈ G) :
+    p ∈ proj_set y A := by
+  sorry
 -- proof (rule proj_setI)
 --   show "p \<in> A"
 --     using assms proj_setD by auto

@@ -27,21 +27,21 @@ the given type, but any constant which is at least the hyperbolicity constant (t
 around the fact that one can not say or use easily in Isabelle that a type with hyperbolicity
 `δ` is also hyperbolic for any larger constant `δ'`. -/
 lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px py : X}
-    (hpxG : px ∈ proj_set x G) (hpyG : py ∈ proj_set y G) {δ C M : ℝ}
+    (hpxG : px ∈ proj_set x G) (hpyG : py ∈ proj_set y G) {δ C : ℝ}
     (hδ : δ ≥ deltaG X) {M : ℝ} (hxy : dist x y ≤ 10 * δ + C)
     (hM : M ≥ 15/2 * δ) (hpx : dist px x ≥ M + 5 * δ + C/2) (hpy : dist py y ≥ M + 5 * δ + C/2)
     (hC : C ≥ 0) :
     dist (geodesic_segment_param {px‒x} px M) (geodesic_segment_param {py‒y} py M) ≤ 5 * δ := by
-  have hpxpyx : dist px x ≤ dist py x := sorry
---     using proj_setD(2)[OF assms(2)] infDist_le[OF proj_setD(1)[OF assms(3)], of x] by (simp add: metric_space_class.dist_commute)
-  have hpypxy : dist py y ≤ dist px y := sorry
---     using proj_setD(2)[OF assms(3)] infDist_le[OF proj_setD(1)[OF assms(2)], of y] by (simp add: metric_space_class.dist_commute)
+  have hpxpyx : dist px x ≤ dist py x := by
+    simpa only [dist_comm] using proj_set_dist_le hpyG.1 hpxG
+  have hpypxy : dist py y ≤ dist px y := by
+    simpa only [dist_comm] using proj_set_dist_le hpxG.1 hpyG
   have hδ₀ : 0 ≤ δ := by
     have : Inhabited X := ⟨x⟩
     linarith only [hδ, delta_nonneg X]
   have hM' : 0 ≤ M ∧ M ≤ dist px x ∧ M ≤ dist px y ∧ M ≤ dist py x ∧ M ≤ dist py y := by
     refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;> linarith
-  have : px ∈ G ∧ py ∈ G := ⟨proj_setD hpxG, proj_setD hpyG⟩
+  have : px ∈ G ∧ py ∈ G := ⟨hpxG.1, hpyG.1⟩
   set x' := geodesic_segment_param {px‒x} px M
   set y' := geodesic_segment_param {py‒y} py M
   /- First step: the distance between `px` and `py` is at most `5 * δ`. -/
@@ -57,13 +57,14 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
         gcongr
   /- Second step: show that all the interesting Gromov products at bounded below by `M`. -/
   have hx'_mem : x' ∈ {px‒x} := geodesic_segment_param_in_segment (some_geodesic_endpoints).2.2
-  have : px ∈ proj_set x' G := sorry
---     by (rule proj_set_geodesic_same_basepoint[OF \<open>px ∈ proj_set x G\<close> _ *], auto)
+  have : px ∈ proj_set x' G := by
+    refine proj_set_geodesic_same_basepoint hpxG (G := {px‒x}) ?_ hx'_mem
+    exact (some_geodesic_is_geodesic_segment _ _).1
   have hpxx'M : dist px x' = M := by
     apply geodesic_segment_param_in_geodesic_spaces6
     exact ⟨hM'.1, hM'.2.1⟩
-  have hpxpyx' : dist px x' ≤ dist py x' := sorry
---     using proj_setD(2)[OF \<open>px ∈ proj_set x' G\<close>] infDist_le[OF proj_setD(1)[OF assms(3)], of x'] by (simp add: metric_space_class.dist_commute)
+  have hpxpyx' : dist px x' ≤ dist py x' := by
+    simpa only [dist_comm] using proj_set_dist_le hpyG.1 this
   have : dist px x = dist px x' + dist x' x := by
     rw [← geodesic_segment_dist (some_geodesic_is_geodesic_segment px x).1 hx'_mem]
   have Ixx : Gromov_product_at px x' x = M := by
@@ -73,13 +74,14 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
     simp only [Gromov_product_at, dist_comm] at Ixx hpxpyx hpxpyx' ⊢
     linarith only [Ixx, hpxpyx, hpxpyx']
   have hy'_mem : y' ∈ {py‒y} := geodesic_segment_param_in_segment (some_geodesic_endpoints).2.2
-  have : py ∈ proj_set y' G := sorry
---     by (rule proj_set_geodesic_same_basepoint[OF \<open>py ∈ proj_set y G\<close> _ *], auto)
+  have : py ∈ proj_set y' G := by
+    refine proj_set_geodesic_same_basepoint hpyG (G := {py‒y}) ?_ hy'_mem
+    exact (some_geodesic_is_geodesic_segment _ _).1
   have hpyy'M : dist py y' = M := by
     apply geodesic_segment_param_in_geodesic_spaces6
     exact ⟨hM'.1, hM'.2.2.2.2⟩
-  have hpypyy' : dist py y' ≤ dist px y' := sorry
---     using proj_setD(2)[OF \<open>py ∈ proj_set y' G\<close>] infDist_le[OF proj_setD(1)[OF assms(2)], of y'] by (simp add: metric_space_class.dist_commute)
+  have hpypyy' : dist py y' ≤ dist px y' := by
+    simpa only [dist_comm] using proj_set_dist_le hpxG.1 this
   have : dist py y = dist py y' + dist y' y := by
     rw [← geodesic_segment_dist (some_geodesic_is_geodesic_segment py y).1 hy'_mem]
   have Iyy : Gromov_product_at py y' y = M := by
@@ -287,9 +289,10 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
       linarith only [this]
     · calc a + (b - a) * i / 2 ^ k ≤ a + (b - a) * 2 ^ k / 2 ^ k := by gcongr; exact_mod_cast hi
         _ = b := by field_simp
-  have hG_nonempty (x : X) : (proj_set x G).Nonempty := sorry
---         apply (rule proj_set_nonempty_of_proper) using geodesic_segment_topology[OF \<open>geodesic_segment G\<close>] by auto
-
+  have hG_nonempty (x : X) : (proj_set x G).Nonempty := by
+    apply proj_set_nonempty_of_compact
+    · apply (geodesic_segment_topology hG).1
+    · apply (geodesic_segment_topology hG).2.2.2.2.2
   by_cases h_split : Λ * (b-a) ≤ 10 * δ * 2^k
   · /- First, treat the case where the path is rather short. -/
     let g : ℕ → X := fun i ↦ f (a + (b-a) * i/2^k)
@@ -330,8 +333,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
     have C (i : ℕ) (hi : i ∈ Icc 0 (2 ^ k)) : dist (p i) (g i) ≥ 5 * δ * k + 15/2 * δ + C/2 := by
       calc 5 * δ * k + 15/2 * δ + C/2 ≤ D := hk'.1
         _ ≤ infDist (g i) G := hG' _ <| hi_mem hi
-        _ = dist (p i) (g i) := sorry
---         using that proj_setD(2)[OF B[OF that]] by (simp add: metric_space_class.dist_commute)
+        _ = dist (p i) (g i) := by rw [dist_comm, (B i hi).2]
     have : dist (p 0) (p (2^k)) ≤ 5 * deltaG X := Main _ _ g _ B C A hC
     rw [le_max_iff]
     left
@@ -437,8 +439,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
   have C (i : ℕ) (hi : i ∈ Icc 0 (2 ^ N)) : dist (p i) (g i) ≥ 5 * δ * k + 15/2 * δ + C/2 := by
     calc 5 * δ * k + 15/2 * δ + C/2 ≤ D := hk'.1
       _ ≤ infDist (g i) G := hG' _ <| hi_mem hi
-      _ = dist (p i) (g i) := sorry
---         using that proj_setD(2)[OF B[OF that]] by (simp add: metric_space_class.dist_commute)
+      _ = dist (p i) (g i) := by rw [dist_comm, (B i hi).2]
   /- Use the basic statement to show that, along packets of size `2 ^ k`, the projections
   are within `5 * δ` of each other. -/
   have I (j : ℕ) (hj : j ∈ Ico 0 (2 ^ (N - k))) : dist (p (2^k * j)) (p (2^k * (j + 1))) ≤ 5 * δ := by

@@ -137,7 +137,7 @@ to `x` go close to `p`, i.e., the triangular inequality $d(x,y) ≤ d(x,p) + d(p
 an equality, up to an additive constant. -/
 lemma dist_along_quasiconvex (hCG : quasiconvex C G) (hp : p ∈ proj_set x G) (hy : y ∈ G) :
     dist x p + dist p y ≤ dist x y + 4 * δ + 2 * C := by
-  have : p ∈ G := proj_setD hp
+  have : p ∈ G := hp.1
   obtain ⟨H, hH₁, hH₂⟩ : ∃ H, geodesic_segment_between H p y ∧ ∀ q ∈ H, infDist q G ≤ C :=
     quasiconvexD hCG this hy
   obtain ⟨m, hm₁, hm₂⟩ : ∃ m ∈ H, infDist x H = dist x m := by
@@ -156,7 +156,7 @@ lemma dist_along_quasiconvex (hCG : quasiconvex C G) (hp : p ∈ proj_set x G) (
       · exact ⟨_, hy⟩
     have : infDist m G ≤ C := hH₂ _ hm₁
     have :=
-    calc dist x p ≤ dist x r := sorry -- using hrG assms(2) `proj_set_dist_le` by blast
+    calc dist x p ≤ dist x r := proj_set_dist_le hrG hp
       _ ≤ dist x m + dist m r := dist_triangle ..
 --     finally show ?thesis using * by (auto simp add: metric_space_class.dist_commute)
     linarith
@@ -175,8 +175,8 @@ distances of the points to the set. -/
 lemma proj_along_quasiconvex_contraction (h : quasiconvex C G) (hx : px ∈ proj_set x G)
     (hy : py ∈ proj_set y G) :
     dist px py ≤ max (5 * δ + 2 * C) (dist x y - dist px x - dist py y + 10 * δ + 4 * C) := by
-  have := dist_along_quasiconvex h hx <| proj_setD hy
-  have := dist_along_quasiconvex h hy <| proj_setD hx
+  have := dist_along_quasiconvex h hx <| hy.1
+  have := dist_along_quasiconvex h hy <| hx.1
   have := Gromov_hyperbolic_space.hyperb_quad_ineq x py y px
   simp only [dist_comm] at *
   obtain _ | _ := max_cases (5 * δ + 2 * C) (dist x y - dist px x - dist py y + 10 * δ + 4 * C) <;>
@@ -187,8 +187,8 @@ lemma proj_along_quasiconvex_contraction (h : quasiconvex C G) (hx : px ∈ proj
 lemma proj_along_quasiconvex_contraction' (h : quasiconvex C G) (hx : px ∈ proj_set x G)
     (hy : py ∈ proj_set y G) :
     dist px py ≤ dist x y + 4 * δ + 2 * C := by
-  have := dist_along_quasiconvex h hx <| proj_setD hy
-  have := dist_along_quasiconvex h hy <| proj_setD hx
+  have := dist_along_quasiconvex h hx <| hy.1
+  have := dist_along_quasiconvex h hy <| hx.1
   have := dist_triangle x y py
   have := dist_triangle y x px
   simp only [dist_comm] at *

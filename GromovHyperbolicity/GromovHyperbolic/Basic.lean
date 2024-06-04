@@ -2,6 +2,7 @@
     License: BSD -/
 import Mathlib.Topology.MetricSpace.Completion
 import Mathlib.Topology.MetricSpace.HausdorffDistance
+import GromovHyperbolicity.GeodesicSpace
 import GromovHyperbolicity.Prereqs
 
 /-!

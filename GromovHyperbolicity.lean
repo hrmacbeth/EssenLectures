@@ -1,4 +1,5 @@
 import GromovHyperbolicity.GromovHyperbolic.Basic
+import GromovHyperbolicity.ClosestPointProjection
 -- import GromovHyperbolicity.GromovHyperbolic.Lemmas
 -- import GromovHyperbolicity.MetricTree
 -- import GromovHyperbolicity.MorseLemma

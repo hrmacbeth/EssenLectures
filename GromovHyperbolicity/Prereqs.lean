@@ -2,9 +2,8 @@
     License: BSD -/
 import Mathlib.Topology.MetricSpace.Basic
 import Mathlib.Topology.UniformSpace.Completion
-import GromovHyperbolicity.GeodesicSpace
 
-/-! # TODO Missing geodesic space theory -/
+/-! # TODO Missing theory -/
 
 open Metric
 
@@ -18,12 +17,6 @@ theorem UniformSpace.Completion.induction_on₄ [UniformSpace α] [UniformSpace 
   sorry
 
 def quasi_isometry_on (lambda C : ℝ) {X Y : Type*} [MetricSpace X] [MetricSpace Y] (s : Set X) (f : X → Y) : Prop := sorry
-
-def proj_set {X : Type*} [MetricSpace X] (x : X) (s : Set X) : Set X := sorry
-
-lemma proj_setD [MetricSpace X] {x y : X} {s : Set X} (hxy : x ∈ proj_set y s) : x ∈ s := sorry
-
--- `proj_set_dist_le`
 
 -- **Lemma 2.1**
 -- `quasi_geodesic_made_lipschitz`
