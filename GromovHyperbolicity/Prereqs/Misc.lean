@@ -16,11 +16,6 @@ theorem UniformSpace.Completion.induction_on₄ [UniformSpace α] [UniformSpace 
     (ih : ∀ (a : α) (b : β) (c : γ) (d : δ), p a b c d) : p a b c d :=
   sorry
 
-def quasi_isometry_on (lambda C : ℝ) {X Y : Type*} [MetricSpace X] [MetricSpace Y] (s : Set X) (f : X → Y) : Prop := sorry
-
--- **Lemma 2.1**
--- `quasi_geodesic_made_lipschitz`
-
 -- `infDist_almost_attained` -- in Mathlib `infDist_lt_iff`
 -- `infDist_proper_attained` -- in Mathlib `IsCompact.exists_infDist_eq_dist`
 

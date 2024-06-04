@@ -1,5 +1,6 @@
 /-  Author:  Sébastien Gouëzel   sebastien.gouezel@univ-rennes1.fr
     License: BSD -/
+import GromovHyperbolicity.Prereqs.QuasiIsometry
 import GromovHyperbolicity.QuasiconvexProjectionExpContracting
 
 open Set Metric Real Classical
