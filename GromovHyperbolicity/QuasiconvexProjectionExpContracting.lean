@@ -162,7 +162,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
             → c ≥ 0
             → dist (p 0) (p (2^k)) ≤ 5 * deltaG X := by
     induction' k with k IH
-    · intro c g p hp hpg hg hc
+    · intro c g p hp hpg hg _
       have H : p 0 ∈ proj_set (g 0) G ∧ p 1 ∈ proj_set (g 1) G ∧ dist (g 0) (g 1) ≤ 10 * δ + c
           ∧ 15/2 * δ + c/2 ≤ dist (p 0) (g 0) ∧ 15/2 * δ + c/2 ≤ dist (p 1) (g 1) := by
         refine ⟨hp _ ?_, hp _ ?_, hg _ ?_, ?_, ?_⟩
@@ -355,7 +355,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
             rwa [div_le_iff]
             positivity
     let p := fun i ↦ if i = 0 then pa else if i = 2^k then pb else (hG_nonempty (g i)).choose
-    have B (i : ℕ) (hi : i ∈ Icc 0 (2 ^ k)) : p i ∈ proj_set (g i) G := by
+    have B (i : ℕ) (_ : i ∈ Icc 0 (2 ^ k)) : p i ∈ proj_set (g i) G := by
       dsimp only [p]
       split_ifs with hi' hi'
       · rw [hi', hg_endpoints.1]
@@ -461,7 +461,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
                 positivity
       _ ≤ 10 * δ + C := by gcongr; exact hN.2.1.le
   let p : ℕ → X := fun i ↦ if i = 0 then pa else if i = 2^N then pb else (hG_nonempty (g i)).choose
-  have B (i : ℕ) (hi : i ∈ Icc 0 (2 ^ N)) : p i ∈ proj_set (g i) G := by
+  have B (i : ℕ) (_ : i ∈ Icc 0 (2 ^ N)) : p i ∈ proj_set (g i) G := by
     dsimp only [p]
     split_ifs with hi' hi'
     · rw [hi', hg_endpoints.1]
@@ -477,7 +477,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
   are within `5 * δ` of each other. -/
   have I (j : ℕ) (hj : j ∈ Ico 0 (2 ^ (N - k))) : dist (p (2^k * j)) (p (2^k * (j + 1))) ≤ 5 * δ := by
     have I (i : ℕ) (hi : i ∈ Icc 0 (2 ^ k)) : i + 2^k * j ∈ Icc 0 (2^N) := by
-      obtain ⟨h1, h2⟩ := hi
+      obtain ⟨_, h2⟩ := hi
       refine ⟨by positivity, ?_⟩
       calc i + 2 ^ k * j ≤ 2^k + 2^k * (2^(N-k)-1) := by
             gcongr
@@ -490,7 +490,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
             zify [this]
             ring
     have I' (i : ℕ) (hi : i ∈ Ico 0 (2 ^ k)) : i + 2^k * j ∈ Ico 0 (2^N) := by
-      obtain ⟨h1, h2⟩ := hi
+      obtain ⟨_, h2⟩ := hi
       refine ⟨by positivity, ?_⟩
       calc i + 2 ^ k * j < 2^k + 2 ^ k * j := by gcongr
         _ ≤ 2 ^ k + 2^k * (2^(N-k)-1) := by
