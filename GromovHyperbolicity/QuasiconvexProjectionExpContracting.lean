@@ -119,7 +119,6 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
 
 attribute [-simp] mul_eq_mul_left_iff -- FIXME global?
 
-set_option maxHeartbeats 300000 in
 /-- The next lemma (Lemma 10 in~\<^cite>\<open>"shchur"\<close> for `C = 0`) asserts that the projection on a geodesic segment is
 an exponential contraction.
 More precisely, if a path of length `L` is at distance at least `D` of a geodesic segment `G`,
@@ -245,8 +244,6 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
   the original distance `D` to `G`. -/
 
   let k : ℕ := Nat.floor ((D - C/2 - 15/2 * δ) / (5 * δ))
---   have "int k = floor((D - C/2 - 15/2 * δ)/(5 * δ))"
---     unfolding k_def apply (rule nat_0_le) using \<open>D ≥ 15/2 * δ + C/2\<close> \<open>delta > 0\<close> by auto
   have hk₁ : k ≤ (D - C/2 - 15/2 * δ) / (5 * δ) ∧ (D - C/2 - 15/2 * δ) / (5 * δ) ≤ k + 1 := by
     constructor
     · apply Nat.floor_le
@@ -359,7 +356,6 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
           ring
         · positivity
     _ = k * log 2 := by simp
---     ultimately have A: "log 2 (lambda * (b-a)/(10 * δ)) ≥ k" by auto
   have : log (2 ^ n) ≤ log (Λ * (b-a) / (10 * δ)) := by
     have : (n:ℝ) ≤ _ := Nat.floor_le ?_
     rw [le_div_iff] at this
