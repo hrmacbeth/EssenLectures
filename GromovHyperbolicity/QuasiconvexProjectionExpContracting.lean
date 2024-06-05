@@ -156,9 +156,9 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
   in the case where the process can be iterated long enough that, at the end, the projections on `G`
   are very close together. This is a simple induction, based on the previous lemma. -/
   have Main (k : ℕ) : ∀ c (g : ℕ → X) (p : ℕ → X),
-              (∀ i ∈ Icc 0 (2^k), p i ∈ proj_set (g i) G)
-            → (∀ i ∈ Icc 0 (2^k), 5 * δ * k + 15/2 * δ + c/2 ≤ dist (p i) (g i))
-            → (∀ i ∈ Ico 0 (2^k), dist (g i) (g (i + 1)) ≤ 10 * δ + c)
+              (∀ i ≤ (2^k), p i ∈ proj_set (g i) G)
+            → (∀ i ≤ (2^k), 5 * δ * k + 15/2 * δ + c/2 ≤ dist (p i) (g i))
+            → (∀ i < (2^k), dist (g i) (g (i + 1)) ≤ 10 * δ + c)
             → c ≥ 0
             → dist (p 0) (p (2^k)) ≤ 5 * deltaG X := by
     induction' k with k IH
@@ -190,51 +190,28 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
     intro c g p hp hpg hg hc
     have : 5 * δ * (k + 1) + 5 * δ = 5 * δ * (k + 2) := by ring
     let h : ℕ → X := fun i ↦ geodesic_segment_param {(p i)‒(g i)} (p i) (5 * δ * k + 15/2 * δ)
-    have hi₁ {i : ℕ} : i ∈ Ico 0 (2 ^ (k + 1)) → i ∈ Icc 0 (2 ^ (k + 1)) := by
-      simp only [mem_Icc, mem_Ico, zero_le, true_and]
-      intro h
-      linarith only [h]
-    have hi₂ {i : ℕ} : i ∈ Ico 0 (2 ^ (k + 1)) → i + 1 ∈ Icc 0 (2 ^ (k + 1)) := by
-      simp only [mem_Icc, mem_Ico, zero_le, true_and]
-      intro h
-      linarith only [h]
-    have hi₃ {i : ℕ} : i ∈ Ico 0 (2 ^ (k + 1)) → i ∈ Ico 0 (2 ^ (k + 1)) := by
-      simp only [mem_Icc, mem_Ico, zero_le, true_and]
-      intro h
-      linarith only [h]
-    have hi₄ {i : ℕ} : i ∈ Icc 0 (2 ^ k) → 2 * i ∈ Icc 0 (2 ^ (k + 1)) := by
-      simp only [mem_Icc, zero_le, true_and]
+    have hi' {i : ℕ} : i ≤ (2 ^ k) → 2 * i ≤ (2 ^ (k + 1)) := by
       intro h
       ring_nf
       linarith only [h]
-    have hi₅ {i : ℕ} : i ∈ Ico 0 (2 ^ k) → 2 * i ∈ Ico 0 (2 ^ (k + 1)) := by
-      simp only [mem_Icc, mem_Ico, zero_le, true_and]
-      intro h
-      ring_nf
-      linarith only [h]
-    have hi₆ {i : ℕ} : i ∈ Ico 0 (2 ^ k) → 2 * i + 1 ∈ Ico 0 (2 ^ (k + 1)) := by
-      simp only [mem_Icc, mem_Ico, zero_le, true_and]
-      intro h
-      ring_nf
-      linarith only [h]
-    have h_dist (i : ℕ) (hi : i ∈ Ico 0 (2 ^ (k + 1))) : dist (h i) (h (i + 1)) ≤ 5 * δ := by
+    have h_dist (i : ℕ) (hi : i < (2 ^ (k + 1))) : dist (h i) (h (i + 1)) ≤ 5 * δ := by
       dsimp [h]
       apply geodesic_projection_exp_contracting_aux hG (hp _ ?_) (hp _ ?_) hδ.le (hg _ ?_) ?_ ?_ ?_ hc
-      · exact hi₁ hi
-      · exact hi₂ hi
-      · exact hi₃ hi
+      · exact hi.le
+      · exact hi
+      · exact hi
       · have : 0 ≤ 5 * δ * k := by positivity
         linarith only [this]
       · convert (hpg i ?_) using 1
         · simp only [Nat.succ_eq_add_one]
           push_cast
           ring
-        · exact hi₁ hi
+        · exact hi.le
       · convert (hpg _ ?_) using 1
         · simp only [Nat.succ_eq_add_one]
           push_cast
           ring
-        · exact hi₂ hi
+        · exact hi
     let g' : ℕ → X := fun i ↦ h (2 * i)
     let p' : ℕ → X := fun i ↦ p (2 * i)
     calc dist (p 0) (p (2 ^ (k + 1))) = dist (p' 0) (p' (2 ^ k)) := by dsimp [p']; ring_nf
@@ -242,7 +219,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
     refine IH 0 g' p' ?_ ?_ ?_ (by rfl)
     · intro i hi
       dsimp [p', g', h]
-      apply proj_set_geodesic_same_basepoint (hp _ (hi₄ hi)) (G := {p (2 * i)‒g (2 * i)})
+      apply proj_set_geodesic_same_basepoint (hp _ (hi' hi)) (G := {p (2 * i)‒g (2 * i)})
       · exact (some_geodesic_is_geodesic_segment _ _).1
       · apply geodesic_segment_param_in_segment
         exact some_geodesic_endpoints.2.2
@@ -253,14 +230,14 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
       refine ⟨by positivity, ?_⟩-- rfl
       calc 5 * δ * k + 15/2 * δ
           ≤ 5 * δ * (k + 1) + 15/2 * δ + c/2 := by linarith only [hc, hδ₀]
-        _ ≤ dist (p (2 * i)) (g (2 * i)) := by convert hpg _ (hi₄ hi); norm_cast
+        _ ≤ dist (p (2 * i)) (g (2 * i)) := by convert hpg _ (hi' hi); norm_cast
     · intro i hi
       calc dist (g' i) (g' (i + 1)) = dist (h (2 * i)) (h (2 * i + 1 + 1)) := rfl
         _ ≤ dist (h (2 * i)) (h (2 * i + 1)) + dist (h (2 * i + 1)) (h (2 * i + 1 + 1)) := dist_triangle ..
         _ ≤ 5 * δ + 5 * δ := by
-            gcongr <;> apply h_dist
-            · exact hi₅ hi
-            · exact hi₆ hi
+            gcongr <;> apply h_dist <;>
+            · ring_nf
+              linarith only [hi]
         _ = 10 * δ + 0 := by ring
 
   /- Now, we will apply the previous basic statement to points along our original path. We
@@ -313,10 +290,8 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
   at distances at most `5 * δ`. Hence, the first and last projections are at distance at most
   `2 ^ (N - k) * 5 * δ`, which is the desired bound. -/
 
-  -- TODO make `i ∈ Icc 0 (2 ^ k)` just `i ≤ 2 ^ k`?
-  have hi_mem {k i : ℕ} (hi : i ∈ Icc 0 (2 ^ k)) : a + (b-a) * i/2^k ∈ Icc a b := by
-    dsimp [Icc] at hi ⊢
-    simp only [zero_le, true_and] at hi
+  have hi_mem {k i : ℕ} (hi : i ≤ (2 ^ k)) : a + (b-a) * i/2^k ∈ Icc a b := by
+    dsimp [Icc]
     constructor
     · have : 0 ≤ (b - a) * i / 2 ^ k := by positivity
       linarith only [this]
@@ -330,16 +305,13 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
   · /- First, treat the case where the path is rather short. -/
     let g : ℕ → X := fun i ↦ f (a + (b-a) * i/2^k)
     have hg_endpoints : g 0 = f a ∧ g (2^k) = f b := by simp [g]
-    have A (i : ℕ) (hi : i ∈ Ico 0 (2 ^ k)) : dist (g i) (g (i + 1)) ≤ 10 * δ + C := by
+    have A (i : ℕ) (hi : i < (2 ^ k)) : dist (g i) (g (i + 1)) ≤ 10 * δ + C := by
       calc dist (g i) (g (i + 1)) ≤ Λ * |(a + (b-a) * i/2^k) - (a + (b-a) * (i + 1)/2^k)| + C := by
             dsimp [g]
             convert h (a + (b - a) * i / 2 ^ k) (a + (b - a) * ↑(i + 1) / 2 ^ k) ?_ ?_
             · norm_cast
-            · apply hi_mem
-              exact Ico_subset_Icc_self hi
-            · apply hi_mem
-              refine ⟨?_, hi.2⟩
-              positivity
+            · apply hi_mem hi.le
+            · apply hi_mem hi
         _ = Λ * (b - a) / 2 ^ k + C := by
             rw [mul_div_assoc Λ]
             congr
@@ -355,7 +327,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
             rwa [div_le_iff]
             positivity
     let p := fun i ↦ if i = 0 then pa else if i = 2^k then pb else (hG_nonempty (g i)).choose
-    have B (i : ℕ) (_ : i ∈ Icc 0 (2 ^ k)) : p i ∈ proj_set (g i) G := by
+    have B (i : ℕ) (_ : i ≤ (2 ^ k)) : p i ∈ proj_set (g i) G := by
       dsimp only [p]
       split_ifs with hi' hi'
       · rw [hi', hg_endpoints.1]
@@ -363,7 +335,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
       · rw [hi', hg_endpoints.2]
         exact hpb
       · exact (hG_nonempty _).choose_spec
-    have C (i : ℕ) (hi : i ∈ Icc 0 (2 ^ k)) : dist (p i) (g i) ≥ 5 * δ * k + 15/2 * δ + C/2 := by
+    have C (i : ℕ) (hi : i ≤ (2 ^ k)) : dist (p i) (g i) ≥ 5 * δ * k + 15/2 * δ + C/2 := by
       calc 5 * δ * k + 15/2 * δ + C/2 ≤ D := hk'.1
         _ ≤ infDist (g i) G := hG' _ <| hi_mem hi
         _ = dist (p i) (g i) := by rw [dist_comm, (B i hi).2]
@@ -439,16 +411,12 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
   /- Define `2 ^ N` points along the path, separated by at most `10 * δ`, and their projections. -/
   let g : ℕ → X := fun i ↦ f (a + (b-a) * i / 2^N)
   have hg_endpoints : g 0 = f a ∧ g (2^N) = f b := by simp [g]
-  have A (i : ℕ) (hi : i ∈ Ico 0 (2 ^ N)) : dist (g i) (g (i + 1)) ≤ 10 * δ + C := by
+  have A (i : ℕ) (hi : i < (2 ^ N)) : dist (g i) (g (i + 1)) ≤ 10 * δ + C := by
     calc dist (g i) (g (i + 1))
         ≤ Λ * |(a + (b-a) * i / 2^N) - (a + (b-a) * (i + 1) / 2^N)| + C := by
           dsimp only [g]
-          convert h _ _ (hi_mem ?_) (hi_mem ?_)
-          · norm_cast
-          · simp only [mem_Ico, zero_le, true_and, mem_Icc] at hi ⊢
-            exact hi.le
-          · simp only [mem_Ico, zero_le, true_and, mem_Icc] at hi ⊢
-            exact hi
+          convert h _ _ (hi_mem hi.le) (hi_mem hi)
+          norm_cast
       _ = Λ * (b-a) / 2^N + C := by
           rw [mul_div_assoc Λ]
           congr
@@ -461,7 +429,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
                 positivity
       _ ≤ 10 * δ + C := by gcongr; exact hN.2.1.le
   let p : ℕ → X := fun i ↦ if i = 0 then pa else if i = 2^N then pb else (hG_nonempty (g i)).choose
-  have B (i : ℕ) (_ : i ∈ Icc 0 (2 ^ N)) : p i ∈ proj_set (g i) G := by
+  have B (i : ℕ) (_ : i ≤ (2 ^ N)) : p i ∈ proj_set (g i) G := by
     dsimp only [p]
     split_ifs with hi' hi'
     · rw [hi', hg_endpoints.1]
@@ -469,19 +437,16 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
     · rw [hi', hg_endpoints.2]
       exact hpb
     · exact (hG_nonempty _).choose_spec
-  have C (i : ℕ) (hi : i ∈ Icc 0 (2 ^ N)) : dist (p i) (g i) ≥ 5 * δ * k + 15/2 * δ + C/2 := by
+  have C (i : ℕ) (hi : i ≤ (2 ^ N)) : dist (p i) (g i) ≥ 5 * δ * k + 15/2 * δ + C/2 := by
     calc 5 * δ * k + 15/2 * δ + C/2 ≤ D := hk'.1
       _ ≤ infDist (g i) G := hG' _ <| hi_mem hi
       _ = dist (p i) (g i) := by rw [dist_comm, (B i hi).2]
   /- Use the basic statement to show that, along packets of size `2 ^ k`, the projections
   are within `5 * δ` of each other. -/
-  have I (j : ℕ) (hj : j ∈ Ico 0 (2 ^ (N - k))) : dist (p (2^k * j)) (p (2^k * (j + 1))) ≤ 5 * δ := by
-    have I (i : ℕ) (hi : i ∈ Icc 0 (2 ^ k)) : i + 2^k * j ∈ Icc 0 (2^N) := by
-      obtain ⟨_, h2⟩ := hi
-      refine ⟨by positivity, ?_⟩
+  have I (j : ℕ) (hj : j < (2 ^ (N - k))) : dist (p (2^k * j)) (p (2^k * (j + 1))) ≤ 5 * δ := by
+    have I (i : ℕ) (hi : i ≤ (2 ^ k)) : i + 2^k * j ≤ (2^N) := by
       calc i + 2 ^ k * j ≤ 2^k + 2^k * (2^(N-k)-1) := by
             gcongr
-            have := hj.2
             omega
         _ = 2^N := by
             rw [← hNk₁]
@@ -489,13 +454,10 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
             have : 2 ^ (N - k) ≥ 1 := Nat.one_le_pow _ _ <| by norm_num
             zify [this]
             ring
-    have I' (i : ℕ) (hi : i ∈ Ico 0 (2 ^ k)) : i + 2^k * j ∈ Ico 0 (2^N) := by
-      obtain ⟨_, h2⟩ := hi
-      refine ⟨by positivity, ?_⟩
+    have I' (i : ℕ) (hi : i < (2 ^ k)) : i + 2^k * j < (2^N) := by
       calc i + 2 ^ k * j < 2^k + 2 ^ k * j := by gcongr
         _ ≤ 2 ^ k + 2^k * (2^(N-k)-1) := by
             gcongr
-            have := hj.2
             omega
         _ = 2^N := by
             rw [← hNk₁]
