@@ -29,7 +29,7 @@ around the fact that one can not say or use easily in Isabelle that a type with 
 lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px py : X}
     (hpxG : px ∈ proj_set x G) (hpyG : py ∈ proj_set y G) {δ C : ℝ}
     (hδ : δ ≥ deltaG X) {M : ℝ} (hxy : dist x y ≤ 10 * δ + C)
-    (hM : M ≥ 15/2 * δ) (hpx : dist px x ≥ M + 5 * δ + C/2) (hpy : dist py y ≥ M + 5 * δ + C/2)
+    (hM : M ≥ 15/2 * δ) (hpx : M + 5 * δ + C/2 ≤ dist px x) (hpy : M + 5 * δ + C/2 ≤ dist py y)
     (hC : C ≥ 0) :
     dist (geodesic_segment_param {px‒x} px M) (geodesic_segment_param {py‒y} py M) ≤ 5 * δ := by
   have hpxpyx : dist px x ≤ dist py x := by
@@ -119,6 +119,7 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
 
 attribute [-simp] mul_eq_mul_left_iff -- FIXME global?
 
+set_option maxHeartbeats 300000 in
 /-- The next lemma (Lemma 10 in~\<^cite>\<open>"shchur"\<close> for `C = 0`) asserts that the projection on a geodesic segment is
 an exponential contraction.
 More precisely, if a path of length `L` is at distance at least `D` of a geodesic segment `G`,
@@ -139,7 +140,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
     dist pa pb ≤ max (5 * deltaG X)
       ((4 * exp (1/2 * log 2)) * Λ * (b-a) * exp (-(D-C/2) * log 2 / (5 * δ))) := by
   have : Inhabited X := ⟨pa⟩
-  have : δ > 0 := by
+  have hδ₀ : δ > 0 := by
     linarith only [delta_nonneg X, hδ]
   have :=
   calc exp (15/2/5 * log 2) = exp (log 2) * exp (1/2 * log (2:ℝ)) := by
@@ -156,14 +157,14 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
   are very close together. This is a simple induction, based on the previous lemma. -/
   have Main (k : ℕ) : ∀ c (g : ℕ → X) (p : ℕ → X),
               (∀ i ∈ Icc 0 (2^k), p i ∈ proj_set (g i) G)
-            → (∀ i ∈ Icc 0 (2^k), dist (p i) (g i) ≥ 5 * δ * k + 15/2 * δ + c/2)
+            → (∀ i ∈ Icc 0 (2^k), 5 * δ * k + 15/2 * δ + c/2 ≤ dist (p i) (g i))
             → (∀ i ∈ Ico 0 (2^k), dist (g i) (g (i + 1)) ≤ 10 * δ + c)
             → c ≥ 0
             → dist (p 0) (p (2^k)) ≤ 5 * deltaG X := by
-    induction' k with k hk
+    induction' k with k IH
     · intro c g p hp hpg hg hc
       have H : p 0 ∈ proj_set (g 0) G ∧ p 1 ∈ proj_set (g 1) G ∧ dist (g 0) (g 1) ≤ 10 * δ + c
-          ∧ dist (p 0) (g 0) ≥ 15/2 * δ + c/2 ∧ dist (p 1) (g 1) ≥ 15/2 * δ + c/2 := by
+          ∧ 15/2 * δ + c/2 ≤ dist (p 0) (g 0) ∧ 15/2 * δ + c/2 ≤ dist (p 1) (g 1) := by
         refine ⟨hp _ ?_, hp _ ?_, hg _ ?_, ?_, ?_⟩
         · simp
         · simp
@@ -186,56 +187,81 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
             gcongr
             linarith only [hδ]
         _ = 5 * deltaG X := by simp
-    sorry
---   next
---     case (Suc k)
---     have *: "5 * δ * real (k + 1) + 5 * δ = 5 * δ * real (Suc k + 1)"
---       by (simp add: algebra_simps)
---     define h where "h = (\<lambda>i. geodesic_segment_param {p i‒g i} (p i) (5 * δ * k + 15/2 * δ))"
---     have h_dist: "dist (h i) (h (Suc i)) ≤ 5 * δ" if "i ∈ {0..<2^(Suc k)}" for i
---       unfolding h_def apply (rule geodesic_projection_exp_contracting_aux[OF \<open>geodesic_segment G\<close> _ _ less_imp_le[OF \<open>delta > deltaG X\<close>]])
---       unfolding * using Suc.prems that \<open>delta > 0\<close> by (auto simp add: algebra_simps divide_simps)
---     define g' where "g' = (\<lambda>i. h (2 * i))"
---     define p' where "p' = (\<lambda>i. p (2 * i))"
---     have "dist (p' 0) (p' (2^k)) ≤ 5 * deltaG X"
---     proof (rule Suc.IH[where ?g = g' and ?c = 0])
---       show "∀ i∈{0..2 ^ k}. p' i ∈ proj_set (g' i) G"
---       proof
---         fix i::nat assume "i ∈ {0..2^k}"
---         then have *: "2 * i ∈ {0..2^(Suc k)}" by auto
---         show "p' i ∈ proj_set (g' i) G"
---           unfolding p'_def g'_def h_def apply (rule proj_set_geodesic_same_basepoint[of _ "g (2 * i)" _ "{p(2 * i)‒g(2 * i)}"])
---           using Suc * by (auto simp add: geodesic_segment_param_in_segment)
---       qed
---       show "∀ i∈{0..2 ^ k}. 5 * δ * k + 15/2 * δ + 0/2 ≤ dist (p' i) (g' i)"
---       proof
---         fix i::nat assume "i ∈ {0..2^k}"
---         then have *: "2 * i ∈ {0..2^(Suc k)}" by auto
---         have "5 * δ * k + 15/2 * δ ≤ 5 * δ * Suc k + 15/2 * δ + c/2"
---           using \<open>delta > 0\<close> \<open>c ≥ 0\<close> by (auto simp add: algebra_simps divide_simps)
---         _ ≤ dist (p (2 * i)) (g (2 * i))"
---           using Suc * by auto
---         finally have *: "5 * δ * k + 15/2 * δ ≤ dist (p (2 * i)) (g (2 * i))" by simp
---         have "dist (p' i) (g' i) = 5 * δ * k + 15/2 * δ"
---           unfolding p'_def g'_def h_def apply (rule geodesic_segment_param_in_geodesic_spaces(6))
---           using * \<open>delta > 0\<close> by auto
---         then show "5 * δ * k + 15/2 * δ + 0/2 ≤ dist (p' i) (g' i)" by simp
---       qed
---       show "∀ i∈{0..<2 ^ k}. dist (g' i) (g' (Suc i)) ≤ 10 * δ + 0"
---       proof
---         fix i::nat assume *: "i ∈ {0..<2 ^ k}"
---         have := calc dist (g' i) (g' (Suc i)) = dist (h (2 * i)) (h (Suc (Suc (2 * i))))"
---           unfolding g'_def by auto
---         _ ≤ dist (h (2 * i)) (h (Suc (2 * i))) + dist (h (Suc (2 * i))) (h (Suc (Suc (2 * i))))"
---           by (intro mono_intros)
---         _ ≤ 5 * δ + 5 * δ"
---           apply (intro mono_intros h_dist) using * by auto
---         finally show "dist (g' i) (g' (Suc i)) ≤ 10 * δ + 0" by simp
---       qed
---     qed (simp)
---     then show "dist (p 0) (p (2 ^ Suc k)) ≤ 5 * deltaG X"
---       unfolding p'_def by auto
---   qed
+    intro c g p hp hpg hg hc
+    have : 5 * δ * (k + 1) + 5 * δ = 5 * δ * (k + 2) := by ring
+    let h : ℕ → X := fun i ↦ geodesic_segment_param {(p i)‒(g i)} (p i) (5 * δ * k + 15/2 * δ)
+    have hi₁ {i : ℕ} : i ∈ Ico 0 (2 ^ (k + 1)) → i ∈ Icc 0 (2 ^ (k + 1)) := by
+      simp only [mem_Icc, mem_Ico, zero_le, true_and]
+      intro h
+      linarith only [h]
+    have hi₂ {i : ℕ} : i ∈ Ico 0 (2 ^ (k + 1)) → i + 1 ∈ Icc 0 (2 ^ (k + 1)) := by
+      simp only [mem_Icc, mem_Ico, zero_le, true_and]
+      intro h
+      linarith only [h]
+    have hi₃ {i : ℕ} : i ∈ Ico 0 (2 ^ (k + 1)) → i ∈ Ico 0 (2 ^ (k + 1)) := by
+      simp only [mem_Icc, mem_Ico, zero_le, true_and]
+      intro h
+      linarith only [h]
+    have hi₄ {i : ℕ} : i ∈ Icc 0 (2 ^ k) → 2 * i ∈ Icc 0 (2 ^ (k + 1)) := by
+      simp only [mem_Icc, zero_le, true_and]
+      intro h
+      ring_nf
+      linarith only [h]
+    have hi₅ {i : ℕ} : i ∈ Ico 0 (2 ^ k) → 2 * i ∈ Ico 0 (2 ^ (k + 1)) := by
+      simp only [mem_Icc, mem_Ico, zero_le, true_and]
+      intro h
+      ring_nf
+      linarith only [h]
+    have hi₆ {i : ℕ} : i ∈ Ico 0 (2 ^ k) → 2 * i + 1 ∈ Ico 0 (2 ^ (k + 1)) := by
+      simp only [mem_Icc, mem_Ico, zero_le, true_and]
+      intro h
+      ring_nf
+      linarith only [h]
+    have h_dist (i : ℕ) (hi : i ∈ Ico 0 (2 ^ (k + 1))) : dist (h i) (h (i + 1)) ≤ 5 * δ := by
+      dsimp [h]
+      apply geodesic_projection_exp_contracting_aux hG (hp _ ?_) (hp _ ?_) hδ.le (hg _ ?_) ?_ ?_ ?_ hc
+      · exact hi₁ hi
+      · exact hi₂ hi
+      · exact hi₃ hi
+      · have : 0 ≤ 5 * δ * k := by positivity
+        linarith only [this]
+      · convert (hpg i ?_) using 1
+        · simp only [Nat.succ_eq_add_one]
+          push_cast
+          ring
+        · exact hi₁ hi
+      · convert (hpg _ ?_) using 1
+        · simp only [Nat.succ_eq_add_one]
+          push_cast
+          ring
+        · exact hi₂ hi
+    let g' : ℕ → X := fun i ↦ h (2 * i)
+    let p' : ℕ → X := fun i ↦ p (2 * i)
+    calc dist (p 0) (p (2 ^ (k + 1))) = dist (p' 0) (p' (2 ^ k)) := by dsimp [p']; ring_nf
+      _ ≤ 5 * deltaG X := ?_
+    refine IH 0 g' p' ?_ ?_ ?_ (by rfl)
+    · intro i hi
+      dsimp [p', g', h]
+      apply proj_set_geodesic_same_basepoint (hp _ (hi₄ hi)) (G := {p (2 * i)‒g (2 * i)})
+      · exact (some_geodesic_is_geodesic_segment _ _).1
+      · apply geodesic_segment_param_in_segment
+        exact some_geodesic_endpoints.2.2
+    · intro i hi
+      dsimp [p', g', h]
+      rw [geodesic_segment_param_in_geodesic_spaces6]
+      · linarith only []
+      refine ⟨by positivity, ?_⟩-- rfl
+      calc 5 * δ * k + 15/2 * δ
+          ≤ 5 * δ * (k + 1) + 15/2 * δ + c/2 := by linarith only [hc, hδ₀]
+        _ ≤ dist (p (2 * i)) (g (2 * i)) := by convert hpg _ (hi₄ hi); norm_cast
+    · intro i hi
+      calc dist (g' i) (g' (i + 1)) = dist (h (2 * i)) (h (2 * i + 1 + 1)) := rfl
+        _ ≤ dist (h (2 * i)) (h (2 * i + 1)) + dist (h (2 * i + 1)) (h (2 * i + 1 + 1)) := dist_triangle ..
+        _ ≤ 5 * δ + 5 * δ := by
+            gcongr <;> apply h_dist
+            · exact hi₅ hi
+            · exact hi₆ hi
+        _ = 10 * δ + 0 := by ring
 
   /- Now, we will apply the previous basic statement to points along our original path. We
   introduce `k`, the number of steps for which the pushing process can be done -- it only depends on
