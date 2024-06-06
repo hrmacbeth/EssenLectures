@@ -322,7 +322,7 @@ lemma geodesic_segment_param_in_segment {G : Set X} (hG : G.Nonempty) {x : X} {t
 -- apply (auto, metis (mono_tags, lifting) someI)
 -- using assms some_in_eq by fastforce
 
-lemma geodesic_segment_reverse_param {X : Type*} [MetricSpace X] {G : Set X} {x y : X}
+lemma geodesic_segment_reverse_param {G : Set X} {x y : X}
     (hxy : geodesic_segment_between G x y) {t : ℝ} (ht : t ∈ Icc 0 (dist x y)) :
     geodesic_segment_param G y (dist x y - t) = geodesic_segment_param G x t := by
   sorry
@@ -343,10 +343,10 @@ lemma geodesic_segment_reverse_param {X : Type*} [MetricSpace X] {G : Set X} {x 
 --     using geodesic_segment_dist_unique[OF assms(1)] by (simp add: dist_commute)
 -- qed
 
--- lemma dist_along_geodesic_wrt_endpoint:
---   assumes "geodesic_segment_between G x y"
---           "u \<in> G" "v \<in> G"
---   shows "dist u v = abs(dist u x - dist v x)"
+lemma dist_along_geodesic_wrt_endpoint {G : Set X} {x y : X}
+    (hxy : geodesic_segment_between G x y) {u : X} (hu : u ∈ G) {v : X} (hv : v ∈ G) :
+    dist u v = |dist u x - dist v x| := by
+  sorry
 -- proof -
 --   have *: "u = geodesic_segment_param G x (dist x u)" "v = geodesic_segment_param G x (dist x v)"
 --     using assms by auto

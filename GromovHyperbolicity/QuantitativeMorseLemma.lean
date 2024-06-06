@@ -228,14 +228,13 @@ lemma Morse_Gromov_theorem_aux0
         have : 0 ≤ K * (uM - um) := by positivity
         simpa using this
 
-  /- We come to the interesting case where $f(z)$ is far away from a geodesic between
-  $f(um)$ and $f(uM)$. Let $m$ be close to a projection of $f(z)$ on such a geodesic (we use
-  the opposite point of $f(z)$ on the corresponding tripod). On a geodesic between $f(z)$ and $m$,
-  consider the point $pi_z$ at distance $(f(um), f(uM))_{f(z)}$ of $f(z)$. It is very close to
-  $m$ (within distance $2 \delta$). We will push the points $f(um)$ and $f(uM)$
-  towards $f(z)$ by considering points whose projection on a geodesic $H$ between $m$ and
-  $z$ is roughly at distance $L$ of $pi_z$. -/
-  --     case False
+  /- We come to the interesting case where `f z` is far away from a geodesic between
+  `f um` and `f uM`. Let `m` be close to a projection of `f z` on such a geodesic (we use
+  the opposite point of `f z` on the corresponding tripod). On a geodesic between `f z` and `m`,
+  consider the point `pi_z` at distance $(f(um), f(uM))_{f(z)}$ of `f z`. It is very close to
+  `m` (within distance `2 * δ`). We will push the points `f um` and `f uM`
+  towards `f z` by considering points whose projection on a geodesic `H` between `m` and
+  `z` is roughly at distance `L` of `pi_z`. -/
   let m := geodesic_segment_param {(f um)‒(f uM)} (f um) (Gromov_product_at (f um) (f z) (f uM))
   have : dist (f z) m ≤ Gromov_product_at (f z) (f um) (f uM) + 2 * deltaG X := by
     sorry
@@ -251,7 +250,7 @@ lemma Morse_Gromov_theorem_aux0
 
   let H : Set X := {(f z)‒m}
   let pi_z := geodesic_segment_param H (f z) (Gromov_product_at (f z) (f um) (f uM))
-  have : pi_z ∈ H ∧ m ∈ H ∧ f z ∈ H := sorry
+  have h_H' : pi_z ∈ H ∧ m ∈ H ∧ f z ∈ H := sorry
   --       unfolding pi_z_def H_def by (auto simp add: geodesic_segment_param_in_segment)
   have h_H : geodesic_segment_between H (f z) m := sorry
   --       unfolding H_def by auto
@@ -270,49 +269,58 @@ lemma Morse_Gromov_theorem_aux0
   have pz : p z = f z := sorry
   --       using p[of z] H by auto
 
-  /- The projection of $f(um)$ on $H$ is close to $pi_z$ (but it does not have to be exactly
-  $pi_z$). It is between $pi_z$ and $m$. -/
-  --     have := calc dist (f um) (f z) ≤ dist (f um) (p um) + dist (p um) (f z)"
-  --       by (intro mono_intros)
-  --     _ ≤ dist (f um) m + dist (p um) (f z)"
-  --       unfolding proj_setD(2)[OF p[of um]] H_def by (auto intro!: infDist_le)
-  --     _ = Gromov_product_at (f um) (f z) (f uM) + dist (p um) (f z)"
-  --       unfolding m_def by simp
-  --     finally have A: "Gromov_product_at (f z) (f um) (f uM) ≤ dist (p um) (f z)"
-  --       unfolding Gromov_product_at_def by (simp add: metric_space_class.dist_commute divide_simps)
-  --     have := calc dist (p um) pi_z = abs(dist (p um) (f z) - dist pi_z (f z))"
-  --       apply (rule dist_along_geodesic_wrt_endpoint[of H _ m]) using pH \<open>pi_z ∈ H\<close> H_def by auto
-  --     _ = dist (p um) (f z) - dist pi_z (f z)"
-  --       using A Dpi_z by (simp add: metric_space_class.dist_commute)
-  --     finally have Dum: "dist (p um) (f z) = dist (p um) pi_z + dist pi_z (f z)" by auto
+  /- The projection of `f um` on `H` is close to `pi_z` (but it does not have to be exactly
+  `pi_z`). It is between `pi_z` and `m`. -/
+  have := calc dist (f um) (f z) ≤ dist (f um) (p um) + dist (p um) (f z) := dist_triangle ..
+    _ ≤ dist (f um) m + dist (p um) (f z) := by
+      gcongr
+      exact proj_set_dist_le h_H'.2.1 (hp um)
+    _ = Gromov_product_at (f um) (f z) (f uM) + dist (p um) (f z) := by
+      simp [m]
+      apply geodesic_segment_param_in_geodesic_spaces6
+      refine ⟨Gromov_product_nonneg (f um) (f z) (f uM), ?_⟩ -- TODO positivity extension
+      sorry
+  have A : Gromov_product_at (f z) (f um) (f uM) ≤ dist (p um) (f z) := by
+    dsimp [Gromov_product_at] at this ⊢
+    simp only [dist_comm] at this ⊢
+    linarith only [this]
+  have Dum : dist (p um) (f z) = dist (p um) pi_z + dist pi_z (f z) := by
+    apply le_antisymm
+    · exact dist_triangle ..
+    · have :=
+      calc dist (p um) pi_z = |dist (p um) (f z) - dist pi_z (f z)| :=
+            dist_along_geodesic_wrt_endpoint h_H pH h_H'.1
+        _ = dist (p um) (f z) - dist pi_z (f z) := by
+          simp only [dist_comm] at Dpi_z A ⊢
+          rw [Dpi_z, abs_of_nonneg]
+          linarith only [A]
+      linarith only [this]
 
-  --     text \<open>Choose a point $f(ym)$ whose projection on $H$ is roughly at distance $L$ of $pi_z$.\<close>
-  --     have "\<exists>ym ∈ {um..z}. (dist (p um) (p ym) ∈ {(L + dist pi_z (p um)) - 4 * δ - 2 * 0 .. L + dist pi_z (p um)})
-  --                   ∀  (∀ r ∈ {um..ym}. dist (p um) (p r) ≤ L + dist pi_z (p um))"
-  --     proof (rule quasi_convex_projection_small_gaps[where ?f = f and ?G = H])
-  --       show "continuous_on {um..z} f"
+  -- Choose a point `f ym` whose projection on `H` is roughly at distance `L` of `pi_z`.
+  obtain ⟨ym, hym⟩ : ∃ ym ∈ Icc um z,
+      (dist (p um) (p ym) ∈ Icc ((L + dist pi_z (p um)) - 4 * δ - 2 * 0) (L + dist pi_z (p um)))
+                    ∧ (∀ r ∈ Icc um ym, dist (p um) (p r) ≤ L + dist pi_z (p um)) := by
+    refine quasi_convex_projection_small_gaps (f := f) (G := H) ?_ hum.2 ?_ (fun t ht ↦ hp t) hδ ?_
+    · refine hf.mono ?_
   --         apply (rule continuous_on_subset[OF \<open>continuous_on Icc a b f\<close>])
   --         using \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> by auto
-  --       show "um ≤ z" using \<open>um ∈ {a..z}\<close> by auto
+      sorry
+    · apply quasiconvex_of_geodesic
   --       show "quasiconvex 0 H" using quasiconvex_of_geodesic geodesic_segmentI H by auto
-  --       show "deltaG TYPE('a) < δ" by fact
+      sorry
+    · sorry
   --       have "L + dist pi_z (p um) ≤ dist (f z) pi_z + dist pi_z (p um)"
   --         using False Dpi_z by (simp add: metric_space_class.dist_commute)
   --       then have "L + dist pi_z (p um) ≤ dist (p um) (f z)"
   --         using Dum by (simp add: metric_space_class.dist_commute)
   --       then show "L + dist pi_z (p um) ∈ {4 * δ + 2 * 0..dist (p um) (p z)}"
   --         using \<open>δ > 0\<close> False L_def pz by auto
-  --       show "p ym ∈ proj_set (f ym) H" for ym using p by simp
-  --     qed
-  --     then obtain ym where ym : "ym ∈ {um..z}"
-  --                               "dist (p um) (p ym) ∈ {(L + dist pi_z (p um)) - 4 * δ - 2 * 0 .. L + dist pi_z (p um)}"
-  --                               "∀ r. r ∈ {um..ym} → dist (p um) (p r) ≤ L + dist pi_z (p um)"
-  --       by blast
-  --     have *: "continuous_on {um..ym} (\<lambda>r. infDist (f r) H)"
+  have : ContinuousOn (fun r ↦ infDist (f r) H) (Icc um ym) := sorry -- `*`
   --       using continuous_on_infDist[OF continuous_on_subset[OF \<open>continuous_on Icc a b f\<close>, of "{um..ym}"], of H]
   --       \<open>ym ∈ {um..z}\<close> \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> by auto
-  --     text \<open>Choose a point $cm$ between $f(um)$ and $f(ym)$ realizing the minimal distance to $H$.
-  --     Call this distance $dm$.\<close>
+
+  /- Choose a point `cm` between `f um` and `f ym` realizing the minimal distance to `H`.
+  Call this distance `dm`. -/
   --     have "\<exists>closestm ∈ {um..ym}. ∀ v ∈ {um..ym}. infDist (f closestm) H ≤ infDist (f v) H"
   --       apply (rule continuous_attains_inf) using ym(1) * by auto
   --     then obtain closestm where closestm: "closestm ∈ {um..ym}" "∀ v. v ∈ {um..ym} → infDist (f closestm) H ≤ infDist (f v) H"
@@ -340,7 +348,7 @@ lemma Morse_Gromov_theorem_aux0
 
   --     text \<open>Choose a point $f(yM)$ whose projection on $H$ is roughly at distance $L$ of $pi_z$.\<close>
   --     have "\<exists>yM ∈ {z..uM}. dist (p uM) (p yM) ∈ {(L + dist pi_z (p uM)) - 4* δ - 2 * 0 .. L + dist pi_z (p uM)}
-  --                   ∀  (∀ r ∈ {yM..uM}. dist (p uM) (p r) ≤ L + dist pi_z (p uM))"
+  --                   ∧ (∀ r ∈ {yM..uM}. dist (p uM) (p r) ≤ L + dist pi_z (p uM))"
   --     proof (rule quasi_convex_projection_small_gaps'[where ?f = f and ?G = H])
   --       show "continuous_on {z..uM} f"
   --         apply (rule continuous_on_subset[OF \<open>continuous_on Icc a b f\<close>])
@@ -510,7 +518,7 @@ lemma Morse_Gromov_theorem_aux0
 
   --     text \<open>We have proved the basic facts we will need in the main argument. This argument starts
   --     here. It is divided in several cases.\<close>
-  --     consider "dm ≤ D + 4 * C ∀  dM ≤ D + 4 * C" | "dm ≥ D + 4 * C ∀  dM ≤ dm" | "dM ≥ D + 4 * C ∀  dm ≤ dM"
+  --     consider "dm ≤ D + 4 * C ∧ dM ≤ D + 4 * C" | "dm ≥ D + 4 * C ∧ dM ≤ dm" | "dM ≥ D + 4 * C ∧ dm ≤ dM"
   --       by linarith
   --     then show ?thesis
   --     proof (cases)
