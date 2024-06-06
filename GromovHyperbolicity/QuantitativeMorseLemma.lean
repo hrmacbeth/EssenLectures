@@ -190,48 +190,51 @@ lemma Morse_Gromov_theorem_aux0
   have := hf'.C_nonneg
   have := hf'.one_le_lambda
   have : Inhabited X := ⟨f 0⟩
-  have : 0 < δ := by linarith only [hδ, delta_nonneg X]
+  have hδ₀ : 0 < δ := by linarith only [hδ, delta_nonneg X]
   intro α L D K Kmult
 
   -- have alphaaux:"α > 0" "α ≤ 1" unfolding alpha_def by auto
   -- have "K > 0" "L > 0" "D > 0" unfolding K_def L_def D_def using \<open>δ > 0\<close> \<open>Λ ≥ 1\<close> alpha_def by auto
   -- have Laux: "L ≥ 18 * δ" "D ≥ 50 * δ" "L ≤ D" "D ≤ 4 * L" unfolding L_def D_def using \<open>δ > 0\<close> by auto
   -- have Daux: "8 * δ ≤ (1 - α) * D" unfolding alpha_def D_def using \<open>δ > 0\<close> by auto
-  -- have "Kmult > 0" unfolding Kmult_def using Laux \<open>δ > 0\<close> \<open>K > 0\<close> \<open>Λ ≥ 1\<close> by (auto simp add: divide_simps)
+  have : 1 ≤ Λ ^ 2 := by nlinarith only [hf'.one_le_lambda]
+  have : Kmult > 0 := by ring_nf; positivity --" unfolding Kmult_def using Laux \<open>δ > 0\<close> \<open>K > 0\<close> \<open>Λ ≥ 1\<close> by (auto simp add: divide_simps)
 
-  induction n
+  induction' n with k IH
   · -- Trivial base case of the induction
-  --   case 0
-  --   then have *: "z = um" "z = uM" by auto
-  --   then have := calc Gromov_product_at (f z) (f um) (f uM) = 0" by auto
-  --   _ ≤ 1 * (D + (3/2) * L + δ + 11/2 * C) - 2 * δ + 0 * (1 - exp(- K * (uM - um)))"
-  --     using Laux \<open>C ≥ 0\<close> \<open>δ > 0\<close> by auto
-  --   _ ≤ Λ^2 * (D + (3/2) * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp(- K * (uM - um)))"
-  --     apply (intro mono_intros)
-  --     using \<open>C ≥ 0\<close> \<open>δ > 0\<close> Laux \<open>D > 0\<close> \<open>K > 0\<close> "0.prems" \<open>Λ ≥ 1\<close> \<open>Kmult > 0\<close> by auto
-  --   finally show ?case by auto
-    sorry
-  -- next
-  --   case (Suc n)
-  --   show ?case
-  --   proof (cases "Gromov_product_at (f z) (f um) (f uM) ≤ L")
-  --     text \<open>If $f(z)$ is already close to the geodesic, there is nothing to do, and we do not need
-  --     the induction assumption. This is case 1 in the description above.\<close>
-  --     case True
-  --     have := calc L ≤ 1 * (D + (3/2) * L + δ + 11/2 * C) - 2 * δ + 0 * (1 - exp(- K * (uM - um)))"
-  --       using Laux \<open>C ≥ 0\<close> \<open>δ > 0\<close> by auto
-  --     _ ≤ Λ^2 * (D + (3/2) * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp(- K * (uM - um)))"
-  --       apply (intro mono_intros)
-  --       using \<open>C ≥ 0\<close> \<open>δ > 0\<close> Laux \<open>D > 0\<close> "Suc.prems" \<open>K > 0\<close> \<open>Λ ≥ 1\<close> \<open>Kmult > 0\<close> by auto
-  --     finally show ?thesis using True by auto
-  --   next
-  --     text \<open>We come to the interesting case where $f(z)$ is far away from a geodesic between
-  --     $f(um)$ and $f(uM)$. Let $m$ be close to a projection of $f(z)$ on such a geodesic (we use
-  --     the opposite point of $f(z)$ on the corresponding tripod). On a geodesic between $f(z)$ and $m$,
-  --     consider the point $pi_z$ at distance $(f(um), f(uM))_{f(z)}$ of $f(z)$. It is very close to
-  --     $m$ (within distance $2 \delta$). We will push the points $f(um)$ and $f(uM)$
-  --     towards $f(z)$ by considering points whose projection on a geodesic $H$ between $m$ and
-  --     $z$ is roughly at distance $L$ of $pi_z$.\<close>
+    intro um uM hum huM h_diff
+    obtain ⟨rfl, rfl⟩ : z = um ∧ z = uM := by
+      ring_nf at h_diff -- FIXME why doesn't `linarith` do this normalization?
+      constructor <;> linarith only [h_diff, hum.2, huM.1]
+    calc Gromov_product_at (f z) (f z) (f z) = 0 := by simp
+      _ ≤ 1 * (D + (3/2) * L + δ + 11/2 * C) - 2 * δ + 0 * (1 - exp (- K * (z - z))) := by
+        ring_nf
+        positivity
+      _ ≤ Λ^2 * (D + (3/2) * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (z - z))) := by
+        gcongr
+        simp
+
+  intro um uM hum huM h_diff
+  have : 0 ≤ uM - um := by linarith only [hum.2, huM.1]
+  by_cases hz_um_uM_L : Gromov_product_at (f z) (f um) (f uM) ≤ L
+  · /- If $f(z)$ is already close to the geodesic, there is nothing to do, and we do not need
+    the induction assumption. This is case 1 in the description above. -/
+    calc Gromov_product_at (f z) (f um) (f uM) ≤ L := hz_um_uM_L
+      _ ≤ 1 * (D + (3/2) * L + δ + 11/2 * C) - 2 * δ + 0 * (1 - exp (- K * (uM - um))) := by
+        dsimp [L, D]
+        linarith only [hf'.C_nonneg, hδ₀]
+      _ ≤ Λ^2 * (D + (3/2) * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um))) := by
+        gcongr
+        have : 0 ≤ K * (uM - um) := by positivity
+        simpa using this
+
+  /- We come to the interesting case where $f(z)$ is far away from a geodesic between
+  $f(um)$ and $f(uM)$. Let $m$ be close to a projection of $f(z)$ on such a geodesic (we use
+  the opposite point of $f(z)$ on the corresponding tripod). On a geodesic between $f(z)$ and $m$,
+  consider the point $pi_z$ at distance $(f(um), f(uM))_{f(z)}$ of $f(z)$. It is very close to
+  $m$ (within distance $2 \delta$). We will push the points $f(um)$ and $f(uM)$
+  towards $f(z)$ by considering points whose projection on a geodesic $H$ between $m$ and
+  $z$ is roughly at distance $L$ of $pi_z$. -/
   --     case False
   --     define m where "m = geodesic_segment_param {f um‒f uM} (f um) (Gromov_product_at (f um) (f z) (f uM))"
   --     have "dist (f z) m ≤ Gromov_product_at (f z) (f um) (f uM) + 2 * deltaG(TYPE('a))"
