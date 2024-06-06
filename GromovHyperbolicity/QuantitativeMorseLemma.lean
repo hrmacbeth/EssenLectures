@@ -167,7 +167,7 @@ what comes from the trivial cases 1 and 2.1 in the description of the proof befo
 of the theorem, while the most interesting term is the second term, corresponding to the induction
 per se. -/
 lemma Morse_Gromov_theorem_aux0
-    (f : ℝ → X) {a b : ℝ}
+    {f : ℝ → X} {a b : ℝ}
     (hf : ContinuousOn f (Icc a b))
     {Λ C : ℝ} (hf' : quasi_isometry_on Λ C (Icc a b) f)
     (hab : a ≤ b)
@@ -1285,7 +1285,7 @@ lemma Morse_Gromov_theorem_aux0
 /-- The main induction is over. To conclude, one should apply its result to the original
 geodesic segment joining the points $f(a)$ and $f(b)$. -/
 lemma Morse_Gromov_theorem_aux1
-    (f : ℝ → X) {a b : ℝ}
+    {f : ℝ → X} {a b : ℝ}
     (hf : ContinuousOn f (Icc a b))
     {Λ C : ℝ} (hf' : quasi_isometry_on Λ C (Icc a b) f)
     (hab : a ≤ b)
@@ -1317,7 +1317,7 @@ lemma Morse_Gromov_theorem_aux1
       ≤ Gromov_product_at (f z) (f a) (f b) + 2 * deltaG X := infDist_triangle_side _ hGf
     _ ≤ (Λ^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (-K * (b - a)))) + 2 * δ := by
         gcongr
-        refine Morse_Gromov_theorem_aux0 f hf hf' hab hGf hz hδ n a b ?_ ?_ this
+        refine Morse_Gromov_theorem_aux0 hf hf' hab hGf hz hδ n a b ?_ ?_ this
         · exact ⟨by rfl, hz.1⟩
         · exact ⟨hz.2, by rfl⟩
     _ = Λ^2 * (D + 3/2 * L + δ + 11/2 * C) + Kmult * (1 - exp (-K * (b - a))) := by ring
@@ -1343,9 +1343,7 @@ lemma Morse_Gromov_theorem_aux1
     -- apply (intro mono_intros, simp add: divide_simps, approximation 14)
     -- using \<open>δ > 0\<close> by auto
 
-#exit
-
-text \<open>Still assuming that our quasi-isometry is Lipschitz, we will improve slightly on the previous
+/-- Still assuming that our quasi-isometry is Lipschitz, we will improve slightly on the previous
 result, first going down to the hyperbolicity constant of the space, and also showing that,
 conversely, the geodesic is contained in a neighborhood of the quasi-geodesic. The argument for this
 last point goes as follows. Consider a point $x$ on the geodesic. Define two sets to
@@ -1355,14 +1353,16 @@ of these two sets covers the quasi-geodesic, and they are both closed and nonemp
 there is a point $z$ in their intersection, $D$-close both to a point $x^-$ before $x$ and to a point
 $x^+$ after $x$. Then $x$ belongs to a geodesic between $x^-$ and $x^+$, which is contained in a
 $4\delta$-neighborhood of geodesics from $x^+$ to $z$ and from $x^-$ to $z$ by hyperbolicity. It
-follows that $x$ is at distance at most $D + 4\delta$ of $z$, concluding the proof.\<close>
+follows that $x$ is at distance at most $D + 4\delta$ of $z$, concluding the proof. -/
+lemma Morse_Gromov_theorem_aux2
+    {f : ℝ → X} {a b : ℝ}
+    (hf : ContinuousOn f (Icc a b))
+    {Λ C : ℝ} (hf' : quasi_isometry_on Λ C (Icc a b) f)
+    {G : Set X} (hG : geodesic_segment_between G (f a) (f b)) :
+    hausdorffDist (f '' (Icc a b)) G ≤ Λ^2 * (11/2 * C + 92 * deltaG X) := by
+  sorry
 
-lemma (in Gromov_hyperbolic_space_geodesic) Morse_Gromov_theorem_aux2:
-  fixes f::"real → 'a"
-  assumes "continuous_on Icc a b f"
-          "lambda C-quasi_isometry_on Icc a b f"
-          "geodesic_segment_between G (f a) (f b)"
-  shows "hausdorff_distance (f`Icc a b) G ≤ Λ^2 * (11/2 * C + 92 * deltaG(TYPE('a)))"
+#exit
 proof (cases "a ≤ b")
   case True
   have "lambda ≥ 1" "C ≥ 0" using quasi_isometry_onD[OF assms(2)] by auto
