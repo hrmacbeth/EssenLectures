@@ -131,10 +131,10 @@ This statement follows from the previous lemma: if one moves towards `G` by `10 
 the distance between points is divided by `2`. Then one iterates this statement as many times
 as possible, gaining a factor `2` each time and therefore an exponential factor in the end. -/
 -- TODO don't know if notation is Ioo or Icc
-lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ → X} {a b : ℝ}
+lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ → X} {a b Λ C : ℝ}
     (h : ∀ x y, x ∈ Icc a b → y ∈ Icc a b → dist (f x) (f y) ≤ Λ * |x - y| + C) -- NB changed from `dist x y` in original
-    (hab : a ≤ b) (hpa : pa ∈ proj_set (f a) G) (hpb : pb ∈ proj_set (f b) G)
-    (hG' : ∀ t, t ∈ Icc a b → infDist (f t) G ≥ D) (hD : D ≥ 15/2 * δ + C/2)
+    (hab : a ≤ b) {pa : X} (hpa : pa ∈ proj_set (f a) G) {pb : X} (hpb : pb ∈ proj_set (f b) G)
+    {D : ℝ} (hG' : ∀ t, t ∈ Icc a b → infDist (f t) G ≥ D) {δ : ℝ} (hD : D ≥ 15/2 * δ + C/2)
     (hδ : δ > deltaG X) (hC : C ≥ 0) (hΛ : Λ ≥ 0) :
     dist pa pb ≤ max (5 * deltaG X)
       ((4 * exp (1/2 * log 2)) * Λ * (b-a) * exp (-(D-C/2) * log 2 / (5 * δ))) := by
@@ -202,13 +202,11 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
       · have : 0 ≤ 5 * δ * k := by positivity
         linarith only [this]
       · convert (hpg i ?_) using 1
-        · simp only [Nat.succ_eq_add_one]
-          push_cast
+        · push_cast
           ring
         · exact hi.le
       · convert (hpg _ ?_) using 1
-        · simp only [Nat.succ_eq_add_one]
-          push_cast
+        · push_cast
           ring
         · exact hi
     let g' : ℕ → X := fun i ↦ h (2 * i)
@@ -479,7 +477,6 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
       ≤ (∑ i in Finset.range j, dist (p (2^k * i)) (p (2^k * (i + 1)))) := by
     induction' j with j hj
     · simp
-    simp only [Nat.succ_eq_add_one] at * -- FIXME remove in 4.8.0
     calc dist (p 0) (p (2^k * (j + 1)))
         ≤ dist (p 0) (p (2^k * j)) + dist (p (2^k * j)) (p (2^k * (j + 1))) := dist_triangle ..
       _ ≤ (∑ i in Finset.range j, dist (p (2^k * i)) (p (2^k * (i + 1))))
@@ -526,12 +523,12 @@ one adds up the additional errors due to the quasi-convexity. In particular, the
 original quasiconvex set or the geodesic do not have to coincide, but they are within distance at
 most `C + 8 * δ`. -/
 -- **Lemma 2.5**
-lemma quasiconvex_projection_exp_contracting
-    (hKG : quasiconvex K G) {f : ℝ → X}
+lemma quasiconvex_projection_exp_contracting {K : ℝ}
+    (hKG : quasiconvex K G) {f : ℝ → X} {a b Λ C : ℝ}
     (h : ∀ x y, x ∈ Icc a b → y ∈ Icc a b → dist (f x) (f y) ≤ Λ * |x - y| + C) -- NB changed from `dist x y` in original
-    (hab : a ≤ b) (hpaG : pa ∈ proj_set (f a) G) (hpbG : pb ∈ proj_set (f b) G)
-    (hG : ∀ t, t ∈ Icc a b → infDist (f t) G ≥ D)
-    (hD : D ≥ 15/2 * δ + K + C/2)
+    (hab : a ≤ b) {pa : X} (hpaG : pa ∈ proj_set (f a) G) {pb : X} (hpbG : pb ∈ proj_set (f b) G)
+    {D : ℝ} (hG : ∀ t, t ∈ Icc a b → infDist (f t) G ≥ D)
+    {δ : ℝ} (hD : D ≥ 15/2 * δ + K + C/2)
     (hδ : δ > deltaG X) (hC : C ≥ 0) (hΛ : Λ ≥ 0) :
     dist pa pb ≤ 2 * K + 8 * δ
       + max (5 * deltaG X)

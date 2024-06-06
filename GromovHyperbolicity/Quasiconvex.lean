@@ -47,7 +47,7 @@ local notation "δ" => Gromov_hyperbolic_space.deltaG M
 
 /-- The `r`-neighborhood of a quasi-convex set is still quasi-convex in a hyperbolic space,
 for a constant that does not depend on `r`. -/
-lemma quasiconvex_thickening [Inhabited M] (h : quasiconvex C X) (hr : r ≥ 0) :
+lemma quasiconvex_thickening [Inhabited M] (h : quasiconvex C X) {r : ℝ} (hr : r ≥ 0) :
     quasiconvex (C + 8 * δ) (⋃ x ∈ X, closedBall x r) where
   C_nonneg := by
     have := h.C_nonneg
@@ -123,7 +123,7 @@ lemma quasiconvex_thickening [Inhabited M] (h : quasiconvex C X) (hr : r ≥ 0) 
 /-- If `x` has a projection `p` on a quasi-convex set `G`, then all segments from a point in `G`
 to `x` go close to `p`, i.e., the triangular inequality $d(x,y) ≤ d(x,p) + d(p,y)$ is essentially
 an equality, up to an additive constant. -/
-lemma dist_along_quasiconvex (hCG : quasiconvex C G) (hp : p ∈ proj_set x G) (hy : y ∈ G) :
+lemma dist_along_quasiconvex (hCG : quasiconvex C G) {p x : M} (hp : p ∈ proj_set x G) {y : M} (hy : y ∈ G) :
     dist x p + dist p y ≤ dist x y + 4 * δ + 2 * C := by
   have : p ∈ G := hp.1
   obtain ⟨H, hH₁, hH₂⟩ : ∃ H, geodesic_segment_between H p y ∧ ∀ q ∈ H, infDist q G ≤ C :=
@@ -160,8 +160,8 @@ constants. It states that the distance between the projections
 on a quasi-convex set is controlled by the distance of the original points, with a gain given by the
 distances of the points to the set. -/
 -- **Lemma 2.4**
-lemma proj_along_quasiconvex_contraction (h : quasiconvex C G) (hx : px ∈ proj_set x G)
-    (hy : py ∈ proj_set y G) :
+lemma proj_along_quasiconvex_contraction (h : quasiconvex C G) {px x : M} (hx : px ∈ proj_set x G)
+    {py y : M} (hy : py ∈ proj_set y G) :
     dist px py ≤ max (5 * δ + 2 * C) (dist x y - dist px x - dist py y + 10 * δ + 4 * C) := by
   have := dist_along_quasiconvex h hx <| hy.1
   have := dist_along_quasiconvex h hy <| hx.1
@@ -172,8 +172,8 @@ lemma proj_along_quasiconvex_contraction (h : quasiconvex C G) (hx : px ∈ proj
   linarith
 
 /-- The projection on a quasi-convex set is 1-Lipschitz up to an additive error. -/
-lemma proj_along_quasiconvex_contraction' (h : quasiconvex C G) (hx : px ∈ proj_set x G)
-    (hy : py ∈ proj_set y G) :
+lemma proj_along_quasiconvex_contraction' (h : quasiconvex C G) {px x : M} (hx : px ∈ proj_set x G)
+    {py y : M} (hy : py ∈ proj_set y G) :
     dist px py ≤ dist x y + 4 * δ + 2 * C := by
   have := dist_along_quasiconvex h hx <| hy.1
   have := dist_along_quasiconvex h hy <| hx.1
@@ -184,21 +184,21 @@ lemma proj_along_quasiconvex_contraction' (h : quasiconvex C G) (hx : px ∈ pro
 
 /-- We can in particular specialize the previous statements to geodesics, which are
 0-quasi-convex. -/
-lemma dist_along_geodesic (h : geodesic_segment G) (hx : p ∈ proj_set x G) (hy : y ∈ G) :
+lemma dist_along_geodesic (h : geodesic_segment G) {p x : M} (hx : p ∈ proj_set x G) {y : M} (hy : y ∈ G) :
     dist x p + dist p y ≤ dist x y + 4 * δ := by
   have H := dist_along_quasiconvex (quasiconvex_of_geodesic h) hx hy
   ring_nf at H ⊢
   exact H
 
-lemma proj_along_geodesic_contraction (h : geodesic_segment G) (hx : px ∈ proj_set x G)
-    (hy : py ∈ proj_set y G) :
+lemma proj_along_geodesic_contraction (h : geodesic_segment G) {px x : M} (hx : px ∈ proj_set x G)
+    {py y : M} (hy : py ∈ proj_set y G) :
     dist px py ≤ max (5 * δ) (dist x y - dist px x - dist py y + 10 * δ) := by
   have H := proj_along_quasiconvex_contraction (quasiconvex_of_geodesic h) hx hy
   ring_nf at H ⊢
   exact H
 
-lemma proj_along_geodesic_contraction' (h : geodesic_segment G) (hx : px ∈ proj_set x G)
-    (hy : py ∈ proj_set y G) :
+lemma proj_along_geodesic_contraction' (h : geodesic_segment G) {px x : M} (hx : px ∈ proj_set x G)
+    {py y : M} (hy : py ∈ proj_set y G) :
     dist px py ≤ dist x y + 4 * δ := by
   have H := proj_along_quasiconvex_contraction' (quasiconvex_of_geodesic h) hx hy
   ring_nf at H ⊢
@@ -218,8 +218,8 @@ lemma quasi_convex_projection_small_gaps {f p : ℝ → M} {a b : ℝ}
     (hab : a ≤ b)
     (h : quasiconvex C G)
     (hfG : ∀ t ∈ Icc a b, p t ∈ proj_set (f t) G)
-    (hdelta : delta > δ)
-    (hd : d ∈ Icc (4 * delta + 2 * C) (dist (p a) (p b))) :
+    {delta : ℝ} (hdelta : delta > δ)
+    {d : ℝ} (hd : d ∈ Icc (4 * delta + 2 * C) (dist (p a) (p b))) :
     ∃ t ∈ Icc a b, dist (p a) (p t) ∈ Icc (d - 4 * delta - 2 * C) d
                     ∧ ∀ s ∈ Icc a t, dist (p a) (p s) ≤ d := by
   have : Inhabited M := ⟨f 0⟩
@@ -307,8 +307,8 @@ lemma quasi_convex_projection_small_gaps' {f p : ℝ → M} {a b : ℝ}
     (hab : a ≤ b)
     (h : quasiconvex C G)
     (hfG : ∀ t ∈ Icc a b, p t ∈ proj_set (f t) G)
-    (hdelta : delta > δ)
-    (hd : d ∈ Icc (4 * delta + 2 * C) (dist (p a) (p b))) :
+    {delta : ℝ} (hdelta : delta > δ)
+    {d : ℝ} (hd : d ∈ Icc (4 * delta + 2 * C) (dist (p a) (p b))) :
     ∃ t ∈ Icc a b, (dist (p b) (p t) ∈ Icc (d - 4 * delta - 2 * C) d)
                     ∧ (∀ s ∈ Icc t b, dist (p b) (p s) ≤ d) := by
   have hf_neg : ContinuousOn (fun t : ℝ => f (- t)) (Icc (-b) (-a)) := by

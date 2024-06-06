@@ -9,7 +9,8 @@ open Metric
 
 open UniformSpace in
 @[elab_as_elim]
-theorem UniformSpace.Completion.induction_on₄ [UniformSpace α] [UniformSpace β] [UniformSpace γ] [UniformSpace δ]
+theorem UniformSpace.Completion.induction_on₄ {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
+    [UniformSpace α] [UniformSpace β] [UniformSpace γ] [UniformSpace δ]
     {p : Completion α → Completion β → Completion γ → Completion δ → Prop}
     (a : Completion α) (b : Completion β) (c : Completion γ) (d : Completion δ)
     (hp : IsClosed { x : Completion α × Completion β × Completion γ × Completion δ | p x.1 x.2.1 x.2.2.1 x.2.2.2 })

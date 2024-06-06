@@ -156,13 +156,13 @@ anything, and in the end it gives genuinely better bounds (making it possible to
 $10 \delta$ in the final estimate).
 \end{itemize} -/
 lemma Morse_Gromov_theorem_aux1
-    (f : ℝ → X)
+    (f : ℝ → X) {a b : ℝ}
     (hf : ContinuousOn f (Icc a b))
-    (hf' : quasi_isometry_on Λ C (Icc a b) f)
+    {Λ C : ℝ} (hf' : quasi_isometry_on Λ C (Icc a b) f)
     (hab : a ≤ b)
-    (hGf : geodesic_segment_between G (f a) (f b))
-    (hz : z ∈ Icc a b)
-    (hδ : δ > deltaG X) :
+    {G : Set X} (hGf : geodesic_segment_between G (f a) (f b))
+    {z : ℝ} (hz : z ∈ Icc a b)
+    {δ : ℝ} (hδ : δ > deltaG X) :
     infDist (f z) G ≤ Λ ^ 2 * (11/2 * C + 91 * δ) := by
   have := hf'.C_nonneg
   have := hf'.one_le_lambda

@@ -113,7 +113,8 @@ lemma geodesic_segment_commute {X : Type*} [MetricSpace X] (s : Set X) (x y : X)
 -- qed
 
 -- `geodesic_segment_dist`
-lemma geodesic_segment_dist {x y : X} (hGxy : geodesic_segment_between G x y) (haG : a ∈ G) :
+lemma geodesic_segment_dist {G : Set X} {x y : X} (hGxy : geodesic_segment_between G x y) {a : X}
+    (haG : a ∈ G) :
     dist x a + dist a y = dist x y := by
   sorry
 -- proof -
@@ -247,7 +248,7 @@ lemma geodesic_segment_param2 {G : Set X} {x y : X} (h : geodesic_segment_betwee
     geodesic_segment_param G x (dist x y) = y := by
   sorry
 
-lemma geodesic_segment_param3 {G : Set X} {x y : X} (h : geodesic_segment_between G x y)
+lemma geodesic_segment_param3 {G : Set X} {x y : X} (h : geodesic_segment_between G x y) {t : ℝ}
     (h' : t ∈ Icc 0 (dist x y)) :
     geodesic_segment_param G x t ∈ G := by
   sorry
@@ -260,12 +261,12 @@ lemma geodesic_segment_param5 {G : Set X} {x y : X} (h : geodesic_segment_betwee
     (geodesic_segment_param G x) '' (Icc 0 (dist x y)) = G := by
   sorry
 
-lemma geodesic_segment_param6 {G : Set X} {x y : X} (h : geodesic_segment_between G x y)
+lemma geodesic_segment_param6 {G : Set X} {x y : X} (h : geodesic_segment_between G x y) {t : ℝ}
     (h1 : t ∈ Icc 0 (dist x y)) :
     dist x (geodesic_segment_param G x t) = t := by
   sorry
 
-lemma geodesic_segment_param7 {G : Set X} {x y : X} (h : geodesic_segment_between G x y)
+lemma geodesic_segment_param7 {G : Set X} {x y : X} (h : geodesic_segment_between G x y) {s t : ℝ}
     (h1 : s ∈ Icc 0 (dist x y)) (h2 : t ∈ Icc 0 (dist x y)) :
     dist (geodesic_segment_param G x s) (geodesic_segment_param G x t) = |s - t| := by
   sorry
@@ -314,7 +315,7 @@ lemma geodesic_segment_param8 {G : Set X} {x y : X} (h : geodesic_segment_betwee
 --     by (auto simp add: * dist_real_def isometry_onD)
 -- qed
 
-lemma geodesic_segment_param_in_segment {G : Set X} (hG : G.Nonempty) {x : X} :
+lemma geodesic_segment_param_in_segment {G : Set X} (hG : G.Nonempty) {x : X} {t : ℝ} :
     geodesic_segment_param G x t ∈ G :=
   sorry
 -- unfolding geodesic_segment_param_def
@@ -429,7 +430,7 @@ lemma geodesic_segment_reverse_param {X : Type*} [MetricSpace X] {G : Set X} {x 
 -- qed
 
 /-- A segment contains a subsegment between any of its points. -/
-lemma geodesic_subsegment_exists (hG : geodesic_segment G) (hx : x ∈ G)  (hy : y ∈ G) :
+lemma geodesic_subsegment_exists {G : Set X} (hG : geodesic_segment G) {x y : X} (hx : x ∈ G) (hy : y ∈ G) :
     ∃ H : Set X, H ⊆ G ∧ geodesic_segment_between H x y := by
   sorry
 -- proof -
@@ -610,7 +611,7 @@ lemma geodesic_segment_topology {G : Set X} (h : geodesic_segment G) :
 /-- If a point `y` is on a geodesic segment between `x` and its closest projection `p` on a set `A`,
 then `p` is also a closest projection of `y`, and the closest projection set of `y` is contained in
 that of `x`. -/
-lemma proj_set_geodesic_same_basepoint {x y p : X} (hp : p ∈ proj_set x A)
+lemma proj_set_geodesic_same_basepoint {x y p : X} {A : Set X} (hp : p ∈ proj_set x A) {G : Set X}
     (hG : geodesic_segment_between G p x) (hy : y ∈ G) :
     p ∈ proj_set y A := by
   sorry
@@ -966,7 +967,7 @@ lemma geodesic_segment_param_in_geodesic_spaces2 {x y : X} :
     geodesic_segment_param {x‒y} x (dist x y) = y :=
   sorry
 
-lemma geodesic_segment_param_in_geodesic_spaces3 {x y : X} (ht : t ∈ Icc 0 (dist x y)) :
+lemma geodesic_segment_param_in_geodesic_spaces3 {x y : X} {t : ℝ} (ht : t ∈ Icc 0 (dist x y)) :
     geodesic_segment_param {x‒y} x t ∈ {x‒y} :=
   sorry
 
@@ -978,11 +979,11 @@ lemma geodesic_segment_param_in_geodesic_spaces5 {x y : X} :
     (geodesic_segment_param {x‒y} x) '' Icc 0 (dist x y) = {x‒y} :=
   sorry
 
-lemma geodesic_segment_param_in_geodesic_spaces6 {x y : X} (ht : t ∈ Icc 0 (dist x y)) :
+lemma geodesic_segment_param_in_geodesic_spaces6 {x y : X} {t : ℝ} (ht : t ∈ Icc 0 (dist x y)) :
     dist x (geodesic_segment_param {x‒y} x t) = t :=
   sorry
 
-lemma geodesic_segment_param_in_geodesic_spaces7 {x y : X}
+lemma geodesic_segment_param_in_geodesic_spaces7 {x y : X} {s t : ℝ}
     (hs : s ∈ Icc 0 (dist x y)) (ht : t ∈ Icc 0 (dist x y)) :
     dist (geodesic_segment_param {x‒y} x s) (geodesic_segment_param {x‒y} x t) = |s-t| :=
   sorry
