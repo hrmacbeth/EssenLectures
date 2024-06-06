@@ -236,43 +236,42 @@ lemma Morse_Gromov_theorem_aux0
   towards $f(z)$ by considering points whose projection on a geodesic $H$ between $m$ and
   $z$ is roughly at distance $L$ of $pi_z$. -/
   --     case False
-  --     define m where "m = geodesic_segment_param {f um‒f uM} (f um) (Gromov_product_at (f um) (f z) (f uM))"
-  --     have "dist (f z) m ≤ Gromov_product_at (f z) (f um) (f uM) + 2 * deltaG(TYPE('a))"
+  let m := geodesic_segment_param {(f um)‒(f uM)} (f um) (Gromov_product_at (f um) (f z) (f uM))
+  have : dist (f z) m ≤ Gromov_product_at (f z) (f um) (f uM) + 2 * deltaG X := by
+    sorry
   --       unfolding m_def by (rule dist_triangle_side_middle, auto)
-  --     then have *: "dist (f z) m ≤ Gromov_product_at (f z) (f um) (f uM) + 2 * δ"
-  --       using \<open>deltaG(TYPE('a)) < δ\<close> by auto
-  --     have := calc Gromov_product_at (f z) (f um) (f uM) ≤ infDist (f z) {f um‒f uM}"
+  have : dist (f z) m ≤ Gromov_product_at (f z) (f um) (f uM) + 2 * δ := by -- `*`
+    sorry
+  --       using \<open>deltaG X < δ\<close> by auto
+  have := -- `**`
+  calc Gromov_product_at (f z) (f um) (f uM) ≤ infDist (f z) {(f um)‒(f uM)} := sorry
   --       by (intro mono_intros, auto)
-  --     _ ≤ dist (f z) m"
+    _ ≤ dist (f z) m := sorry
   --       apply (rule infDist_le) unfolding m_def by auto
-  --     finally have **: "Gromov_product_at (f z) (f um) (f uM) ≤ dist (f z) m"
-  --       by auto
 
-  --     define H where "H = {f z‒m}"
-  --     define pi_z where "pi_z = geodesic_segment_param H (f z) (Gromov_product_at (f z) (f um) (f uM))"
-  --     have "pi_z ∈ H" "m ∈ H" "f z ∈ H"
+  let H : Set X := {(f z)‒m}
+  let pi_z := geodesic_segment_param H (f z) (Gromov_product_at (f z) (f um) (f uM))
+  have : pi_z ∈ H ∧ m ∈ H ∧ f z ∈ H := sorry
   --       unfolding pi_z_def H_def by (auto simp add: geodesic_segment_param_in_segment)
-  --     have H: "geodesic_segment_between H (f z) m"
+  have h_H : geodesic_segment_between H (f z) m := sorry
   --       unfolding H_def by auto
-  --     have Dpi_z: "dist (f z) pi_z = Gromov_product_at (f z) (f um) (f uM)"
+  have Dpi_z : dist (f z) pi_z = Gromov_product_at (f z) (f um) (f uM) := sorry
   --       unfolding pi_z_def H_def by (rule geodesic_segment_param(6)[where ?y = m], auto simp add: **)
-  --     moreover have "dist (f z) m = dist (f z) pi_z + dist pi_z m"
+  have : dist (f z) m = dist (f z) pi_z + dist pi_z m := sorry
   --       apply (rule geodesic_segment_dist[of H, symmetric]) using \<open>pi_z ∈ H\<close> unfolding H_def by auto
-  --     ultimately have "dist pi_z m ≤ 2 * δ"
+  have : dist pi_z m ≤ 2 * δ := sorry
   --       using * by auto
 
-  --     text \<open>Introduce the notation $p$ for some projection on the geodesic $H$.\<close>
-  --     define p where "p = (\<lambda>r. SOME x. x ∈ proj_set (f r) H)"
-  --     have p: "p x ∈ proj_set (f x) H" for x
-  --       unfolding p_def using proj_set_nonempty_of_proper[of H "f x"] geodesic_segment_topology[OF geodesic_segmentI[OF H]]
-  --       by (simp add: some_in_eq)
-  --     then have pH: "p x ∈ H" for x
-  --       using proj_setD(1) by auto
-  --     have pz: "p z = f z"
+  -- Introduce the notation `p` for some projection on the geodesic `H`.
+  have H_nonempty (r : ℝ) : (proj_set (f r) H).Nonempty := proj_set_nonempty_of_compact
+    (geodesic_segment_topology ⟨_, _, h_H⟩).1 (geodesic_segment_topology ⟨_, _, h_H⟩).2.2.2.2.2 _
+  choose p hp using H_nonempty
+  have pH {r : ℝ} : p r ∈ H := (hp r).1
+  have pz : p z = f z := sorry
   --       using p[of z] H by auto
 
-  --     text \<open>The projection of $f(um)$ on $H$ is close to $pi_z$ (but it does not have to be exactly
-  --     $pi_z$). It is between $pi_z$ and $m$.\<close>
+  /- The projection of $f(um)$ on $H$ is close to $pi_z$ (but it does not have to be exactly
+  $pi_z$). It is between $pi_z$ and $m$. -/
   --     have := calc dist (f um) (f z) ≤ dist (f um) (p um) + dist (p um) (f z)"
   --       by (intro mono_intros)
   --     _ ≤ dist (f um) m + dist (p um) (f z)"
@@ -450,25 +449,25 @@ lemma Morse_Gromov_theorem_aux0
   --     essentially given by $L$. This is a variation around Lemma 5 in~\<^cite>\<open>"shchur"\<close>.\<close>
   --     have Rec: "Gromov_product_at (f z) (f um) (f uM) ≤ Gromov_product_at (f z) (f rm) (f rM) + (L + 4 * δ)" if "rm ∈ {um..ym}" "rM ∈ {yM..uM}" for rm rM
   --     proof -
-  --       have *: "dist (f rm) (p rm) + dist (p rm) (f z) ≤ dist (f rm) (f z) + 4 * deltaG(TYPE('a))"
+  --       have *: "dist (f rm) (p rm) + dist (p rm) (f z) ≤ dist (f rm) (f z) + 4 * deltaG X"
   --         apply (rule dist_along_geodesic[of H]) using p H_def by auto
   --       have := calc dist (f z) pi_z ≤ dist (f z) (p rm) + dist (p rm) pi_z"
   --         by (intro mono_intros)
-  --       _ ≤ (Gromov_product_at (f z) (f rm) (p rm) + 2 * deltaG(TYPE('a))) + L"
+  --       _ ≤ (Gromov_product_at (f z) (f rm) (p rm) + 2 * deltaG X) + L"
   --         apply (intro mono_intros) using * P \<open>rm ∈ {um..ym}\<close> unfolding Gromov_product_at_def
   --         by (auto simp add: metric_space_class.dist_commute algebra_simps divide_simps)
-  --       finally have A: "dist (f z) pi_z - L - 2 * deltaG(TYPE('a)) ≤ Gromov_product_at (f z) (f rm) (p rm)"
+  --       finally have A: "dist (f z) pi_z - L - 2 * deltaG X ≤ Gromov_product_at (f z) (f rm) (p rm)"
   --         by simp
-  --       have *: "dist (f rM) (p rM) + dist (p rM) (f z) ≤ dist (f rM) (f z) + 4 * deltaG(TYPE('a))"
+  --       have *: "dist (f rM) (p rM) + dist (p rM) (f z) ≤ dist (f rM) (f z) + 4 * deltaG X"
   --         apply (rule dist_along_geodesic[of H]) using p H_def by auto
   --       have := calc dist (f z) pi_z ≤ dist (f z) (p rM) + dist (p rM) pi_z"
   --         by (intro mono_intros)
-  --       _ ≤ (Gromov_product_at (f z) (p rM) (f rM) + 2 * deltaG(TYPE('a))) + L"
+  --       _ ≤ (Gromov_product_at (f z) (p rM) (f rM) + 2 * deltaG X) + L"
   --         apply (intro mono_intros) using * P \<open>rM ∈ {yM..uM}\<close> unfolding Gromov_product_at_def
   --         by (auto simp add: metric_space_class.dist_commute algebra_simps divide_simps)
-  --       finally have B: "dist (f z) pi_z - L - 2 * deltaG(TYPE('a)) ≤ Gromov_product_at (f z) (p rM) (f rM)"
+  --       finally have B: "dist (f z) pi_z - L - 2 * deltaG X ≤ Gromov_product_at (f z) (p rM) (f rM)"
   --         by simp
-  --       have C: "dist (f z) pi_z - L - 2 * deltaG(TYPE('a)) ≤ Gromov_product_at (f z) (p rm) (p rM)"
+  --       have C: "dist (f z) pi_z - L - 2 * deltaG X ≤ Gromov_product_at (f z) (p rm) (p rM)"
   --       proof (cases "dist (f z) (p rm) ≤ dist (f z) (p rM)")
   --         case True
   --         have := calc dist (p rm) (p rM) = abs(dist (f z) (p rm) - dist (f z) (p rM))"
@@ -480,7 +479,7 @@ lemma Morse_Gromov_theorem_aux0
   --           unfolding Gromov_product_at_def by auto
   --         have := calc dist (f z) pi_z ≤ dist (f z) (p rm) + dist (p rm) pi_z"
   --           by (intro mono_intros)
-  --         _ ≤ Gromov_product_at (f z) (p rm) (p rM) + L + 2 * deltaG(TYPE('a))"
+  --         _ ≤ Gromov_product_at (f z) (p rm) (p rM) + L + 2 * deltaG X"
   --           using * P[of rm] \<open>rm ∈ {um..ym}\<close> apply (simp add: metric_space_class.dist_commute)
   --           using local.delta_nonneg by linarith
   --         finally show ?thesis by simp
@@ -495,18 +494,18 @@ lemma Morse_Gromov_theorem_aux0
   --           unfolding Gromov_product_at_def by auto
   --         have := calc dist (f z) pi_z ≤ dist (f z) (p rM) + dist (p rM) pi_z"
   --           by (intro mono_intros)
-  --         _ ≤ Gromov_product_at (f z) (p rm) (p rM) + L + 2 * deltaG(TYPE('a))"
+  --         _ ≤ Gromov_product_at (f z) (p rm) (p rM) + L + 2 * deltaG X"
   --           using * P[of rM] \<open>rM ∈ {yM..uM}\<close> apply (simp add: metric_space_class.dist_commute)
   --           using local.delta_nonneg by linarith
   --         finally show ?thesis by simp
   --       qed
 
-  --       have := calc Gromov_product_at (f z) (f um) (f uM) - L - 2 * deltaG(TYPE('a)) ≤ Min {Gromov_product_at (f z) (f rm) (p rm), Gromov_product_at (f z) (p rm) (p rM), Gromov_product_at (f z) (p rM) (f rM)}"
+  --       have := calc Gromov_product_at (f z) (f um) (f uM) - L - 2 * deltaG X ≤ Min {Gromov_product_at (f z) (f rm) (p rm), Gromov_product_at (f z) (p rm) (p rM), Gromov_product_at (f z) (p rM) (f rM)}"
   --         using A B C unfolding Dpi_z by auto
-  --       _ ≤ Gromov_product_at (f z) (f rm) (f rM) + 2 * deltaG(TYPE('a))"
+  --       _ ≤ Gromov_product_at (f z) (f rm) (f rM) + 2 * deltaG X"
   --         by (intro mono_intros)
   --       finally show ?thesis
-  --         using \<open>deltaG(TYPE('a)) < δ\<close> by auto
+  --         using \<open>deltaG X < δ\<close> by auto
   --     qed
 
   --     text \<open>We have proved the basic facts we will need in the main argument. This argument starts
@@ -595,13 +594,13 @@ lemma Morse_Gromov_theorem_aux0
   --       define V where "V = (\<lambda>k::nat. (\<Union>g∈H. cball g ((2^k - 1) * dm)))"
   --       define QC where "QC = (\<lambda>k::nat. if k = 0 then 0 else 8 * δ)"
   --       have "QC k ≥ 0" for k unfolding QC_def using \<open>δ > 0\<close> by auto
-  --       have Q: "quasiconvex (0 + 8 * deltaG(TYPE('a))) (V k)" for k
+  --       have Q: "quasiconvex (0 + 8 * deltaG X) (V k)" for k
   --         unfolding V_def apply (rule quasiconvex_thickening) using geodesic_segmentI[OF H]
   --         by (auto simp add: quasiconvex_of_geodesic)
   --       have "quasiconvex (QC k) (V k)" for k
   --         apply (cases "k = 0")
   --         apply (simp add: V_def QC_def quasiconvex_of_geodesic geodesic_segmentI[OF H])
-  --         apply (rule quasiconvex_mono[OF _ Q[of k]]) using \<open>deltaG(TYPE('a)) < δ\<close> QC_def by auto
+  --         apply (rule quasiconvex_mono[OF _ Q[of k]]) using \<open>deltaG X < δ\<close> QC_def by auto
   --       text \<open>Define $q(k, x)$ to be the projection of $f(x)$ on $V_k$.\<close>
   --       define q::"nat → real → 'a" where "q = (\<lambda>k x. geodesic_segment_param {p x‒f x} (p x) ((2^k - 1) * dm))"
 
@@ -784,13 +783,13 @@ lemma Morse_Gromov_theorem_aux0
   --               using w(3)[of v] \<open>v ∈ {um..w}\<close> by auto
   --             finally have := calc L - 13 * δ + 3 * QC k ≤ dist (q k v) (q k x)"
   --               by simp
-  --             _ ≤ 3 * QC k + max (5 * deltaG(TYPE('a))) ((4 * exp(1/2 * log 2)) * Λ * (x - v) * exp(-(dm * 2^k - C/2 - QC k) * log 2 / (5 * δ)))"
+  --             _ ≤ 3 * QC k + max (5 * deltaG X) ((4 * exp(1/2 * log 2)) * Λ * (x - v) * exp(-(dm * 2^k - C/2 - QC k) * log 2 / (5 * δ)))"
   --             proof (cases "k = 0")
   --               text \<open>We use different statements for the projection in the case $k = 0$ (projection on
   --               a geodesic) and $k > 0$ (projection on a quasi-convex set) as the bounds are better in
   --               the first case, which is the most important one for the final value of the constant.\<close>
   --               case True
-  --               have "dist (q k v) (q k x) ≤ max (5 * deltaG(TYPE('a))) ((4 * exp(1/2 * log 2)) * Λ * (x - v) * exp(-(dm * 2^k - C/2) * log 2 / (5 * δ)))"
+  --               have "dist (q k v) (q k x) ≤ max (5 * deltaG X) ((4 * exp(1/2 * log 2)) * Λ * (x - v) * exp(-(dm * 2^k - C/2) * log 2 / (5 * δ)))"
   --               proof (rule geodesic_projection_exp_contracting[where ?G = "V k" and ?f = f])
   --                 show "geodesic_segment (V k)" unfolding True V_def using geodesic_segmentI[OF H] by auto
   --                 show "v ≤ x" using \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> by auto
@@ -813,7 +812,7 @@ lemma Morse_Gromov_theorem_aux0
   --               then show ?thesis unfolding QC_def True by auto
   --             next
   --               case False
-  --               have "dist (q k v) (q k x) ≤ 2 * QC k + 8 * δ + max (5 * deltaG(TYPE('a))) ((4 * exp(1/2 * log 2)) * Λ * (x - v) * exp(-(dm * 2^k - QC k -C/2) * log 2 / (5 * δ)))"
+  --               have "dist (q k v) (q k x) ≤ 2 * QC k + 8 * δ + max (5 * deltaG X) ((4 * exp(1/2 * log 2)) * Λ * (x - v) * exp(-(dm * 2^k - QC k -C/2) * log 2 / (5 * δ)))"
   --               proof (rule quasiconvex_projection_exp_contracting[where ?G = "V k" and ?f = f])
   --                 show "quasiconvex (QC k) (V k)" by fact
   --                 show "v ≤ x" using \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> by auto
@@ -835,10 +834,10 @@ lemma Morse_Gromov_theorem_aux0
   --               qed
   --               then show ?thesis unfolding QC_def using False by (auto simp add: algebra_simps)
   --             qed
-  --             finally have "L - 13 * δ ≤ max (5 * deltaG(TYPE('a))) ((4 * exp(1/2 * log 2)) * Λ * (x - v) * exp(-(dm * 2^k - C/2 - QC k) * log 2 / (5 * δ)))"
+  --             finally have "L - 13 * δ ≤ max (5 * deltaG X) ((4 * exp(1/2 * log 2)) * Λ * (x - v) * exp(-(dm * 2^k - C/2 - QC k) * log 2 / (5 * δ)))"
   --               by auto
   --             then have := calc L - 13 * δ ≤ (4 * exp(1/2 * log 2)) * Λ * (x - v) * exp(-(dm * 2^k - C/2 - QC k) * log 2 / (5 * δ))"
-  --               using \<open>δ > deltaG(TYPE('a))\<close> Laux by auto
+  --               using \<open>δ > deltaG X\<close> Laux by auto
   --             text \<open>We separate the exponential gain coming from the contraction into two parts, one
   --             to be spent to improve the constant, and one for the inductive argument.\<close>
   --             _ ≤ (4 * exp(1/2 * log 2)) * Λ * (x - v) * exp(-((1-α) * D + α * 2^k * dm) * log 2 / (5 * δ))"
@@ -917,17 +916,17 @@ lemma Morse_Gromov_theorem_aux0
   --                 using p x(3)[of w] \<open>x ∈ {um..ym}\<close> \<open>w ∈ {um..x}\<close> aux by (auto simp add: algebra_simps metric_space_class.dist_commute)
 
   --               have := calc 5 * δ + 2 * QC k ≤ dist (q k um) (q k w)" using w(2) by simp
-  --               _ ≤ max (5 * deltaG(TYPE('a)) + 2 * QC k)
-  --                                     (dist (q (k + 1) um) (q (k + 1) w) - dist (q k um) (q (k + 1) um) - dist (q k w) (q (k + 1) w) + 10 * deltaG(TYPE('a)) + 4 * QC k)"
+  --               _ ≤ max (5 * deltaG X + 2 * QC k)
+  --                                     (dist (q (k + 1) um) (q (k + 1) w) - dist (q k um) (q (k + 1) um) - dist (q k w) (q (k + 1) w) + 10 * deltaG X + 4 * QC k)"
   --                 by (rule proj_along_quasiconvex_contraction[OF \<open>quasiconvex (QC k) (V k)\<close> i j])
-  --               finally have "5 * δ + 2 * QC k ≤ dist (q (k + 1) um) (q (k + 1) w) - dist (q k um) (q (k + 1) um) - dist (q k w) (q (k + 1) w) + 10 * deltaG(TYPE('a)) + 4 * QC k"
-  --                 using \<open>deltaG(TYPE('a)) < δ\<close> by auto
+  --               finally have "5 * δ + 2 * QC k ≤ dist (q (k + 1) um) (q (k + 1) w) - dist (q k um) (q (k + 1) um) - dist (q k w) (q (k + 1) w) + 10 * deltaG X + 4 * QC k"
+  --                 using \<open>deltaG X < δ\<close> by auto
   --               then have "0 ≤ dist (q (k + 1) um) (q (k + 1) w) + 5 * δ + 2 * QC k - dist (q k um) (q (k + 1) um) - dist (q k w) (q (k + 1) w)"
-  --                 using \<open>deltaG(TYPE('a)) < δ\<close> by auto
+  --                 using \<open>deltaG X < δ\<close> by auto
   --               _ = dist (q (k + 1) um) (q (k + 1) w) + 5 * δ + 2 * QC k - 2^(k+1) * dm"
   --                 by (simp only: \<open>dist (q k w) (q (k+1) w) = 2^k * dm\<close> \<open>dist (q k um) (q (k+1) um) = 2^k * dm\<close>, auto)
   --               finally have *: "2^(k+1) * dm - 5 * δ - 2 * QC k ≤ dist (q (k+1) um) (q (k+1) w)"
-  --                 using \<open>deltaG(TYPE('a)) < δ\<close> by auto
+  --                 using \<open>deltaG X < δ\<close> by auto
   --               have := calc L - 4 * δ + 7 * QC (k+1) ≤ 2 * dm - 5 * δ - 2 * QC k"
   --                 unfolding QC_def L_def using \<open>δ > 0\<close> Laux I \<open>C ≥ 0\<close> by auto
   --               _ ≤ 2^(k+1) * dm - 5 * δ - 2 * QC k"
@@ -967,13 +966,13 @@ lemma Morse_Gromov_theorem_aux0
   --       define V where "V = (\<lambda>k::nat. (\<Union>g∈H. cball g ((2^k - 1) * dM)))"
   --       define QC where "QC = (\<lambda>k::nat. if k = 0 then 0 else 8 * δ)"
   --       have "QC k ≥ 0" for k unfolding QC_def using \<open>δ > 0\<close> by auto
-  --       have Q: "quasiconvex (0 + 8 * deltaG(TYPE('a))) (V k)" for k
+  --       have Q: "quasiconvex (0 + 8 * deltaG X) (V k)" for k
   --         unfolding V_def apply (rule quasiconvex_thickening) using geodesic_segmentI[OF H]
   --         by (auto simp add: quasiconvex_of_geodesic)
   --       have "quasiconvex (QC k) (V k)" for k
   --         apply (cases "k = 0")
   --         apply (simp add: V_def QC_def quasiconvex_of_geodesic geodesic_segmentI[OF H])
-  --         apply (rule quasiconvex_mono[OF _ Q[of k]]) using \<open>deltaG(TYPE('a)) < δ\<close> QC_def by auto
+  --         apply (rule quasiconvex_mono[OF _ Q[of k]]) using \<open>deltaG X < δ\<close> QC_def by auto
   --       define q::"nat → real → 'a" where "q = (\<lambda>k x. geodesic_segment_param {p x‒f x} (p x) ((2^k - 1) * dM))"
 
   --       have Ind_k: "(Gromov_product_at (f z) (f um) (f uM) ≤ Λ^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp(- K * (uM - um))))
@@ -1125,10 +1124,10 @@ lemma Morse_Gromov_theorem_aux0
   --               using w(3)[of v] \<open>v ∈ {w..uM}\<close> by auto
   --             finally have := calc L - 13 * δ + 3 * QC k ≤ dist (q k x) (q k v)"
   --               by (simp add: metric_space_class.dist_commute)
-  --             _ ≤ 3 * QC k + max (5 * deltaG(TYPE('a))) ((4 * exp(1/2 * log 2)) * Λ * (v - x) * exp(-(dM * 2^k - C/2 - QC k) * log 2 / (5 * δ)))"
+  --             _ ≤ 3 * QC k + max (5 * deltaG X) ((4 * exp(1/2 * log 2)) * Λ * (v - x) * exp(-(dM * 2^k - C/2 - QC k) * log 2 / (5 * δ)))"
   --             proof (cases "k = 0")
   --               case True
-  --               have "dist (q k x) (q k v) ≤ max (5 * deltaG(TYPE('a))) ((4 * exp(1/2 * log 2)) * Λ * (v - x) * exp(-(dM * 2^k - C/2) * log 2 / (5 * δ)))"
+  --               have "dist (q k x) (q k v) ≤ max (5 * deltaG X) ((4 * exp(1/2 * log 2)) * Λ * (v - x) * exp(-(dM * 2^k - C/2) * log 2 / (5 * δ)))"
   --               proof (rule geodesic_projection_exp_contracting[where ?G = "V k" and ?f = f])
   --                 show "geodesic_segment (V k)" unfolding V_def True using geodesic_segmentI[OF H] by auto
   --                 show "x ≤ v" using \<open>v ∈ {w..uM}\<close> \<open>w ∈ {x..uM}\<close> by auto
@@ -1150,7 +1149,7 @@ lemma Morse_Gromov_theorem_aux0
   --               then show ?thesis unfolding QC_def True by auto
   --             next
   --               case False
-  --               have "dist (q k x) (q k v) ≤ 2 * QC k + 8 * δ + max (5 * deltaG(TYPE('a))) ((4 * exp(1/2 * log 2)) * Λ * (v - x) * exp(-(dM * 2^k - QC k - C/2) * log 2 / (5 * δ)))"
+  --               have "dist (q k x) (q k v) ≤ 2 * QC k + 8 * δ + max (5 * deltaG X) ((4 * exp(1/2 * log 2)) * Λ * (v - x) * exp(-(dM * 2^k - QC k - C/2) * log 2 / (5 * δ)))"
   --               proof (rule quasiconvex_projection_exp_contracting[where ?G = "V k" and ?f = f])
   --                 show "quasiconvex (QC k) (V k)" by fact
   --                 show "x ≤ v" using \<open>v ∈ {w..uM}\<close> \<open>w ∈ {x..uM}\<close> by auto
@@ -1172,10 +1171,10 @@ lemma Morse_Gromov_theorem_aux0
   --               qed
   --               then show ?thesis unfolding QC_def using False by (auto simp add: algebra_simps)
   --             qed
-  --             finally have "L - 13 * δ ≤ max (5 * deltaG(TYPE('a))) ((4 * exp(1/2 * log 2)) * Λ * (v - x) * exp(-(dM * 2^k - C/2 - QC k) * log 2 / (5 * δ)))"
+  --             finally have "L - 13 * δ ≤ max (5 * deltaG X) ((4 * exp(1/2 * log 2)) * Λ * (v - x) * exp(-(dM * 2^k - C/2 - QC k) * log 2 / (5 * δ)))"
   --               by auto
   --             then have := calc L - 13 * δ ≤ (4 * exp(1/2 * log 2)) * Λ * (v - x) * exp(-(dM * 2^k - C/2 - QC k) * log 2 / (5 * δ))"
-  --               using \<open>δ > deltaG(TYPE('a))\<close> Laux by auto
+  --               using \<open>δ > deltaG X\<close> Laux by auto
   --             _ ≤ (4 * exp(1/2 * log 2)) * Λ * (v - x) * exp(-((1-α) * D + α * 2^k * dM) * log 2 / (5 * δ))"
   --               apply (intro mono_intros) using aux3 \<open>δ > 0\<close> \<open>Λ ≥ 1\<close> \<open>v ∈ {w..uM}\<close> \<open>w ∈ {x..uM}\<close> by auto
   --             _ = (4 * exp(1/2 * log 2)) * Λ * (v - x) * (exp(-(1-α) * D * log 2 / (5 * δ)) * exp(-α * 2^k * dM * log 2 / (5 * δ)))"
@@ -1240,17 +1239,17 @@ lemma Morse_Gromov_theorem_aux0
   --                 using p x(3)[of w] \<open>x ∈ {yM..uM}\<close> \<open>w ∈ {x..uM}\<close> aux by (auto simp add: algebra_simps metric_space_class.dist_commute)
 
   --               have := calc 5 * δ + 2 * QC k ≤ dist (q k uM) (q k w)" using w(2) by simp
-  --               _ ≤ max (5 * deltaG(TYPE('a)) + 2 * QC k)
-  --                                     (dist (q (k + 1) uM) (q (k + 1) w) - dist (q k uM) (q (k + 1) uM) - dist (q k w) (q (k + 1) w) + 10 * deltaG(TYPE('a)) + 4 * QC k)"
+  --               _ ≤ max (5 * deltaG X + 2 * QC k)
+  --                                     (dist (q (k + 1) uM) (q (k + 1) w) - dist (q k uM) (q (k + 1) uM) - dist (q k w) (q (k + 1) w) + 10 * deltaG X + 4 * QC k)"
   --                 by (rule proj_along_quasiconvex_contraction[OF \<open>quasiconvex (QC k) (V k)\<close> i j])
-  --               finally have "5 * δ + 2 * QC k ≤ dist (q (k + 1) uM) (q (k + 1) w) - dist (q k uM) (q (k + 1) uM) - dist (q k w) (q (k + 1) w) + 10 * deltaG(TYPE('a)) + 4 * QC k"
-  --                 using \<open>deltaG(TYPE('a)) < δ\<close> by auto
+  --               finally have "5 * δ + 2 * QC k ≤ dist (q (k + 1) uM) (q (k + 1) w) - dist (q k uM) (q (k + 1) uM) - dist (q k w) (q (k + 1) w) + 10 * deltaG X + 4 * QC k"
+  --                 using \<open>deltaG X < δ\<close> by auto
   --               then have := calc 0 ≤ dist (q (k + 1) uM) (q (k + 1) w) + 5 * δ + 2 * QC k - dist (q k uM) (q (k + 1) uM) - dist (q k w) (q (k + 1) w)"
-  --                 using \<open>deltaG(TYPE('a)) < δ\<close> by auto
+  --                 using \<open>deltaG X < δ\<close> by auto
   --               _ = dist (q (k + 1) uM) (q (k + 1) w) + 5 * δ + 2 * QC k - 2^(k+1) * dM"
   --                 by (simp only: \<open>dist (q k w) (q (k+1) w) = 2^k * dM\<close> \<open>dist (q k uM) (q (k+1) uM) = 2^k * dM\<close>, auto)
   --               finally have *: "2^(k+1) * dM - 5 * δ - 2 * QC k ≤ dist (q (k+1) uM) (q (k+1) w)"
-  --                 using \<open>deltaG(TYPE('a)) < δ\<close> by auto
+  --                 using \<open>deltaG X < δ\<close> by auto
   --               have := calc L - 4 * δ + 7 * QC (k+1) ≤ 2 * dM - 5 * δ - 2 * QC k"
   --                 unfolding QC_def L_def using \<open>δ > 0\<close> Laux I \<open>C ≥ 0\<close> by auto
   --               _ ≤ 2^(k+1) * dM - 5 * δ - 2 * QC k"
@@ -1366,15 +1365,15 @@ lemma Morse_Gromov_theorem_aux2
 proof (cases "a ≤ b")
   case True
   have "lambda ≥ 1" "C ≥ 0" using quasi_isometry_onD[OF assms(2)] by auto
-  have *: "infDist (f z) G ≤ Λ^2 * (11/2 * C + 91 * δ)" if "z ∈ Icc a b" "δ > deltaG(TYPE('a))" for z delta
+  have *: "infDist (f z) G ≤ Λ^2 * (11/2 * C + 91 * δ)" if "z ∈ Icc a b" "δ > deltaG X" for z delta
     by (rule Morse_Gromov_theorem_aux1[OF assms(1) assms(2) True assms(3) that])
-  define D where "D = Λ^2 * (11/2 * C + 91 * deltaG(TYPE('a)))"
+  define D where "D = Λ^2 * (11/2 * C + 91 * deltaG X)"
   have "D ≥ 0" unfolding D_def using \<open>C ≥ 0\<close> by auto
   have I: "infDist (f z) G ≤ D" if "z ∈ Icc a b" for z
   proof -
-    have "(infDist (f z) G/ Λ^2 - 11/2 * C)/91 ≤ δ" if "δ > deltaG(TYPE('a))" for delta
+    have "(infDist (f z) G/ Λ^2 - 11/2 * C)/91 ≤ δ" if "δ > deltaG X" for delta
       using *[OF \<open>z ∈ Icc a b\<close> that] \<open>Λ ≥ 1\<close> by (auto simp add: divide_simps algebra_simps)
-    then have "(infDist (f z) G/ Λ^2 - 11/2 * C)/91 ≤ deltaG(TYPE('a))"
+    then have "(infDist (f z) G/ Λ^2 - 11/2 * C)/91 ≤ deltaG X"
       using dense_ge by blast
     then show ?thesis unfolding D_def using \<open>Λ ≥ 1\<close> by (auto simp add: divide_simps algebra_simps)
   qed
@@ -1457,7 +1456,7 @@ proof (cases "a ≤ b")
         unfolding t(1) H_def using \<open>tm ∈ {0..t}\<close> \<open>tM ∈ {t..dist (f a) (f b)}\<close> by auto
       have := calc infDist x (f ` Icc a b) ≤ dist x y"
         by (rule infDist_le[OF y(1)])
-      _ ≤ max (dist (p tm) y) (dist (p tM) y) + deltaG(TYPE('a))"
+      _ ≤ max (dist (p tm) y) (dist (p tM) y) + deltaG X"
         by (rule dist_le_max_dist_triangle[OF * \<open>x ∈ H\<close>])
       finally show ?thesis
         using tm(2) tM(2) by auto
@@ -1487,7 +1486,7 @@ theorem (in Gromov_hyperbolic_space_geodesic) Morse_Gromov_theorem:
   fixes f::"real → 'a"
   assumes "lambda C-quasi_isometry_on Icc a b f"
           "geodesic_segment_between G (f a) (f b)"
-  shows "hausdorff_distance (f`Icc a b) G ≤ 92 * Λ^2 * (C + deltaG(TYPE('a)))"
+  shows "hausdorff_distance (f`Icc a b) G ≤ 92 * Λ^2 * (C + deltaG X)"
 proof -
   have C: "C ≥ 0" "lambda ≥ 1" using quasi_isometry_onD[OF assms(1)] by auto
   consider "dist (f a) (f b) ≥ 2 * C ∀  a ≤ b" | "dist (f a) (f b) ≤ 2 * C ∀  a ≤ b" | "b < a"
@@ -1507,7 +1506,7 @@ proof -
                         "(2 * Λ)-lipschitz_on Icc a b d"
                         "hausdorff_distance (f`Icc a b) (d`Icc a b) ≤ 2 * C"
       by auto
-    have a: "hausdorff_distance (d`Icc a b) G ≤ Λ^2 * ((11/2) * (4 * C) + 92 * deltaG(TYPE('a)))"
+    have a: "hausdorff_distance (d`Icc a b) G ≤ Λ^2 * ((11/2) * (4 * C) + 92 * deltaG X)"
       apply (rule Morse_Gromov_theorem_aux2) using d assms lipschitz_on_continuous_on by auto
 
     have := calc hausdorff_distance (f`Icc a b) G ≤
@@ -1515,13 +1514,13 @@ proof -
       apply (rule hausdorff_distance_triangle)
       using 1 apply simp
       by (rule quasi_isometry_on_bounded[OF d(4)], auto)
-    _ ≤ Λ^2 * ((11/2) * (4 * C) + 92 * deltaG(TYPE('a))) + 1 * 2 * C"
+    _ ≤ Λ^2 * ((11/2) * (4 * C) + 92 * deltaG X) + 1 * 2 * C"
       using a d by auto
-    _ ≤ Λ^2 * ((11/2) * (4 * C) + 92 * deltaG(TYPE('a))) + Λ^2 * 2 * C"
+    _ ≤ Λ^2 * ((11/2) * (4 * C) + 92 * deltaG X) + Λ^2 * 2 * C"
       apply (intro mono_intros) using \<open>Λ ≥ 1\<close> \<open>C ≥ 0\<close> by auto
-    _ = Λ^2 * (24 * C + 92 * deltaG(TYPE('a)))"
+    _ = Λ^2 * (24 * C + 92 * deltaG X)"
       by (simp add: algebra_simps divide_simps)
-    _ ≤ Λ^2 * (92 * C + 92 * deltaG(TYPE('a)))"
+    _ ≤ Λ^2 * (92 * C + 92 * deltaG X)"
       apply (intro mono_intros) using \<open>Λ ≥ 1\<close> \<open>C ≥ 0\<close> by auto
     finally show ?thesis by (auto simp add: algebra_simps)
   next
@@ -1539,8 +1538,8 @@ proof -
       then obtain t where t: "x = f t" "t ∈ Icc a b" by auto
       have := calc dist x (f a) ≤ Λ * dist t a + C"
         unfolding t(1) using quasi_isometry_onD(1)[OF assms(1) t(2)] 2 by auto
-      _ ≤ Λ * (b - a) + 1 * 1 * C + 0 * 0 * deltaG(TYPE('a))" using t(2) 2 C unfolding dist_real_def by auto
-      _ ≤ Λ * (3 * Λ * C) + Λ^2 * (92-3) * C + Λ^2 * 92 * deltaG(TYPE('a))"
+      _ ≤ Λ * (b - a) + 1 * 1 * C + 0 * 0 * deltaG X" using t(2) 2 C unfolding dist_real_def by auto
+      _ ≤ Λ * (3 * Λ * C) + Λ^2 * (92-3) * C + Λ^2 * 92 * deltaG X"
         apply (intro mono_intros *) using C by auto
       finally have *: "dist x (f a) ≤ 92 * Λ\<^sup>2 * (C + deltaG TYPE('a))"
         by (simp add: algebra_simps power2_eq_square)
@@ -1550,9 +1549,9 @@ proof -
       fix x assume "x ∈ G"
       then have := calc dist x (f a) ≤ dist (f a) (f b)"
         by (meson assms geodesic_segment_dist_le geodesic_segment_endpoints(1) local.some_geodesic_is_geodesic_segment(1))
-      _ ≤ 1 * 2 * C + Λ^2 * 0 * deltaG(TYPE('a))"
+      _ ≤ 1 * 2 * C + Λ^2 * 0 * deltaG X"
         using 2 by auto
-      _ ≤ Λ^2 * 92 * C + Λ^2 * 92 * deltaG(TYPE('a))"
+      _ ≤ Λ^2 * 92 * C + Λ^2 * 92 * deltaG X"
         apply (intro mono_intros) using C by auto
       finally have *: "dist x (f a) ≤ 92 * Λ\<^sup>2 * (C + deltaG TYPE('a))"
         by (simp add: algebra_simps)
@@ -1575,16 +1574,16 @@ theorem (in Gromov_hyperbolic_space_geodesic) Morse_Gromov_theorem2:
   assumes "lambda C-quasi_isometry_on Icc a b c"
           "lambda C-quasi_isometry_on Icc a b d"
           "c A = d A" "c B = d B"
-  shows "hausdorff_distance (c`Icc a b) (d`Icc a b) ≤ 184 * Λ^2 * (C + deltaG(TYPE('a)))"
+  shows "hausdorff_distance (c`Icc a b) (d`Icc a b) ≤ 184 * Λ^2 * (C + deltaG X)"
 proof (cases "A ≤ B")
   case False
   then have "hausdorff_distance (c`Icc a b) (d`Icc a b) = 0" by auto
   then show ?thesis using quasi_isometry_onD[OF assms(1)] delta_nonneg by auto
 next
   case True
-  have "hausdorff_distance (c`Icc a b) {c A‒c B} ≤ 92 * Λ^2 * (C + deltaG(TYPE('a)))"
+  have "hausdorff_distance (c`Icc a b) {c A‒c B} ≤ 92 * Λ^2 * (C + deltaG X)"
     by (rule Morse_Gromov_theorem[OF assms(1)], auto)
-  moreover have "hausdorff_distance {c A‒c B} (d`Icc a b) ≤ 92 * Λ^2 * (C + deltaG(TYPE('a)))"
+  moreover have "hausdorff_distance {c A‒c B} (d`Icc a b) ≤ 92 * Λ^2 * (C + deltaG X)"
     unfolding \<open>c A = d A\<close> \<open>c B = d B\<close> apply (subst hausdorff_distance_sym)
     by (rule Morse_Gromov_theorem[OF assms(2)], auto)
   moreover have "hausdorff_distance (c`Icc a b) (d`Icc a b) ≤ hausdorff_distance (c`Icc a b) {c A‒c B} + hausdorff_distance {c A‒c B} (d`Icc a b)"
