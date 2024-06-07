@@ -1,5 +1,6 @@
 /-  Author:  Sébastien Gouëzel   sebastien.gouezel@univ-rennes1.fr
     License: BSD -/
+import Mathlib.Data.Complex.ExponentialBounds
 import GromovHyperbolicity.Prereqs.QuasiIsometry
 import GromovHyperbolicity.QuasiconvexProjectionExpContracting
 
@@ -329,54 +330,68 @@ lemma Morse_Gromov_theorem_aux0
   have : 0 ≤ dm := infDist_nonneg
 
   -- Same things but in the interval $[z, uM]$.
-  --     have I: "dist m (f uM) = dist (f um) (f uM) - dist (f um) m"
-  --             "dist (f um) m = Gromov_product_at (f um) (f z) (f uM)"
-  --       using geodesic_segment_dist[of "{f um‒f uM}" "f um" "f uM" m] m_def by auto
-  --     have := calc dist (f uM) (f z) ≤ dist (f uM) (p uM) + dist (p uM) (f z)"
-  --       by (intro mono_intros)
-  --     _ ≤ dist (f uM) m + dist (p uM) (f z)"
-  --       unfolding proj_setD(2)[OF p[of uM]] H_def by (auto intro!: infDist_le)
-  --     _ = Gromov_product_at (f uM) (f z) (f um) + dist (p uM) (f z)"
-  --       using I unfolding Gromov_product_at_def by (simp add: divide_simps algebra_simps metric_space_class.dist_commute)
-  --     finally have A: "Gromov_product_at (f z) (f um) (f uM) ≤ dist (p uM) (f z)"
-  --       unfolding Gromov_product_at_def by (simp add: metric_space_class.dist_commute divide_simps)
-  --     have := calc dist (p uM) pi_z = abs(dist (p uM) (f z) - dist pi_z (f z))"
-  --       apply (rule dist_along_geodesic_wrt_endpoint[of H _ m]) using pH \<open>pi_z ∈ H\<close> H_def by auto
-  --     _ = dist (p uM) (f z) - dist pi_z (f z)"
-  --       using A Dpi_z by (simp add: metric_space_class.dist_commute)
-  --     finally have DuM: "dist (p uM) (f z) = dist (p uM) pi_z + dist pi_z (f z)" by auto
+  have I : dist (f um) m + dist m (f uM) = dist (f um) (f uM)
+            ∧ dist (f um) m = Gromov_product_at (f um) (f z) (f uM) := by
+    constructor
+    · apply geodesic_segment_dist (some_geodesic_is_geodesic_segment (f um) (f uM)).1
+      apply geodesic_segment_param_in_geodesic_spaces3
+      simp
+    · apply geodesic_segment_param6
+      refine (some_geodesic_is_geodesic_segment _ _).1
+      simp
+  have := calc dist (f uM) (f z) ≤ dist (f uM) (p uM) + dist (p uM) (f z) := dist_triangle ..
+    _ ≤ dist (f uM) m + dist (p uM) (f z) := by
+      gcongr
+      exact proj_set_dist_le h_H'.2.1 (hp uM)
+    _ = Gromov_product_at (f uM) (f z) (f um) + dist (p uM) (f z) := by
+      have h₁ := Gromov_product_add (f um) (f uM) (f z)
+      have h₂ := I.1
+      have h₃ := I.2
+      simp only [dist_comm, Gromov_product_commute] at h₁ h₂ h₃ ⊢
+      linarith only [h₁, h₂, h₃]
+  have A : Gromov_product_at (f z) (f um) (f uM) ≤ dist (p uM) (f z) := by
+    dsimp [Gromov_product_at] at this ⊢
+    simp only [dist_comm] at this ⊢
+    linarith only [this]
+  have DuM : dist (p uM) (f z) = dist (p uM) pi_z + dist pi_z (f z) := by
+    apply le_antisymm
+    · exact dist_triangle ..
+    · have :=
+      calc dist (p uM) pi_z = |dist (p uM) (f z) - dist pi_z (f z)| :=
+            dist_along_geodesic_wrt_endpoint h_H pH h_H'.1
+        _ = dist (p uM) (f z) - dist pi_z (f z) := by
+          simp only [dist_comm] at Dpi_z A ⊢
+          rw [Dpi_z, abs_of_nonneg]
+          linarith only [A]
+      linarith only [this]
 
-  --     text \<open>Choose a point $f(yM)$ whose projection on $H$ is roughly at distance $L$ of $pi_z$.\<close>
-  --     have "\<exists>yM ∈ {z..uM}. dist (p uM) (p yM) ∈ {(L + dist pi_z (p uM)) - 4* δ - 2 * 0 .. L + dist pi_z (p uM)}
-  --                   ∧ (∀ r ∈ {yM..uM}. dist (p uM) (p r) ≤ L + dist pi_z (p uM))"
-  --     proof (rule quasi_convex_projection_small_gaps'[where ?f = f and ?G = H])
-  --       show "continuous_on {z..uM} f"
-  --         apply (rule continuous_on_subset[OF \<open>continuous_on Icc a b f\<close>])
-  --         using \<open>uM ∈ {z..b}\<close> \<open>z ∈ Icc a b\<close> by auto
-  --       show "z ≤ uM" using \<open>uM ∈ {z..b}\<close> by auto
-  --       show "quasiconvex 0 H" using quasiconvex_of_geodesic geodesic_segmentI H by auto
-  --       show "deltaG TYPE('a) < δ" by fact
-  --       have "L + dist pi_z (p uM) ≤ dist (f z) pi_z + dist pi_z (p uM)"
-  --         using False Dpi_z by (simp add: metric_space_class.dist_commute)
-  --       then have "L + dist pi_z (p uM) ≤ dist (p uM) (f z)"
-  --         using DuM by (simp add: metric_space_class.dist_commute)
-  --       then show "L + dist pi_z (p uM) ∈ {4 * δ + 2 * 0..dist (p z) (p uM)}"
-  --         using \<open>δ > 0\<close> False L_def pz by (auto simp add: metric_space_class.dist_commute)
-  --       show "p yM ∈ proj_set (f yM) H" for yM using p by simp
-  --     qed
-  --     then obtain yM where yM: "yM ∈ {z..uM}"
-  --                             "dist (p uM) (p yM) ∈ {(L + dist pi_z (p uM)) - 4* δ - 2 * 0 .. L + dist pi_z (p uM)}"
-  --                             "∀ r. r ∈ {yM..uM} → dist (p uM) (p r) ≤ L + dist pi_z (p uM)"
-  --       by blast
-  --     have *: "continuous_on {yM..uM} (\<lambda>r. infDist (f r) H)"
-  --       using continuous_on_infDist[OF continuous_on_subset[OF \<open>continuous_on Icc a b f\<close>, of "{yM..uM}"], of H]
-  --       \<open>yM ∈ {z..uM}\<close> \<open>uM ∈ {z..b}\<close> \<open>z ∈ Icc a b\<close> by auto
-  --     have "\<exists>closestM ∈ {yM..uM}. ∀ v ∈ {yM..uM}. infDist (f closestM) H ≤ infDist (f v) H"
-  --       apply (rule continuous_attains_inf) using yM(1) * by auto
-  --     then obtain closestM where closestM: "closestM ∈ {yM..uM}" "∀ v. v ∈ {yM..uM} → infDist (f closestM) H ≤ infDist (f v) H"
-  --       by auto
-  --     define dM where "dM = infDist (f closestM) H"
-  --     have [simp]: "dM ≥ 0" unfolding dM_def using infDist_nonneg by auto
+  -- Choose a point `f yM` whose projection on `H` is roughly at distance `L` of `pi_z`.
+  obtain ⟨yM, hyM⟩ : ∃ yM ∈ Icc z uM,
+      (dist (p uM) (p yM) ∈ Icc ((L + dist pi_z (p uM)) - 4 * δ - 2 * 0) (L + dist pi_z (p uM)))
+                    ∧ (∀ r ∈ Icc yM uM, dist (p uM) (p r) ≤ L + dist pi_z (p uM)) := by
+    refine quasi_convex_projection_small_gaps' (f := f) (G := H) ?_ huM.1 ?_ (fun t ht ↦ hp t) hδ ?_
+    · exact hf.mono (Icc_subset_Icc hz.1 huM.2)
+    · apply quasiconvex_of_geodesic
+      exact ⟨_, _, h_H⟩
+    · refine ⟨?_, ?_⟩
+      · dsimp [L]
+        linarith only [hδ₀, @dist_nonneg _ _ pi_z (p uM)]
+      · simp only [dist_comm, pz] at DuM Dpi_z hz_um_uM_L ⊢
+        linarith only [DuM, hz_um_uM_L, Dpi_z]
+  have h_uM_yM_subset : Icc yM uM ⊆ Icc a b := Icc_subset_Icc (hz.1.trans hyM.1.1) huM.2
+  have : ContinuousOn (fun r ↦ infDist (f r) H) (Icc yM uM) :=
+    continuous_infDist_pt H |>.comp_continuousOn (hf.mono h_uM_yM_subset)
+
+  /- Choose a point `cM` between `f uM` and `f yM` realizing the minimal distance to `H`.
+  Call this distance `dm`. -/
+  obtain ⟨closestM, hclosestM⟩ :
+      ∃ closestM ∈ Icc yM uM, ∀ v ∈ Icc yM uM, infDist (f closestM) H ≤ infDist (f v) H := by
+    refine IsCompact.exists_isMinOn ?_ ?_ this
+    · exact isCompact_Icc
+    · rw [nonempty_Icc]
+      exact hyM.1.2
+  let dM : ℝ := infDist (f closestm) H
+  have : 0 ≤ dM := infDist_nonneg
 
   --     text \<open>Points between $f(um)$ and $f(ym)$, or between $f(yM)$ and $f(uM)$, project within
   --     distance at most $L$ of $pi_z$ by construction.\<close>
@@ -1299,7 +1314,7 @@ lemma Morse_Gromov_theorem_aux1
     {G : Set X} (hGf : geodesic_segment_between G (f a) (f b))
     {z : ℝ} (hz : z ∈ Icc a b)
     {δ : ℝ} (hδ : δ > deltaG X) :
-    infDist (f z) G ≤ Λ ^ 2 * (11/2 * C + 91 * δ) := by
+    infDist (f z) G ≤ Λ ^ 2 * (11/2 * C + 95 * δ) := by
   have := hf'.C_nonneg
   have := hf'.one_le_lambda
   have : Inhabited X := ⟨f 0⟩
@@ -1334,33 +1349,38 @@ lemma Morse_Gromov_theorem_aux1
           ring_nf
           positivity
         · positivity
-    _ = Λ^2 * (11/2 * C + (3200 * exp (-459/50*log 2)/log 2 + 83) * δ) := by
+    _ = Λ^2 * (11/2 * C + (3200 * exp (-(459/50*log 2))/log 2 + 83) * δ) := by
         dsimp [Kmult, K, L, D, α]
         ring_nf
         field_simp
         rw [mul_assoc Λ, ← exp_add]
         ring_nf
-    _ ≤ Λ^2 * (11/2 * C + 91 * δ) := by
+    _ ≤ Λ^2 * (11/2 * C + 95 * δ) := by
         gcongr
-        suffices 3200 * rexp (-459 / 50 * log 2) / log 2 ≤ 8 by linarith only [this]
-        rw [div_le_iff_of_neg]
-        · suffices 400 * rexp (-459 / 50 * log 2) ≥ log 2 by linarith only [this]
-          sorry
-        · sorry
-    -- apply (intro mono_intros, simp add: divide_simps, approximation 14)
-    -- using \<open>δ > 0\<close> by auto
+        have := log_two_gt_d9
+        have := exp_one_gt_d9
+        calc 3200 * exp (-(459 / 50 * log 2)) / log 2 + 83
+            ≤ 3200 * exp (-(459 / 50 * 0.6931471803)) / 0.6931471803 + 83 := by gcongr
+          _ ≤ 3200 * exp (-6) / 0.6931471803 + 83 := by
+              gcongr
+              norm_num
+          _ = 3200 * (1 / exp 1 ^ (6 : ℕ)) / 0.6931471803 + 83 := by
+              rw [exp_neg]
+              field_simp
+          _ ≤ 3200 * (1 / 2.7182818283 ^ (6 : ℕ)) / 0.6931471803 + 83 := by gcongr
+          _ ≤ 95 := by norm_num1
 
 /-- Still assuming that our quasi-isometry is Lipschitz, we will improve slightly on the previous
 result, first going down to the hyperbolicity constant of the space, and also showing that,
 conversely, the geodesic is contained in a neighborhood of the quasi-geodesic. The argument for this
-last point goes as follows. Consider a point $x$ on the geodesic. Define two sets to
-be the $D$-thickenings of $[a,x]$ and $[x,b]$ respectively, where $D$ is such that any point on the
-quasi-geodesic is within distance $D$ of the geodesic (as given by the previous theorem). The union
+last point goes as follows. Consider a point `x` on the geodesic. Define two sets to
+be the `D`-thickenings of $[a,x]$ and $[x,b]$ respectively, where `D` is such that any point on the
+quasi-geodesic is within distance `D` of the geodesic (as given by the previous theorem). The union
 of these two sets covers the quasi-geodesic, and they are both closed and nonempty. By connectedness,
-there is a point $z$ in their intersection, $D$-close both to a point $x^-$ before $x$ and to a point
-$x^+$ after $x$. Then $x$ belongs to a geodesic between $x^-$ and $x^+$, which is contained in a
-$4\delta$-neighborhood of geodesics from $x^+$ to $z$ and from $x^-$ to $z$ by hyperbolicity. It
-follows that $x$ is at distance at most $D + 4\delta$ of $z$, concluding the proof. -/
+there is a point `z` in their intersection, `D`-close both to a point `x⁻` before `x` and to a point
+`x⁺` after `x`. Then `x` belongs to a geodesic between `x⁻` and `x⁺`, which is contained in a
+`4 * δ`-neighborhood of geodesics from `x⁻` to `z` and from `x⁺` to `z` by hyperbolicity. It
+follows that `x` is at distance at most `D + 4 * δ` of `z`, concluding the proof. -/
 lemma Morse_Gromov_theorem_aux2
     {f : ℝ → X} {a b : ℝ}
     (hf : ContinuousOn f (Icc a b))
