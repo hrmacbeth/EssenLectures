@@ -217,7 +217,7 @@ lemma Morse_Gromov_theorem_aux0
   intro um uM hum huM h_diff
   have : 0 ≤ uM - um := by linarith only [hum.2, huM.1]
   by_cases hz_um_uM_L : Gromov_product_at (f z) (f um) (f uM) ≤ L
-  · /- If $f(z)$ is already close to the geodesic, there is nothing to do, and we do not need
+  · /- If `f z` is already close to the geodesic, there is nothing to do, and we do not need
     the induction assumption. This is case 1 in the description above. -/
     calc Gromov_product_at (f z) (f um) (f uM) ≤ L := hz_um_uM_L
       _ ≤ 1 * (D + (3/2) * L + δ + 11/2 * C) - 2 * δ + 0 * (1 - exp (- K * (uM - um))) := by
@@ -237,37 +237,41 @@ lemma Morse_Gromov_theorem_aux0
   `z` is roughly at distance `L` of `pi_z`. -/
   let m := geodesic_segment_param {(f um)‒(f uM)} (f um) (Gromov_product_at (f um) (f z) (f uM))
   have : dist (f z) m ≤ Gromov_product_at (f z) (f um) (f uM) + 2 * deltaG X := by
-    sorry
-  --       unfolding m_def by (rule dist_triangle_side_middle, auto)
-  have : dist (f z) m ≤ Gromov_product_at (f z) (f um) (f uM) + 2 * δ := by -- `*`
-    sorry
-  --       using \<open>deltaG X < δ\<close> by auto
-  have := -- `**`
-  calc Gromov_product_at (f z) (f um) (f uM) ≤ infDist (f z) {(f um)‒(f uM)} := sorry
-  --       by (intro mono_intros, auto)
-    _ ≤ dist (f z) m := sorry
-  --       apply (rule infDist_le) unfolding m_def by auto
+    apply dist_triangle_side_middle
+    exact (some_geodesic_is_geodesic_segment _ _).1
+  have h_fz_m : dist (f z) m ≤ Gromov_product_at (f z) (f um) (f uM) + 2 * δ := by -- `*`
+    linarith only [this, hδ]
+  have H'' := -- `**`
+  calc Gromov_product_at (f z) (f um) (f uM) ≤ infDist (f z) {(f um)‒(f uM)} := by
+        apply Gromov_product_le_infDist
+        exact (some_geodesic_is_geodesic_segment _ _).1
+    _ ≤ dist (f z) m := by
+        apply infDist_le_dist_of_mem
+        apply geodesic_segment_param_in_geodesic_spaces3
+        simp
 
   let H : Set X := {(f z)‒m}
   let pi_z := geodesic_segment_param H (f z) (Gromov_product_at (f z) (f um) (f uM))
-  have h_H' : pi_z ∈ H ∧ m ∈ H ∧ f z ∈ H := sorry
-  --       unfolding pi_z_def H_def by (auto simp add: geodesic_segment_param_in_segment)
-  have h_H : geodesic_segment_between H (f z) m := sorry
-  --       unfolding H_def by auto
-  have Dpi_z : dist (f z) pi_z = Gromov_product_at (f z) (f um) (f uM) := sorry
-  --       unfolding pi_z_def H_def by (rule geodesic_segment_param(6)[where ?y = m], auto simp add: **)
-  have : dist (f z) m = dist (f z) pi_z + dist pi_z m := sorry
-  --       apply (rule geodesic_segment_dist[of H, symmetric]) using \<open>pi_z ∈ H\<close> unfolding H_def by auto
-  have : dist pi_z m ≤ 2 * δ := sorry
-  --       using * by auto
+  have h_H' : pi_z ∈ H ∧ m ∈ H ∧ f z ∈ H := by
+    simp only [some_geodesic_endpoints, and_self, and_true, pi_z, H]
+    apply geodesic_segment_param_in_segment
+    exact some_geodesic_endpoints.2.2
+  have h_H : geodesic_segment_between H (f z) m := by
+    dsimp [H]
+    exact (some_geodesic_is_geodesic_segment _ _).1
+  have Dpi_z : dist (f z) pi_z = Gromov_product_at (f z) (f um) (f uM) := by
+    dsimp [pi_z, H]
+    apply geodesic_segment_param6 h_H
+    exact ⟨Gromov_product_nonneg (f z) (f um) (f uM), H''⟩
+  have : dist (f z) m = dist (f z) pi_z + dist pi_z m := (geodesic_segment_dist h_H h_H'.1).symm
+  have : dist pi_z m ≤ 2 * δ := by linarith only [this, Dpi_z, h_fz_m]
 
   -- Introduce the notation `p` for some projection on the geodesic `H`.
   have H_nonempty (r : ℝ) : (proj_set (f r) H).Nonempty := proj_set_nonempty_of_compact
     (geodesic_segment_topology ⟨_, _, h_H⟩).1 (geodesic_segment_topology ⟨_, _, h_H⟩).2.2.2.2.2 _
   choose p hp using H_nonempty
   have pH {r : ℝ} : p r ∈ H := (hp r).1
-  have pz : p z = f z := sorry
-  --       using p[of z] H by auto
+  have pz : p z = f z := by simpa [distproj_self h_H'.2.2] using hp z
 
   /- The projection of `f um` on `H` is close to `pi_z` (but it does not have to be exactly
   `pi_z`). It is between `pi_z` and `m`. -/
@@ -279,7 +283,7 @@ lemma Morse_Gromov_theorem_aux0
       simp [m]
       apply geodesic_segment_param_in_geodesic_spaces6
       refine ⟨Gromov_product_nonneg (f um) (f z) (f uM), ?_⟩ -- TODO positivity extension
-      sorry
+      exact (Gromov_product_le_dist _ _ _).2
   have A : Gromov_product_at (f z) (f um) (f uM) ≤ dist (p um) (f z) := by
     dsimp [Gromov_product_at] at this ⊢
     simp only [dist_comm] at this ⊢
@@ -301,34 +305,30 @@ lemma Morse_Gromov_theorem_aux0
       (dist (p um) (p ym) ∈ Icc ((L + dist pi_z (p um)) - 4 * δ - 2 * 0) (L + dist pi_z (p um)))
                     ∧ (∀ r ∈ Icc um ym, dist (p um) (p r) ≤ L + dist pi_z (p um)) := by
     refine quasi_convex_projection_small_gaps (f := f) (G := H) ?_ hum.2 ?_ (fun t ht ↦ hp t) hδ ?_
-    · refine hf.mono ?_
-  --         apply (rule continuous_on_subset[OF \<open>continuous_on Icc a b f\<close>])
-  --         using \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> by auto
-      sorry
+    · exact hf.mono (Icc_subset_Icc hum.1 hz.2)
     · apply quasiconvex_of_geodesic
-  --       show "quasiconvex 0 H" using quasiconvex_of_geodesic geodesic_segmentI H by auto
-      sorry
-    · sorry
-  --       have "L + dist pi_z (p um) ≤ dist (f z) pi_z + dist pi_z (p um)"
-  --         using False Dpi_z by (simp add: metric_space_class.dist_commute)
-  --       then have "L + dist pi_z (p um) ≤ dist (p um) (f z)"
-  --         using Dum by (simp add: metric_space_class.dist_commute)
-  --       then show "L + dist pi_z (p um) ∈ {4 * δ + 2 * 0..dist (p um) (p z)}"
-  --         using \<open>δ > 0\<close> False L_def pz by auto
-  have : ContinuousOn (fun r ↦ infDist (f r) H) (Icc um ym) := sorry -- `*`
-  --       using continuous_on_infDist[OF continuous_on_subset[OF \<open>continuous_on Icc a b f\<close>, of "{um..ym}"], of H]
-  --       \<open>ym ∈ {um..z}\<close> \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> by auto
+      exact ⟨_, _, h_H⟩
+    · refine ⟨?_, ?_⟩
+      · dsimp [L]
+        linarith only [hδ₀, @dist_nonneg _ _ pi_z (p um)]
+      · simp only [dist_comm, pz] at Dum Dpi_z hz_um_uM_L ⊢
+        linarith only [Dum, hz_um_uM_L, Dpi_z]
+  have h_um_ym_subset : Icc um ym ⊆ Icc a b := Icc_subset_Icc hum.1 (hym.1.2.trans hz.2)
+  have : ContinuousOn (fun r ↦ infDist (f r) H) (Icc um ym) :=
+    continuous_infDist_pt H |>.comp_continuousOn (hf.mono h_um_ym_subset)
 
   /- Choose a point `cm` between `f um` and `f ym` realizing the minimal distance to `H`.
   Call this distance `dm`. -/
-  --     have "\<exists>closestm ∈ {um..ym}. ∀ v ∈ {um..ym}. infDist (f closestm) H ≤ infDist (f v) H"
-  --       apply (rule continuous_attains_inf) using ym(1) * by auto
-  --     then obtain closestm where closestm: "closestm ∈ {um..ym}" "∀ v. v ∈ {um..ym} → infDist (f closestm) H ≤ infDist (f v) H"
-  --       by auto
-  --     define dm where "dm = infDist (f closestm) H"
-  --     have [simp]: "dm ≥ 0" unfolding dm_def using infDist_nonneg by auto
+  obtain ⟨closestm, hclosestm⟩ :
+      ∃ closestm ∈ Icc um ym, ∀ v ∈ Icc um ym, infDist (f closestm) H ≤ infDist (f v) H := by
+    refine IsCompact.exists_isMinOn ?_ ?_ this
+    · exact isCompact_Icc
+    · rw [nonempty_Icc]
+      exact hym.1.1
+  let dm : ℝ := infDist (f closestm) H
+  have : 0 ≤ dm := infDist_nonneg
 
-  --     text \<open>Same things but in the interval $[z, uM]$.\<close>
+  -- Same things but in the interval $[z, uM]$.
   --     have I: "dist m (f uM) = dist (f um) (f uM) - dist (f um) m"
   --             "dist (f um) m = Gromov_product_at (f um) (f z) (f uM)"
   --       using geodesic_segment_dist[of "{f um‒f uM}" "f um" "f uM" m] m_def by auto

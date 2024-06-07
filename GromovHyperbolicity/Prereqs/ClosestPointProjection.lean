@@ -59,10 +59,8 @@ lemma proj_set_nonempty_of_compact {A : Set X} (hA₁ : IsCompact A) (hA : A.Non
 --   then show "proj_set x A \<noteq> {}" unfolding proj_set_def by auto
 -- qed
 
--- lemma distproj_self [simp]:
---   assumes "x \<in> A"
---   shows "proj_set x A = {x}"
---         "distproj x A = x"
+lemma distproj_self {A : Set X} {x : X} (hx : x ∈ A) : proj_set x A = {x} := sorry
+  --       "distproj x A = x" FIXME? skipped this second half
 -- proof -
 --   show "proj_set x A = {x}"
 --     unfolding proj_set_def using assms by auto

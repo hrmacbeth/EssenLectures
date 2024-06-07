@@ -89,6 +89,19 @@ lemma Gromov_product_commute (e x y : X) : Gromov_product_at e x y = Gromov_prod
   simp only [Gromov_product_at, dist_comm] at *
   constructor <;> linarith
 
+lemma Gromov_product_le_infDist {x y : X} {G : Set X} (h : geodesic_segment_between G x y) {e : X} :
+    Gromov_product_at e x y ≤ infDist e G := by
+  rw [infDist_eq_iInf]
+  have : Nonempty G := ⟨_, (geodesic_segment_endpoints h).1⟩
+  apply le_ciInf
+  rintro ⟨z, hz⟩
+  dsimp [Gromov_product_at]
+  have := dist_triangle e z x
+  have := dist_triangle e z y
+  have := geodesic_segment_dist h hz
+  simp only [dist_comm] at *
+  linarith
+
 lemma Gromov_product_add (e x y : X) :
     Gromov_product_at e x y + Gromov_product_at x e y = dist e x := by
   simp only [Gromov_product_at, dist_comm]
