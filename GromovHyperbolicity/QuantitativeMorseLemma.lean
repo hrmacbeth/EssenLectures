@@ -265,13 +265,13 @@ lemma Morse_Gromov_theorem_aux0
     apply geodesic_segment_param6 h_H
     exact ⟨Gromov_product_nonneg (f z) (f um) (f uM), H''⟩
   have : dist (f z) m = dist (f z) pi_z + dist pi_z m := (geodesic_segment_dist h_H h_H'.1).symm
-  have : dist pi_z m ≤ 2 * δ := by linarith only [this, Dpi_z, h_fz_m]
+  have h_pi_z_m : dist pi_z m ≤ 2 * δ := by linarith only [this, Dpi_z, h_fz_m]
 
   -- Introduce the notation `p` for some projection on the geodesic `H`.
   have H_nonempty (r : ℝ) : (proj_set (f r) H).Nonempty := proj_set_nonempty_of_compact
     (geodesic_segment_topology ⟨_, _, h_H⟩).1 (geodesic_segment_topology ⟨_, _, h_H⟩).2.2.2.2.2 _
   choose p hp using H_nonempty
-  have pH {r : ℝ} : p r ∈ H := (hp r).1
+  have pH (r : ℝ) : p r ∈ H := (hp r).1
   have pz : p z = f z := by simpa [distproj_self h_H'.2.2] using hp z
 
   /- The projection of `f um` on `H` is close to `pi_z` (but it does not have to be exactly
@@ -289,12 +289,13 @@ lemma Morse_Gromov_theorem_aux0
     dsimp [Gromov_product_at] at this ⊢
     simp only [dist_comm] at this ⊢
     linarith only [this]
+  -- On `H`, the point `pi_z` lies between `p um` and `f z`
   have Dum : dist (p um) (f z) = dist (p um) pi_z + dist pi_z (f z) := by
     apply le_antisymm
     · exact dist_triangle ..
     · have :=
       calc dist (p um) pi_z = |dist (p um) (f z) - dist pi_z (f z)| :=
-            dist_along_geodesic_wrt_endpoint h_H pH h_H'.1
+            dist_along_geodesic_wrt_endpoint h_H (pH _) h_H'.1
         _ = dist (p um) (f z) - dist pi_z (f z) := by
           simp only [dist_comm] at Dpi_z A ⊢
           rw [Dpi_z, abs_of_nonneg]
@@ -353,12 +354,13 @@ lemma Morse_Gromov_theorem_aux0
     dsimp [Gromov_product_at] at this ⊢
     simp only [dist_comm] at this ⊢
     linarith only [this]
+  -- On `H`, the point `pi_z` lies between `p uM` and `f z`
   have DuM : dist (p uM) (f z) = dist (p uM) pi_z + dist pi_z (f z) := by
     apply le_antisymm
     · exact dist_triangle ..
     · have :=
       calc dist (p uM) pi_z = |dist (p uM) (f z) - dist pi_z (f z)| :=
-            dist_along_geodesic_wrt_endpoint h_H pH h_H'.1
+            dist_along_geodesic_wrt_endpoint h_H (pH _) h_H'.1
         _ = dist (p uM) (f z) - dist pi_z (f z) := by
           simp only [dist_comm] at Dpi_z A ⊢
           rw [Dpi_z, abs_of_nonneg]
@@ -393,52 +395,40 @@ lemma Morse_Gromov_theorem_aux0
   let dM : ℝ := infDist (f closestm) H
   have : 0 ≤ dM := infDist_nonneg
 
-  --     text \<open>Points between $f(um)$ and $f(ym)$, or between $f(yM)$ and $f(uM)$, project within
-  --     distance at most $L$ of $pi_z$ by construction.\<close>
-  --     have P0: "dist m (p x) ≤ dist m pi_z + L" if "x ∈ {um..ym} \<union> {yM..uM}" for x
-  --     proof (cases "x ∈ {um..ym}")
-  --       case True
-  --       have "dist m (f z) = dist m (p um) + dist (p um) pi_z + dist pi_z (f z)"
-  --         using geodesic_segment_dist[OF H pH[of um]] Dum by (simp add: metric_space_class.dist_commute)
-  --       moreover have "dist m (f z) = dist m pi_z + dist pi_z (f z)"
-  --         using geodesic_segment_dist[OF H \<open>pi_z ∈ H\<close>] by (simp add: metric_space_class.dist_commute)
-  --       ultimately have *: "dist m pi_z = dist m (p um) + dist (p um) pi_z" by auto
-  --       have "dist (p um) (p x) ≤ L + dist pi_z (p um)"
-  --         using ym(3)[OF \<open>x ∈ {um..ym}\<close>] by blast
-  --       then show ?thesis
-  --         using metric_space_class.dist_triangle[of m "p x" "p um"] * by (auto simp add: metric_space_class.dist_commute)
-  --     next
-  --       case False
-  --       then have "x ∈ {yM..uM}" using that by auto
-  --       have "dist m (f z) = dist m (p uM) + dist (p uM) pi_z + dist pi_z (f z)"
-  --         using geodesic_segment_dist[OF H pH[of uM]] DuM by (simp add: metric_space_class.dist_commute)
-  --       moreover have "dist m (f z) = dist m pi_z + dist pi_z (f z)"
-  --         using geodesic_segment_dist[OF H \<open>pi_z ∈ H\<close>] by (simp add: metric_space_class.dist_commute)
-  --       ultimately have *: "dist m pi_z = dist m (p uM) + dist (p uM) pi_z" by auto
-  --       have "dist (p uM) (p x) ≤ L + dist pi_z (p uM)"
-  --         using yM(3)[OF \<open>x ∈ {yM..uM}\<close>] by blast
-  --       then show ?thesis
-  --         using metric_space_class.dist_triangle[of m "p x" "p uM"] * by (auto simp add: metric_space_class.dist_commute)
-  --     qed
-  --     have P: "dist pi_z (p x) ≤ L" if "x ∈ {um..ym} \<union> {yM..uM}" for x
-  --     proof (cases "dist m (p x) ≤ dist pi_z m")
-  --       case True
-  --       have := calc dist pi_z (p x) ≤ dist pi_z m + dist m (p x)"
-  --         by (intro mono_intros)
-  --       _ ≤ 2 * δ + 2 * δ"
-  --         using \<open>dist pi_z m ≤ 2 * δ\<close> True by auto
-  --       finally show ?thesis
-  --         using Laux \<open>δ > 0\<close> by auto
-  --     next
-  --       case False
-  --       have := calc dist pi_z (p x) = abs(dist pi_z m - dist (p x) m)"
-  --         apply (rule dist_along_geodesic_wrt_endpoint[OF geodesic_segment_commute[OF H]])
-  --         using pH \<open>pi_z ∈ H\<close> by auto
-  --       _ = dist (p x) m - dist pi_z m"
-  --         using False by (simp add: metric_space_class.dist_commute)
-  --       finally show ?thesis
-  --         using P0[OF that] by (simp add: metric_space_class.dist_commute)
-  --     qed
+  /- Points between `f um` and `f ym`, or between `f yM` and `f uM`, project within
+  distance at most `L` of `pi_z` by construction. -/
+  have P0 {x : ℝ} (hx : x ∈ Icc um ym ∪ Icc yM uM) : dist m (p x) ≤ dist m pi_z + L := by
+    have h₁ := geodesic_segment_dist h_H h_H'.1
+    obtain hx | hx := hx
+    · have h₂ := geodesic_segment_dist h_H (pH um)
+      have h₃ := hym.2.2 x hx
+      have h₄ := dist_triangle m (p um) (p x)
+      simp only [dist_comm] at Dum h₁ h₂ h₃ h₄ ⊢
+      linarith only [Dum, h₁, h₂, h₃, h₄]
+    · have h₂ := geodesic_segment_dist h_H (pH uM)
+      have h₃ := hyM.2.2 x hx
+      have h₄ := dist_triangle m (p uM) (p x)
+      simp only [dist_comm] at DuM h₁ h₂ h₃ h₄ ⊢
+      linarith only [DuM, h₁, h₂, h₃, h₄]
+  have P {x : ℝ} (hx : x ∈ Icc um ym ∪ Icc yM uM) : dist pi_z (p x) ≤ L := by
+    -- case-split according to whether `p x` lies (1) between `m` and `pi_z` or (2) beyond `pi_z`
+    by_cases h_m_px_pi_z : dist m (p x) ≤ dist pi_z m
+    · have h₁ := dist_triangle pi_z m (p x)
+      simp only [dist_comm, L] at h_m_px_pi_z h_pi_z_m h₁ ⊢
+      linarith only [h_pi_z_m, h_m_px_pi_z, hδ₀, h₁]
+    · have h₁ := P0 hx
+      have h₂ :=
+      calc dist pi_z (p x) = |dist pi_z m - dist (p x) m| := by
+            rw [geodesic_segment_commute] at h_H
+            exact dist_along_geodesic_wrt_endpoint h_H h_H'.1 (pH _)
+        _ = dist (p x) m - dist pi_z m := by
+            rw [abs_of_nonpos]
+            · ring
+            simp only [dist_comm] at h_m_px_pi_z ⊢
+            linarith only [h_m_px_pi_z]
+      simp only [dist_comm] at h₁ h₂ ⊢
+      linarith only [h₁, h₂]
+
   --     text \<open>Auxiliary fact for later use:
   --     The distance between two points in $[um, ym]$ and $[yM, uM]$ can be controlled using
   --     the distances of their images under $f$ to $H$, thanks to the quasi-isometry property.\<close>
