@@ -14,7 +14,7 @@ a theorem, and we add the name Gromov the avoid the confusion with the other Mor
 on the existence of good coordinates for `C ^ 2` functions with non-vanishing hessian.
 
 It states that a quasi-geodesic remains within bounded distance of a geodesic with the same
-endpoints, the error depending only on `δ` and on the parameters $(\lambda, C)$ of the
+endpoints, the error depending only on `δ` and on the parameters $(Λ, C)$ of the
 quasi-geodesic, but not on its length.
 
 There are several proofs of this result. We will follow the one of Shchur~\<^cite> "shchur", which
@@ -37,41 +37,41 @@ follow easily later on. We also assume that the quasi-geodesic is parameterized 
 -- the general case will follow as any quasi-geodesic can be approximated by a Lipschitz map with
 good controls.
 
-Here is a sketch of the proof. Fix two large constants $L \leq D$ (that we will choose carefully
-to optimize the values of the constants at the end of the proof). Consider a quasi-geodesic $f$
-between two points $f(u^-)$ and $f(u^+)$, and a geodesic segment $G$ between the same points.
-Fix $f(z)$. We want to find a bound on $d(f(z), G)$.
-1 - If this distance is smaller than $L$, we are done (and the bound is $L$).
+Here is a sketch of the proof. Fix two large constants `L ≤ D` (that we will choose carefully
+to optimize the values of the constants at the end of the proof). Consider a quasi-geodesic `f`
+between two points $f(u^-)$ and $f(u^+)$, and a geodesic segment `G` between the same points.
+Fix `f z`. We want to find a bound on `dist (f z) G`.
+1 - If this distance is smaller than `L`, we are done (and the bound is `L`).
 2 - Assume it is larger.
-Let $\pi_z$ be a projection of $f(z)$ on $G$ (at distance $d(f(z),G)$ of $f(z)$), and $H$ a geodesic
-between $z$ and $\pi_z$. The idea will be to project the image of $f$ on $H$, and record how much
-progress is made towards $f(z)$. In this proof, we will construct several points before and after
-$z$. When necessary, we put an exponent $-$ on the points before $z$, and $+$ on the points after
-$z$. To ease the reading, the points are ordered following the alphabetical order, i.e., $u^- \leq v
-\leq w \leq x \leq y^- \leq z$.
+Let `pi_z` be a projection of `f z` on `G` (at distance `dist (f z) G` of `f z`), and `H` a geodesic
+between `z` and `pi_z`. The idea will be to project the image of `f` on `H`, and record how much
+progress is made towards `f z`. In this proof, we will construct several points before and after
+`z`. When necessary, we put an exponent $-$ on the points before `z`, and `+` on the points after
+`z`. To ease the reading, the points are ordered following the alphabetical order, i.e.,
+`u^- ≤ v ≤ w ≤ x ≤ y^- ≤ z`.
 
-One can find two points $f(y^-)$ and $f(y^+)$ on the left and the right of $f(z)$ that project
-on $H$ roughly at distance $L$ of $\pi_z$ (up to some $O(δ)$ -- recall that the closest point
+One can find two points $f(y^-)$ and $f(y^+)$ on the left and the right of `f z` that project
+on `H` roughly at distance `L` of `pi_z` (up to some $O(δ)$ -- recall that the closest point
 projection is not uniquely defined, and not continuous, so we make some choice here).
 Let $d^-$ be the minimal distance of $f([u^-, y^-])$ to $H$, and let $d^+$ be the minimal distance
 of $f([y^+, u^+)]$ to $H$.
 
-2.1 If the two distances $d^-$ and $d^+$ are less than $D$, then the distance between two points
-realizing the minimum (say $f(c^-)$ and $f(c^+)$) is at most $2D+L$, hence $c^+ - c^-$ is controlled
-(by $\lambda \cdot (2D+L) + C$) thanks to the quasi-isometry property. Therefore, $f(z)$ is not far
+2.1 If the two distances $d^-$ and $d^+$ are less than `D`, then the distance between two points
+realizing the minimum (say $f(c^-)$ and $f(c^+)$) is at most `2 * D + L`, hence $c^+ - c^-$ is controlled
+(by `Λ * (2 * D + L) + C`) thanks to the quasi-isometry property. Therefore, `f z` is not far
 away from $f(c^-)$ and $f(c^+)$ (again by the quasi-isometry property). Since the distance from
-these points to $\pi_z$ is controlled (by $D+L$), we get a good control on $d(f(z),\pi_z)$, as
+these points to `pi_z` is controlled (by `D + L`), we get a good control on `dist (f z) pi_z`, as
 desired.
 
-2.2 The interesting case is when $d^-$ and $d^+$ are both $ > D$. Assume also for instance $d^- \geq
-d^+$, as the other case is analogous. We will construct two points $f(v)$ and $f(x)$ with $u^- \leq
-v \leq x \leq y^-$ with the following property:
+2.2 The interesting case is when $d^-$ and $d^+$ are both > `D`. Assume also for instance $d^- \geq
+d^+$, as the other case is analogous. We will construct two points `f v` and `f x` with
+`u^- ≤ v ≤ x ≤ y^-` with the following property:
 \begin{equation}
 \label{eq:xvK}
-  K_1 e^{K_2 d(f(v), H)} \leq x-v,
+  K₁ e^{K₂ d(f(v), H)} \leq x-v,
 \end{equation}
-where $K_1$ and $K_2$ are some explicit constants (depending on $\lambda$, $\delta$, $L$ and $D$).
-Let us show how this will conclude the proof. The distance from $f(v)$ to $f(c^+)$ is at most
+where `K₁` and `K₂` are some explicit constants (depending on `Λ`, `δ`, `L` and `D`).
+Let us show how this will conclude the proof. The distance from `f v` to $f(c^+)$ is at most
 $d(f(v),H) + L + d^+ \leq 3 d(f(v), H)$. Therefore, $c^+ - v$ is also controlled by $K' d(f(v), H)$
 by the quasi-isometry property. This gives
 \begin{align*}
@@ -81,87 +81,86 @@ by the quasi-isometry property. This gives
 \end{align*}
 This shows that, when one goes from the original quasi-geodesic $f([u^-, u^+])$ to the restricted
 quasi-geodesic $f([x, c^+])$, the quantity $e^{-K \cdot}$ decreases by a fixed amount. In particular,
-this process can only happen a uniformly bounded number of times, say $n$.
+this process can only happen a uniformly bounded number of times, say `n`.
 
-Let $G'$ be a geodesic between $f(x)$ and $f(c^+)$. One checks geometrically that $d(f(z), G) \leq
-d(f(z), G') + (L + O(\delta))$, as both projections of $f(x)$ and $f(c^+)$ on $H$ are within
-distance $L$ of $\pi_z$. Iterating the process $n$ times, one gets finally $d(f(z), G) \leq O(1) + n
-(L + O(\delta))$. This is the desired bound for $d(f(z), G)$.
+Let `G'` be a geodesic between `f x` and $f(c^+)$. One checks geometrically that $d(f(z), G) \leq
+d(f(z), G') + (L + O(\delta))$, as both projections of `f x` and $f(c^+)$ on $H$ are within
+distance $L$ of $\pi_z$. Iterating the process `n` times, one gets finally $d(f(z), G) \leq O(1) + n
+(L + O(\delta))$. This is the desired bound for `dist (f z) G`.
 
-To complete the proof, it remains to construct the points $f(v)$ and $f(x)$ satisfying~\eqref{eq:xvK}.
+To complete the proof, it remains to construct the points `f v` and `f x` satisfying~\eqref{eq:xvK}.
 This will be done through an inductive process.
 
-Assume first that there is a point $f(v)$ whose projection on $H$ is close to the projection of
-$f(u^-)$, and with $d(f(v), H) \leq 2 d^-$. Then the projections of $f(v)$ and $f(y^-)$ are far away
-(at distance at least $L + O(\delta)$). Since the portion of $f$ between $v$ and $y^-$ is everywhere
-at distance at least $d^-$ of $H$, the projection on $H$ contracts by a factor $e^{-d^-}$. It
-follows that this portion of $f$ has length at least $e^{d^-} \cdot (L+O(\delta))$. Therefore, by
-the quasi-isometry property, one gets $x - v \geq K e^{d^-}$. On the other hand, $d(v, H)$ is
+Assume first that there is a point `f v` whose projection on `H` is close to the projection of
+$f(u^-)$, and with `dist (f v) H ≤ 2 d^-`. Then the projections of `f v` and $f(y^-)$ are far away
+(at distance at least $L + O(\delta)$). Since the portion of `f` between `v` and $y^-$ is everywhere
+at distance at least $d^-$ of `H`, the projection on `H` contracts by a factor $e^{-d^-}$. It
+follows that this portion of `f` has length at least $e^{d^-} \cdot (L+O(\delta))$. Therefore, by
+the quasi-isometry property, one gets $x - v \geq K e^{d^-}$. On the other hand, `dist v H` is
 bounded above by $2 d^-$ by assumption. This gives the desired inequality~\eqref{eq:xvK} with $x =
 y^-$.
 
-Otherwise, all points $f(v)$ whose projection on $H$ is close to the projection of $f(u^-)$ are such
-that $d(f(v), H) \geq 2 d^-$. Consider $f(w_1)$ a point whose projection on $H$ is at distance
-roughly $10 \delta$ of the projection of $f(u^-)$. Let $V_1$ be the set of points at distance at
-most $d^-$ of $H$, i.e., the $d_1$-neighborhood of $H$. Then the distance between the projections of
-$f(u^-)$ and $f(w_1)$ on $V_1$ is very large (are there is an additional big contraction to go from
-$V_1$ to $H$). And moreover all the intermediate points $f(v)$ are at distance at least $2 d^-$ of
-$H$, and therefore at distance at least $d^-$ of $H$. Then one can play the same game as in the
-first case, where $y^-$ replaced by $w_1$ and $H$ replaced by $V_1$. If there is a point $f(v)$
-whose projection on $V_1$ is close to the projection of $f(u^-)$, then the pair of points $v$ and $x
-= w_1$ works. Otherwise, one lifts everything to $V_2$, the neighborhood of size $2d^-$ of $V_1$,
+Otherwise, all points `f v` whose projection on `H` is close to the projection of $f(u^-)$ are such
+that $d(f(v), H) \geq 2 d^-$. Consider `f w₁` a point whose projection on `H` is at distance
+roughly `10 * δ` of the projection of $f(u^-)$. Let `V₁` be the set of points at distance at
+most $d^-$ of `H`, i.e., the $d_1$-neighborhood of `H`. Then the distance between the projections of
+$f(u^-)$ and `f w₁` on `V₁` is very large (are there is an additional big contraction to go from
+`V₁` to `H`). And moreover all the intermediate points `f v` are at distance at least $2 d^-$ of
+`H`, and therefore at distance at least $d^-$ of `H`. Then one can play the same game as in the
+first case, where $y^-$ replaced by `w₁` and `H` replaced by `V₁`. If there is a point `f v`
+whose projection on `V₁` is close to the projection of $f(u^-)$, then the pair of points `v` and
+`x = w₁` works. Otherwise, one lifts everything to `V₂`, the neighborhood of size $2d^-$ of `V₁`,
 and one argues again in the same way.
 
 The induction goes on like this until one finds a suitable pair of points. The process has indeed to
-stop at one time, as it can only go on while $f(u^-)$ is outside of $V_k$, the $(2^k-1) d^-$
-neighborhood of $H$). This concludes the sketch of the proof, modulo the adjustment of constants.
+stop at one time, as it can only go on while $f(u^-)$ is outside of `V k`, the $(2^k-1) d^-$
+neighborhood of `H`). This concludes the sketch of the proof, modulo the adjustment of constants.
 
 Comments on the formalization below:
-\begin{itemize}
-\item The proof is written as an induction on $u^+ - u^-$. This makes it possible to either prove
-the bound directly (in the cases 1 and 2.1 above), or to use the bound on $d(z, G')$ in case 2.2
-using the induction assumption, and conclude the proof. Of course, $u^+ - u^-$ is not integer-valued,
-but in the reduction to $G'$ it decays by a fixed amount, so one can easily write this down as
-a genuine induction.
-\item The main difficulty in the proof is to construct the pair $(v, x)$ in case 2.2. This is again
-written as an induction over $k$: either the required bound is true, or one can find a point $f(w)$
-whose projection on $V_k$ is far enough from the projection of $f(u^-)$. Then, either one can use
-this point to prove the bound, or one can construct a point with the same property with respect to
-$V_{k+1}$, concluding the induction.
-\item Instead of writing $u^-$ and $u^+$ (which are not good variable names in Isabelle), we write
-$um$ and $uM$. Similarly for other variables.
-\item The proof only works when $\delta > 0$ (as one needs to divide by $\delta$
-in the exponential gain). Hence, we formulate it for some $\delta$ which is
-strictly larger than the hyperbolicity constant. In a subsequent application of
-the lemma, we will deduce the same statement for the hyperbolicity constant
-by a limiting argument.
-\item To optimize the value of the constant in the end, there is an additional important trick with
-respect to the above sketch: in case 2.2, there is an exponential gain. One can spare a fraction
-$(1-\alpha)$ of this gain to improve the constants, and spend the remaining fraction $\alpha$ to
-make the argument work. This makes it possible to reduce the value of the constant roughly from
-$40000$ to $100$, so we do it in the proof below. The values of $L$, $D$ and $\alpha$ can be chosen
-freely, and have been chosen to get the best possible constant in the end.
-\item For another optimization, we do not induce in terms of the distance from $f(z)$ to the geodesic
-$G$, but rather in terms of the Gromov product $(f(u^-), f(u^+))_{f(z)}$ (which is the same up to
-$O(\delta)$. And we do not take for $H$ a geodesic from $f(z)$ to its projection on $G$, but rather
-a geodesic from $f(z)$ to the point $m$ on $[f(u^-), f(u^+)]$ opposite to $f(z)$ in the tripod, i.e.,
-at distance $(f(z), f(u^+))_{f(u^-)}$ of $f(u^-)$, and at distance $(f(z), f(u^-))_{f(u^+)}$ of
-$f(u^+)$. Let $\pi_z$ denote the point on $[f(z), m]$ at distance $(f(u^-), f(u^+)_{f(z)}$ of $f(z)$.
-(It is within distance $2 \delta$ of $m$).
-In both approaches, what we want to control by induction is the distance from $f(z)$ to $\pi_z$.
-However, in the first approach, the points $f(u^-)$ and $f(u^+)$ project on $H$ between $\pi_z$ and
-$f(z)$, and since the location of their projection is only controlled up to $4\delta$ one loses
-essentially a $4\delta$-length of $L$ for the forthcoming argument. In the second approach, the
-projections on $H$ are on the other side of $\pi_z$ compared to $f(z)$, so one does not lose
-anything, and in the end it gives genuinely better bounds (making it possible to gain roughly
-$10 \delta$ in the final estimate).
-\end{itemize} -/
-/- We prove that, for any pair of points to the left and to the right of $f(z)$, the distance
-from $f(z)$ to a geodesic between these points is controlled. We prove this by reducing to a
+* The proof is written as an induction on $u^+ - u^-$. This makes it possible to either prove the
+  bound directly (in the cases 1 and 2.1 above), or to use the bound on $d(z, G')$ in case 2.2
+  using the induction assumption, and conclude the proof. Of course, $u^+ - u^-$ is not
+  integer-valued, but in the reduction to `G'` it decays by a fixed amount, so one can easily write
+  this down as a genuine induction.
+* The main difficulty in the proof is to construct the pair `(v, x)` in case 2.2. This is again
+  written as an induction over `k`: either the required bound is true, or one can find a point `f w`
+  whose projection on `V k` is far enough from the projection of $f(u^-)$. Then, either one can use
+  this point to prove the bound, or one can construct a point with the same property with respect to
+  `V (k+1)`, concluding the induction.
+* Instead of writing $u^-$ and $u^+$ (which are not good variable names in Isabelle), we write
+  `um` and `uM`. Similarly for other variables.
+* The proof only works when `δ > 0` (as one needs to divide by `δ` in the exponential gain).
+  Hence, we formulate it for some `δ` which is
+  strictly larger than the hyperbolicity constant. In a subsequent application of
+  the lemma, we will deduce the same statement for the hyperbolicity constant
+  by a limiting argument.
+* To optimize the value of the constant in the end, there is an additional important trick with
+  respect to the above sketch: in case 2.2, there is an exponential gain. One can spare a fraction
+  `(1 - α)` of this gain to improve the constants, and spend the remaining fraction `α` to
+  make the argument work. This makes it possible to reduce the value of the constant roughly from
+  `40000` to `100`, so we do it in the proof below. The values of `L`, `D` and `α` can be chosen
+  freely, and have been chosen to get the best possible constant in the end.
+* For another optimization, we do not induct in terms of the distance from `f z` to the geodesic
+  `G`, but rather in terms of the Gromov product $(f(u^-), f(u^+))_{f(z)}$ (which is the same up to
+  $O(\delta)$. And we do not take for `H` a geodesic from `f z` to its projection on `G`, but rather
+  a geodesic from `f z` to the point `m` on $[f(u^-), f(u^+)]$ opposite to `f z` in the tripod,
+  i.e., at distance $(f(z), f(u^+))_{f(u^-)}$ of $f(u^-)$, and at distance $(f(z), f(u^-))_{f(u^+)}$
+  of $f(u^+)$. Let `pi_z` denote the point on $[f(z), m]$ at distance $(f(u^-), f(u^+)_{f(z)}$ of
+  `f z`. (It is within distance `2 * δ` of `m`).
+  In both approaches, what we want to control by induction is the distance from `f z` to `pi_z`.
+  However, in the first approach, the points $f(u^-)$ and $f(u^+)$ project on `H` between `pi_z` and
+  `f z`, and since the location of their projection is only controlled up to `4 * δ` one loses
+  essentially a `4 * δ`-length of `L` for the forthcoming argument. In the second approach, the
+  projections on `H` are on the other side of `pi_z` compared to `f z`, so one does not lose
+  anything, and in the end it gives genuinely better bounds (making it possible to gain roughly
+  `10 * δ` in the final estimate). -/
+
+/- We prove that, for any pair of points to the left and to the right of `f z`, the distance
+from `f z` to a geodesic between these points is controlled. We prove this by reducing to a
 closer pair of points, i.e., this is an inductive argument over real numbers. However, we
 formalize it as an artificial induction over natural numbers, as this is how induction works
 best, and since in our reduction step the new pair of points is always significantly closer
-than the initial one, at least by an amount $\delta/\lambda$.
+than the initial one, at least by an amount `δ / Λ`.
 
 The main inductive bound that we will prove is the following. In this bound, the first term is
 what comes from the trivial cases 1 and 2.1 in the description of the proof before the statement
@@ -612,7 +611,8 @@ lemma Morse_Gromov_theorem_aux0
   neighborhood of size `(2^k-1) * dm` of `H`, is far enough from the projection of `um`, and
   such that all points in between are far enough from `V_k` so that the corresponding
   projection will have good contraction properties. -/
-  · let V : ℕ → Set X := fun k ↦ cthickening ((2^k - 1) * dm) H
+  · have : 0 < dm := by dsimp [D] at I₁; linarith only [I₁, hC, hδ₀]
+    let V : ℕ → Set X := fun k ↦ cthickening ((2^k - 1) * dm) H
     let QC : ℕ → ℝ := fun k ↦ if k = 0 then 0 else 8 * δ
     have {k : ℕ} : 0 ≤ QC k := by dsimp [QC]; split <;> positivity
     have Q (k : ℕ) : quasiconvex (0 + 8 * deltaG X) (V k) := by
@@ -620,7 +620,6 @@ lemma Morse_Gromov_theorem_aux0
       · apply quasiconvex_of_geodesic ⟨_, _, h_H⟩
       · have : 1 ≤ (2:ℝ) ^ k := one_le_pow_of_one_le (by norm_num) k
         have : 0 ≤ (2:ℝ) ^ k - 1 := by linarith only [this]
-        have : 0 ≤ dm := by dsimp [D] at I₁; linarith only [I₁, hC, hδ₀]
         positivity
     have (k : ℕ) : quasiconvex (QC k) (V k) := by
       dsimp [QC]
@@ -636,28 +635,37 @@ lemma Morse_Gromov_theorem_aux0
     let q : ℕ → ℝ → X := fun k x ↦ geodesic_segment_param {p x‒f x} (p x) ((2^k - 1) * dm)
 
     -- The inductive argument
-  --       have Ind_k: "(Gromov_product_at (f z) (f um) (f uM) ≤ Λ^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp(- K * (uM - um))))
-  --             \<or> (\<exists>x ∈ {um..ym}. (∀ w ∈ {um..x}. dist (f w) (p w) ≥ (2^(k+1)-1) * dm) ∀  dist (q k um) (q k x) ≥ L - 4 * δ + 7 * QC k)" for k
-  --       proof (induction k)
-  --         text \<open>Base case: there is a point far enough from $q 0 um$ on $H$. This is just the point $ym$,
-  --         by construction.\<close>
-  --         case 0
-  --         have *: "\<exists>x∈ {um..ym}. (∀ w ∈ {um..x}. dist (f w) (p w) ≥ (2^(0+1)-1) * dm) ∀  dist (q 0 um) (q 0 x) ≥ L - 4 * δ + 7 * QC 0"
-  --         proof (rule bexI[of _ ym], auto simp add: V_def q_def QC_def)
-  --           show "um ≤ ym" using \<open>ym ∈ {um..z}\<close> by auto
-  --           show "L - 4 * δ ≤ dist (p um) (p ym)"
-  --             using ym(2) apply auto using metric_space_class.zero_le_dist[of pi_z "p um"] by linarith
-  --           show "∀ y. um ≤ y → y ≤ ym → dm ≤ dist (f y) (p y)"
-  --             using dm_def closestm proj_setD(2)[OF p] by auto
-  --         qed
-  --         then show ?case
-  --           by blast
-  --       next
-  --         text \<open>The induction. The inductive assumption claims that, either the desired inequality
-  --         holds, or one can construct a point with good properties. If the desired inequality holds,
-  --         there is nothing left to prove. Otherwise, we can start from this point at step $k$,
-  --         say $x$, and either prove the desired inequality or construct a point with the good
-  --         properties at step $k+1$.\<close>
+    have Ind_k (k : ℕ) :
+        Gromov_product_at (f z) (f um) (f uM)
+          ≤ Λ^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um)))
+        ∨ (∃ x ∈ Icc um ym, (∀ w ∈ Icc um x, dist (f w) (p w) ≥ (2^(k+1)-1) * dm)
+            ∧ dist (q k um) (q k x) ≥ L - 4 * δ + 7 * QC k) := by
+      induction' k with k IH
+      /- Base case: there is a point far enough from `q 0 um` on `H`. This is just the point `ym`,
+      by construction. -/
+      · right
+        have (x : ℝ) : q 0 x = p x := by
+          dsimp [q]
+          convert @geodesic_segment_param_in_geodesic_spaces1 _ _ (p x) (f x)
+          simp
+        refine ⟨ym, ?_, ?_, ?_⟩
+        · simp [hym.1.1]
+        · intro w hw
+          calc _ = _ := by ring
+            _ ≤ _ := hclosestm.2 w hw
+            _ ≤ _ := infDist_le_dist_of_mem (pH _)
+        · simp only [this, QC, reduceIte]
+          have h₁ := hym.2.1.1
+          have h₂ := @dist_nonneg _ _ pi_z (p um)
+          simp only [dist_comm] at h₁ h₂ ⊢
+          linarith only [h₁, h₂]
+
+      /- The induction. The inductive assumption claims that, either the desired inequality
+      holds, or one can construct a point with good properties. If the desired inequality holds,
+      there is nothing left to prove. Otherwise, we can start from this point at step `k`,
+      say `x`, and either prove the desired inequality or construct a point with the good
+      properties at step `k + 1`. -/
+      sorry
   --         case Suck: (Suc k)
   --         show ?case
   --         proof (cases "Gromov_product_at (f z) (f um) (f uM) ≤ Λ\<^sup>2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um)))")
@@ -970,24 +978,25 @@ lemma Morse_Gromov_theorem_aux0
   --           qed
   --         qed
   --       qed
+
     /- This is the end of the main induction over `k`. To conclude, choose `k` large enough
     so that the second alternative in this induction is impossible. It follows that the first
     alternative holds, i.e., the desired inequality is true. -/
-  --       have "dm > 0" using I \<open>δ > 0\<close> \<open>C ≥ 0\<close> Laux by auto
-  --       have "\<exists>k. 2^k > dist (f um) (p um)/dm + 1"
-  --         by (simp add: real_arch_pow)
-  --       then obtain k where "2^k > dist (f um) (p um)/dm + 1"
-  --         by blast
-  --       then have := calc dist (f um) (p um) < (2^k - 1) * dm"
-  --         using \<open>dm > 0\<close> by (auto simp add: divide_simps algebra_simps)
-  --       _ ≤ (2^(Suc k) - 1) * dm"
-  --         by (intro mono_intros, auto)
-  --       finally have "\<not>((2 ^ (k + 1) - 1) * dm ≤ dist (f um) (p um))"
-  --         by simp
-  --       then show "Gromov_product_at (f z) (f um) (f uM) ≤ Λ\<^sup>2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um)))"
-  --         using Ind_k[of k] by auto
-  --       text \<open>end of the case where $D + 4 * C \leq dm$ and $dM \leq dm$.\<close>
-    sorry
+    obtain ⟨k, hk⟩ : ∃ k, 2^k > dist (f um) (p um)/dm + 1 := by
+      refine tendsto_pow_atTop_atTop_of_one_lt ?_ |>.eventually_gt_atTop _ |>.exists
+      norm_num
+    obtain h | ⟨x, hx₁, hx₂, hx₃⟩ := Ind_k k
+    · exact h
+    have H₁ :=
+    calc dist (f um) (p um) = ((dist (f um) (p um)/dm + 1) - 1) * dm := by field_simp
+      _ < (2^k - 1) * dm := by gcongr
+      _ ≤ (2^(k + 1) - 1) * dm := by
+          gcongr
+          · norm_num
+          · linarith only []
+    have H₂ := hx₂ um ⟨by rfl, hx₁.1⟩
+    linarith only [H₁, H₂]
+    -- end of the case where `D + 4 * C ≤ dm` and `dM ≤ dm`.
 
   /- This is the exact copy of the previous case, except that the roles of the points before
   and after `z` are exchanged. In a perfect world, one would use a lemma subsuming both cases,
