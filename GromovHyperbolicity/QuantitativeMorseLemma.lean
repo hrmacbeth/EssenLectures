@@ -429,11 +429,11 @@ lemma Morse_Gromov_theorem_aux0
       simp only [dist_comm] at h₁ h₂ ⊢
       linarith only [h₁, h₂]
 
-  --     text \<open>Auxiliary fact for later use:
-  --     The distance between two points in $[um, ym]$ and $[yM, uM]$ can be controlled using
-  --     the distances of their images under $f$ to $H$, thanks to the quasi-isometry property.\<close>
-  --     have D: "dist rm rM ≤ Λ * (infDist (f rm) H + (L + C + 2 * δ) + infDist (f rM) H)"
-  --       if "rm ∈ {um..ym}" "rM ∈ {yM..uM}" for rm rM
+  /- Auxiliary fact for later use:
+  The distance between two points in $[um, ym]$ and $[yM, uM]$ can be controlled using
+  the distances of their images under `f` to `H`, thanks to the quasi-isometry property. -/
+  have hD {rm rM} (hrm : rm ∈ Icc um ym) (hrM : rM ∈ Icc uM yM) :
+      dist rm rM ≤ Λ * (infDist (f rm) H + (L + C + 2 * δ) + infDist (f rM) H) := by
   --     proof -
   --       have *: "dist m (p rm) ≤ L + dist m pi_z" "dist m (p rM) ≤ L + dist m pi_z"
   --         using P0 that by force+
@@ -456,11 +456,14 @@ lemma Morse_Gromov_theorem_aux0
   --       finally show ?thesis
   --         using \<open>Λ ≥ 1\<close> by (simp add: algebra_simps divide_simps)
   --     qed
-  --     text \<open>Auxiliary fact for later use in the inductive argument:
-  --     the distance from $f(z)$ to $pi_z$ is controlled by the distance from $f(z)$ to any
-  --     intermediate geodesic between points in $f[um, ym]$ and $f[yM, uM]$, up to a constant
-  --     essentially given by $L$. This is a variation around Lemma 5 in~\<^cite>\<open>"shchur"\<close>.\<close>
-  --     have Rec: "Gromov_product_at (f z) (f um) (f uM) ≤ Gromov_product_at (f z) (f rm) (f rM) + (L + 4 * δ)" if "rm ∈ {um..ym}" "rM ∈ {yM..uM}" for rm rM
+    sorry
+
+  /- Auxiliary fact for later use in the inductive argument:
+  the distance from `f z` to `pi_z` is controlled by the distance from `f z` to any
+  intermediate geodesic between points in $f[um, ym]$ and $f[yM, uM]$, up to a constant
+  essentially given by `L`. This is a variation around Lemma 5 in~\<^cite>\<open>"shchur"\<close>. -/
+  have Rec {rm rM} (hrm : rm ∈ Icc um ym) (hrM : rM ∈ Icc uM yM) :
+      Gromov_product_at (f z) (f um) (f uM) ≤ Gromov_product_at (f z) (f rm) (f rM) + (L + 4 * δ) := by
   --     proof -
   --       have *: "dist (f rm) (p rm) + dist (p rm) (f z) ≤ dist (f rm) (f z) + 4 * deltaG X"
   --         apply (rule dist_along_geodesic[of H]) using p H_def by auto
@@ -520,17 +523,31 @@ lemma Morse_Gromov_theorem_aux0
   --       finally show ?thesis
   --         using \<open>deltaG X < δ\<close> by auto
   --     qed
+    sorry
 
-  --     text \<open>We have proved the basic facts we will need in the main argument. This argument starts
-  --     here. It is divided in several cases.\<close>
-  --     consider "dm ≤ D + 4 * C ∧ dM ≤ D + 4 * C" | "dm ≥ D + 4 * C ∧ dM ≤ dm" | "dM ≥ D + 4 * C ∧ dm ≤ dM"
-  --       by linarith
-  --     then show ?thesis
-  --     proof (cases)
-  --       text \<open>Case 2.1 of the description before the statement: there are points in $f[um, ym]$ and
-  --       in $f[yM, uM]$ which are close to $H$. Then one can conclude directly, without relying
-  --       on the inductive argument, thanks to the quasi-isometry property.\<close>
-  --       case 1
+  /- We have proved the basic facts we will need in the main argument. This argument starts
+  here. It is divided in several cases. -/
+  obtain ⟨hdm, hdM⟩ | ⟨hdm, hdmM⟩ | ⟨hdM, hdmM⟩ : (dm ≤ D + 4 * C ∧ dM ≤ D + 4 * C)
+      ∨ (dm ≥ D + 4 * C ∧ dM ≤ dm) ∨ (dM ≥ D + 4 * C ∧ dm ≤ dM) := by
+    obtain hdm1 | hdm2 := le_or_lt dm (D + 4 * C)
+    · obtain hdM1 | hdm2 := le_or_lt dM (D + 4 * C)
+      · left
+        exact ⟨hdm1, hdM1⟩
+      · right
+        right
+        exact ⟨hdm2.le, hdm1.trans hdm2.le⟩
+    · obtain hdmM1 | hdmM2 := le_or_lt dm dM
+      · right
+        right
+        exact ⟨hdm2.le.trans hdmM1, hdmM1⟩
+      · right
+        left
+        exact ⟨hdm2.le, hdmM2.le⟩
+
+  /- Case 2.1 of the description before the statement: there are points in $f[um, ym]$ and
+  in $f[yM, uM]$ which are close to `H`. Then one can conclude directly, without relying
+  on the inductive argument, thanks to the quasi-isometry property. -/
+  ·
   --       have I: "Gromov_product_at (f z) (f closestm) (f closestM) ≤ Λ^2 * (D + L / 2 + δ + 11/2 * C) - 6 * δ"
   --       proof (cases "dist (f closestm) (f closestM) ≤ 12 * δ")
   --         case True
@@ -593,16 +610,18 @@ lemma Morse_Gromov_theorem_aux0
   --         using Laux \<open>Λ ≥ 1\<close> \<open>δ > 0\<close> \<open>Kmult > 0\<close> \<open>um ∈ {a..z}\<close> \<open>uM ∈ {z..b}\<close> \<open>K > 0\<close> by auto
   --       finally show ?thesis
   --         by (simp add: algebra_simps)
-  --       text \<open>End of the easy case 2.1\<close>
-  --     next
-  --       text \<open>Case 2.2: $dm$ is large, i.e., all points in $f[um, ym]$ are far away from $H$. Moreover,
-  --       assume that $dm \geq dM$. Then we will find a pair of points $v$ and $x$ with $um \leq v
-  --       \leq x \leq ym$ satisfying the estimate~\eqref{eq:xvK}. We argue by induction: while we
-  --       have not found such a pair, we can find a point $x_k$ whose projection on $V_k$, the
-  --       neighborhood of size $(2^k-1) dm$ of $H$, is far enough from the projection of $um$, and
-  --       such that all points in between are far enough from $V_k$ so that the corresponding
-  --       projection will have good contraction properties.\<close>
-  --       case 2
+
+    -- End of the easy case 2.1
+    sorry
+
+  /- Case 2.2: `dm` is large, i.e., all points in $f[um, ym]$ are far away from `H`. Moreover,
+  assume that `dm ≥ dM`. Then we will find a pair of points `v` and `x` with `um ≤ v ≤ x ≤ ym`
+  satisfying the estimate~\eqref{eq:xvK}. We argue by induction: while we
+  have not found such a pair, we can find a point `x_k` whose projection on `V_k`, the
+  neighborhood of size `(2^k-1) * dm` of `H`, is far enough from the projection of `um`, and
+  such that all points in between are far enough from $V_k$ so that the corresponding
+  projection will have good contraction properties. -/
+  ·
   --       then have I: "D + 4 * C ≤ dm" "dM ≤ dm" by auto
   --       define V where "V = (\<lambda>k::nat. (\<Union>g∈H. cball g ((2^k - 1) * dm)))"
   --       define QC where "QC = (\<lambda>k::nat. if k = 0 then 0 else 8 * δ)"
@@ -952,9 +971,9 @@ lemma Morse_Gromov_theorem_aux0
   --           qed
   --         qed
   --       qed
-  --       text \<open>This is the end of the main induction over $k$. To conclude, choose $k$ large enough
-  --       so that the second alternative in this induction is impossible. It follows that the first
-  --       alternative holds, i.e., the desired inequality is true.\<close>
+    /- This is the end of the main induction over `k`. To conclude, choose `k` large enough
+    so that the second alternative in this induction is impossible. It follows that the first
+    alternative holds, i.e., the desired inequality is true. -/
   --       have "dm > 0" using I \<open>δ > 0\<close> \<open>C ≥ 0\<close> Laux by auto
   --       have "\<exists>k. 2^k > dist (f um) (p um)/dm + 1"
   --         by (simp add: real_arch_pow)
@@ -969,12 +988,13 @@ lemma Morse_Gromov_theorem_aux0
   --       then show "Gromov_product_at (f z) (f um) (f uM) ≤ Λ\<^sup>2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um)))"
   --         using Ind_k[of k] by auto
   --       text \<open>end of the case where $D + 4 * C \leq dm$ and $dM \leq dm$.\<close>
-  --     next
-  --       case 3
-  --       text \<open>This is the exact copy of the previous case, except that the roles of the points before
-  --       and after $z$ are exchanged. In a perfect world, one would use a lemma subsuming both cases,
-  --       but in practice copy-paste seems to work better here as there are two many details to be
-  --       changed regarding the direction of inequalities.\<close>
+    sorry
+
+  /- This is the exact copy of the previous case, except that the roles of the points before
+  and after `z` are exchanged. In a perfect world, one would use a lemma subsuming both cases,
+  but in practice copy-paste seems to work better here as there are too many details to be
+  changed regarding the direction of inequalities. -/
+  ·
   --       then have I: "D + 4 * C ≤ dM" "dm ≤ dM" by auto
   --       define V where "V = (\<lambda>k::nat. (\<Union>g∈H. cball g ((2^k - 1) * dM)))"
   --       define QC where "QC = (\<lambda>k::nat. if k = 0 then 0 else 8 * δ)"
@@ -1291,7 +1311,7 @@ lemma Morse_Gromov_theorem_aux0
   --     qed
   --   qed
   -- qed
-  sorry
+    sorry
 
 
 /-- The main induction is over. To conclude, one should apply its result to the original
