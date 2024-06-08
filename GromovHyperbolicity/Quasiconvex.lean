@@ -2,6 +2,7 @@
     License: BSD -/
 import GromovHyperbolicity.GromovHyperbolic
 import Mathlib.Tactic.Peel
+import Mathlib.Topology.MetricSpace.Thickening
 
 /-! # Quasiconvexity -/
 
@@ -48,7 +49,7 @@ local notation "δ" => Gromov_hyperbolic_space.deltaG M
 /-- The `r`-neighborhood of a quasi-convex set is still quasi-convex in a hyperbolic space,
 for a constant that does not depend on `r`. -/
 lemma quasiconvex_thickening [Inhabited M] (h : quasiconvex C X) {r : ℝ} (hr : r ≥ 0) :
-    quasiconvex (C + 8 * δ) (⋃ x ∈ X, closedBall x r) where
+    quasiconvex (C + 8 * δ) (cthickening r X) where
   C_nonneg := by
     have := h.C_nonneg
     have := delta_nonneg M

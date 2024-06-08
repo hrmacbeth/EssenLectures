@@ -188,7 +188,7 @@ lemma Morse_Gromov_theorem_aux0
         → uM - um ≤ n * (1/4) * δ / Λ
         → Gromov_product_at (f z) (f um) (f uM)
           ≤ Λ^2 * (D + (3/2) * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um))) := by
-  have := hf'.C_nonneg
+  have hC := hf'.C_nonneg
   have := hf'.one_le_lambda
   have : Inhabited X := ⟨f 0⟩
   have hδ₀ : 0 < δ := by linarith only [hδ, delta_nonneg X]
@@ -527,7 +527,7 @@ lemma Morse_Gromov_theorem_aux0
 
   /- We have proved the basic facts we will need in the main argument. This argument starts
   here. It is divided in several cases. -/
-  obtain ⟨hdm, hdM⟩ | ⟨hdm, hdmM⟩ | ⟨hdM, hdmM⟩ : (dm ≤ D + 4 * C ∧ dM ≤ D + 4 * C)
+  obtain ⟨hdm, hdM⟩ | ⟨I₁, I₂⟩ | ⟨hdM, hdmM⟩ : (dm ≤ D + 4 * C ∧ dM ≤ D + 4 * C)
       ∨ (dm ≥ D + 4 * C ∧ dM ≤ dm) ∨ (dM ≥ D + 4 * C ∧ dm ≤ dM) := by
     obtain hdm1 | hdm2 := le_or_lt dm (D + 4 * C)
     · obtain hdM1 | hdm2 := le_or_lt dM (D + 4 * C)
@@ -610,24 +610,32 @@ lemma Morse_Gromov_theorem_aux0
   satisfying the estimate~\eqref{eq:xvK}. We argue by induction: while we
   have not found such a pair, we can find a point `x_k` whose projection on `V_k`, the
   neighborhood of size `(2^k-1) * dm` of `H`, is far enough from the projection of `um`, and
-  such that all points in between are far enough from $V_k$ so that the corresponding
+  such that all points in between are far enough from `V_k` so that the corresponding
   projection will have good contraction properties. -/
-  ·
-  --       then have I: "D + 4 * C ≤ dm" "dM ≤ dm" by auto
-  --       define V where "V = (\<lambda>k::nat. (\<Union>g∈H. cball g ((2^k - 1) * dm)))"
-  --       define QC where "QC = (\<lambda>k::nat. if k = 0 then 0 else 8 * δ)"
-  --       have "QC k ≥ 0" for k unfolding QC_def using \<open>δ > 0\<close> by auto
-  --       have Q: "quasiconvex (0 + 8 * deltaG X) (V k)" for k
-  --         unfolding V_def apply (rule quasiconvex_thickening) using geodesic_segmentI[OF H]
-  --         by (auto simp add: quasiconvex_of_geodesic)
-  --       have "quasiconvex (QC k) (V k)" for k
-  --         apply (cases "k = 0")
-  --         apply (simp add: V_def QC_def quasiconvex_of_geodesic geodesic_segmentI[OF H])
-  --         apply (rule quasiconvex_mono[OF _ Q[of k]]) using \<open>deltaG X < δ\<close> QC_def by auto
-  --       text \<open>Define $q(k, x)$ to be the projection of $f(x)$ on $V_k$.\<close>
-  --       define q::"nat → real → 'a" where "q = (\<lambda>k x. geodesic_segment_param {p x‒f x} (p x) ((2^k - 1) * dm))"
+  · let V : ℕ → Set X := fun k ↦ cthickening ((2^k - 1) * dm) H
+    let QC : ℕ → ℝ := fun k ↦ if k = 0 then 0 else 8 * δ
+    have {k : ℕ} : 0 ≤ QC k := by dsimp [QC]; split <;> positivity
+    have Q (k : ℕ) : quasiconvex (0 + 8 * deltaG X) (V k) := by
+      apply quasiconvex_thickening
+      · apply quasiconvex_of_geodesic ⟨_, _, h_H⟩
+      · have : 1 ≤ (2:ℝ) ^ k := one_le_pow_of_one_le (by norm_num) k
+        have : 0 ≤ (2:ℝ) ^ k - 1 := by linarith only [this]
+        have : 0 ≤ dm := by dsimp [D] at I₁; linarith only [I₁, hC, hδ₀]
+        positivity
+    have (k : ℕ) : quasiconvex (QC k) (V k) := by
+      dsimp [QC]
+      split_ifs with h
+      · simp only [h, pow_zero, sub_self, zero_mul, V, cthickening_zero]
+        rw [IsClosed.closure_eq]
+        · apply quasiconvex_of_geodesic ⟨_, _, h_H⟩
+        exact (geodesic_segment_topology ⟨_, _, h_H⟩).2.2.2.2.1
+      · refine quasiconvex_mono ?_ (Q k)
+        linarith only [hδ]
 
-  --       text \<open>The inductive argument\<close>
+    -- Define `q k x` to be the projection of `f x` on `V k`.
+    let q : ℕ → ℝ → X := fun k x ↦ geodesic_segment_param {p x‒f x} (p x) ((2^k - 1) * dm)
+
+    -- The inductive argument
   --       have Ind_k: "(Gromov_product_at (f z) (f um) (f uM) ≤ Λ^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp(- K * (uM - um))))
   --             \<or> (\<exists>x ∈ {um..ym}. (∀ w ∈ {um..x}. dist (f w) (p w) ≥ (2^(k+1)-1) * dm) ∀  dist (q k um) (q k x) ≥ L - 4 * δ + 7 * QC k)" for k
   --       proof (induction k)
