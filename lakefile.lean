@@ -11,7 +11,7 @@ package «gromov-hyperbolicity» where
   ]
 
 require mathlib from git
-  "https://github.com/leanprover-community/mathlib4.git" @ s!"v{Lean.versionString}"
+  "https://github.com/leanprover-community/mathlib4.git" @ s!"c995db1feabfe4b1d204e24ac689001d44484bc9"
 
 @[default_target]
 lean_lib GromovHyperbolicity

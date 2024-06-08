@@ -99,12 +99,14 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
   /- Third step: prove the estimate -/
   have A : M - 4 * δ + dist x' y' ≤ dist px y' := by
     have h₁ := le_min Ixx.ge <| le_min Ix Ixy
-    have h₂ : _ ≤ _ / 2 := hyperb_ineq_4_points px x' x y y'
+    have h₂ := hyperb_ineq_4_points px x' x y y'
+    change _ ≤ _ / 2 at h₂
     linarith only [hpxx'M, hδ, h₁, h₂]
   have B : M - 4 * δ + dist x' y' ≤ dist py x' := by
     rw [Gromov_product_commute] at Iyx Iyy
     have h₁ := le_min Iyx.le <| le_min Iy Iyy.ge
-    have h₂ : _ ≤ _ / 2 := hyperb_ineq_4_points py x' x y y'
+    have h₂ := hyperb_ineq_4_points py x' x y y'
+    change _ ≤ _ / 2 at h₂
     linarith only [hpyy'M, hδ, h₁, h₂]
   have hpxpy : dist px py ≤ 2 * M - 10 * δ := by linarith only [hpxpyδ, hM]
   have : 2 * M - 10 * δ + 2 * dist x' y'
