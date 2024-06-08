@@ -392,7 +392,7 @@ lemma Morse_Gromov_theorem_aux0
     · exact isCompact_Icc
     · rw [nonempty_Icc]
       exact hyM.1.2
-  let dM : ℝ := infDist (f closestm) H
+  let dM : ℝ := infDist (f closestM) H
   have : 0 ≤ dM := infDist_nonneg
 
   /- Points between `f um` and `f ym`, or between `f yM` and `f uM`, project within
@@ -432,7 +432,7 @@ lemma Morse_Gromov_theorem_aux0
   /- Auxiliary fact for later use:
   The distance between two points in $[um, ym]$ and $[yM, uM]$ can be controlled using
   the distances of their images under `f` to `H`, thanks to the quasi-isometry property. -/
-  have hD {rm rM} (hrm : rm ∈ Icc um ym) (hrM : rM ∈ Icc uM yM) :
+  have hD {rm rM} (hrm : rm ∈ Icc um ym) (hrM : rM ∈ Icc yM uM) :
       dist rm rM ≤ Λ * (infDist (f rm) H + (L + C + 2 * δ) + infDist (f rM) H) := by
   --     proof -
   --       have *: "dist m (p rm) ≤ L + dist m pi_z" "dist m (p rM) ≤ L + dist m pi_z"
@@ -462,7 +462,7 @@ lemma Morse_Gromov_theorem_aux0
   the distance from `f z` to `pi_z` is controlled by the distance from `f z` to any
   intermediate geodesic between points in $f[um, ym]$ and $f[yM, uM]$, up to a constant
   essentially given by `L`. This is a variation around Lemma 5 in~\<^cite>\<open>"shchur"\<close>. -/
-  have Rec {rm rM} (hrm : rm ∈ Icc um ym) (hrM : rM ∈ Icc uM yM) :
+  have Rec {rm rM} (hrm : rm ∈ Icc um ym) (hrM : rM ∈ Icc yM uM) :
       Gromov_product_at (f z) (f um) (f uM) ≤ Gromov_product_at (f z) (f rm) (f rM) + (L + 4 * δ) := by
   --     proof -
   --       have *: "dist (f rm) (p rm) + dist (p rm) (f z) ≤ dist (f rm) (f z) + 4 * deltaG X"
@@ -547,72 +547,63 @@ lemma Morse_Gromov_theorem_aux0
   /- Case 2.1 of the description before the statement: there are points in $f[um, ym]$ and
   in $f[yM, uM]$ which are close to `H`. Then one can conclude directly, without relying
   on the inductive argument, thanks to the quasi-isometry property. -/
-  ·
-  --       have I: "Gromov_product_at (f z) (f closestm) (f closestM) ≤ Λ^2 * (D + L / 2 + δ + 11/2 * C) - 6 * δ"
-  --       proof (cases "dist (f closestm) (f closestM) ≤ 12 * δ")
-  --         case True
-  --         have "1/lambda * dist closestm closestM - C ≤ dist (f closestm) (f closestM)"
-  --           using quasi_isometry_onD(2)[OF assms(2)] \<open>closestm ∈ {um..ym}\<close> \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> \<open>ym ∈ {um..z}\<close>
-  --           \<open>closestM ∈ {yM..uM}\<close> \<open>uM ∈ {z..b}\<close> \<open>z ∈ Icc a b\<close> \<open>yM ∈ {z..uM}\<close> by auto
-  --         then have := calc dist closestm closestM ≤ Λ * dist (f closestm) (f closestM) + Λ * C"
-  --           using \<open>Λ ≥ 1\<close> by (auto simp add: divide_simps algebra_simps)
-  --         _ ≤ Λ * (12 * δ) + Λ * C"
-  --           apply (intro mono_intros True) using \<open>Λ ≥ 1\<close> by auto
-  --         finally have M: "dist closestm closestM ≤ Λ * (12 * δ + C)"
-  --           by (auto simp add: algebra_simps)
-
-  --         have := calc 2 * Gromov_product_at (f z) (f closestm) (f closestM) ≤ dist (f closestm) (f z) + dist (f z) (f (closestM))"
-  --           unfolding Gromov_product_at_def by (auto simp add: metric_space_class.dist_commute)
-  --         _ ≤ (lambda * dist closestm z + C) + (lambda * dist z closestM + C)"
-  --           apply (intro mono_intros quasi_isometry_onD(1)[OF assms(2)])
-  --           using \<open>closestm ∈ {um..ym}\<close> \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> \<open>ym ∈ {um..z}\<close>
-  --           \<open>closestM ∈ {yM..uM}\<close> \<open>uM ∈ {z..b}\<close> \<open>z ∈ Icc a b\<close> \<open>yM ∈ {z..uM}\<close> by auto
-  --         _ = Λ * dist closestm closestM + 1 * 2 * C"
-  --           unfolding dist_real_def using \<open>closestm ∈ {um..ym}\<close> \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> \<open>ym ∈ {um..z}\<close>
-  --           \<open>closestM ∈ {yM..uM}\<close> \<open>uM ∈ {z..b}\<close> \<open>z ∈ Icc a b\<close> \<open>yM ∈ {z..uM}\<close> by (auto simp add: algebra_simps)
-  --         _ ≤ Λ * (lambda * (12 * δ + C)) + Λ^2 * 2 * C"
-  --           apply (intro mono_intros M) using \<open>Λ ≥ 1\<close> \<open>C ≥ 0\<close> by auto
-  --         _ = Λ^2 * (24 * δ + 3 * C) - Λ^2 * 12 * δ"
-  --           by (simp add: algebra_simps power2_eq_square)
-  --         _ ≤ Λ^2 * ((2 * D + L + 2 * δ) + 11 * C) - 1 * 12 * δ"
-  --           apply (intro mono_intros) using Laux \<open>Λ ≥ 1\<close> \<open>C ≥ 0\<close> \<open>δ > 0\<close> by auto
-  --         finally show ?thesis
-  --           by (auto simp add: divide_simps algebra_simps)
-  --       next
-  --         case False
-  --         have := calc dist closestm closestM ≤ Λ * (dm + dM + L + 2 * δ + C)"
-  --           using D[OF \<open>closestm ∈ {um..ym}\<close> \<open>closestM ∈ {yM..uM}\<close>] dm_def dM_def by (auto simp add: algebra_simps)
-  --         _ ≤ Λ * ((D + 4 * C) + (D + 4 * C) + L + 2 * δ + C)"
-  --           apply (intro mono_intros) using 1 \<open>Λ ≥ 1\<close> by auto
-  --         _ ≤ Λ * (2 * D + L + 2 * δ + 9 * C)"
-  --           using \<open>Λ ≥ 1\<close> \<open>C ≥ 0\<close> by auto
-  --         finally have M: "dist closestm closestM ≤ Λ * (2 * D + L + 2 * δ + 9 * C)"
-  --           by (auto simp add: algebra_simps divide_simps metric_space_class.dist_commute)
-
-  --         have := calc dist (f closestm) (f z) + dist (f z) (f (closestM)) ≤ (lambda * dist closestm z + C) + (lambda * dist z closestM + C)"
-  --           apply (intro mono_intros quasi_isometry_onD(1)[OF assms(2)])
-  --           using \<open>closestm ∈ {um..ym}\<close> \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> \<open>ym ∈ {um..z}\<close>
-  --           \<open>closestM ∈ {yM..uM}\<close> \<open>uM ∈ {z..b}\<close> \<open>z ∈ Icc a b\<close> \<open>yM ∈ {z..uM}\<close> by auto
-  --         _ = Λ * dist closestm closestM + 1 * 2 * C"
-  --           unfolding dist_real_def using \<open>closestm ∈ {um..ym}\<close> \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> \<open>ym ∈ {um..z}\<close>
-  --           \<open>closestM ∈ {yM..uM}\<close> \<open>uM ∈ {z..b}\<close> \<open>z ∈ Icc a b\<close> \<open>yM ∈ {z..uM}\<close> by (auto simp add: algebra_simps)
-  --         _ ≤ Λ * (lambda * (2 * D + L + 2 * δ + 9 * C)) + Λ^2 * 2 * C"
-  --           apply (intro mono_intros M) using \<open>Λ ≥ 1\<close> \<open>C ≥ 0\<close> by auto
-  --         finally have "dist (f closestm) (f z) + dist (f z) (f closestM) ≤ Λ^2 * (2 * D + L + 2 * δ + 11 * C)"
-  --           by (simp add: algebra_simps power2_eq_square)
-  --         then show ?thesis
-  --           unfolding Gromov_product_at_def using False by (simp add: metric_space_class.dist_commute algebra_simps divide_simps)
-  --       qed
-  --       have := calc Gromov_product_at (f z) (f um) (f uM) ≤ Gromov_product_at (f z) (f closestm) (f closestM) + 1 * L + 4 * δ + 0 * (1 - exp (- K * (uM - um)))"
-  --         using Rec[OF \<open>closestm ∈ {um..ym}\<close> \<open>closestM ∈ {yM..uM}\<close>] by simp
-  --       _ ≤ (lambda^2 * (D + L / 2 + δ + 11/2 * C) - 6 * δ) + Λ^2 * L + 4 * δ + Kmult * (1 - exp (- K * (uM - um)))"
-  --         apply (intro mono_intros I)
-  --         using Laux \<open>Λ ≥ 1\<close> \<open>δ > 0\<close> \<open>Kmult > 0\<close> \<open>um ∈ {a..z}\<close> \<open>uM ∈ {z..b}\<close> \<open>K > 0\<close> by auto
-  --       finally show ?thesis
-  --         by (simp add: algebra_simps)
-
+  · have I : Gromov_product_at (f z) (f closestm) (f closestM) ≤ Λ^2 * (D + L / 2 + δ + 11/2 * C) - 6 * δ := by
+      have H :=
+      calc dist (f closestm) (f z) + dist (f z) (f (closestM))
+            ≤ (Λ * |closestm - z| + C) + (Λ * |z - closestM| + C) := by
+              rw [← Real.dist_eq]
+              gcongr
+              · exact hf'.upper_bound (h_um_ym_subset hclosestm.1) hz
+              · exact hf'.upper_bound hz (h_uM_yM_subset hclosestM.1)
+          _ = Λ * |closestm - closestM| + 1 * 2 * C := by
+              have h₁ := hclosestm.1.2
+              have h₂ := hclosestM.1.1
+              have h₃ := hym.1.2
+              have h₄ := hyM.1.1
+              rw [abs_of_nonpos, abs_of_nonpos, abs_of_nonpos] <;> linarith only [h₁, h₂, h₃, h₄]
+      by_cases h_closest : dist (f closestm) (f closestM) ≤ 12 * δ
+      · have :=
+        calc 2 * Gromov_product_at (f z) (f closestm) (f closestM)
+            ≤ dist (f closestm) (f z) + dist (f z) (f (closestM)) := by
+              dsimp [Gromov_product_at]
+              have := @dist_nonneg _ _ (f closestm) (f closestM)
+              simp only [dist_comm] at this ⊢
+              linarith only [this]
+          _ ≤ Λ * |closestm - closestM| + 1 * 2 * C := H
+          _ = Λ ^ 2 * (1 / Λ * |closestm - closestM| - C) + Λ ^ 2 * C + 1 * 2 * C := by
+              field_simp
+              ring
+          _ ≤ Λ ^ 2 * dist (f closestm) (f closestM) + Λ ^ 2 * C + 1 * 2 * C := by
+              gcongr
+              rw [← Real.dist_eq]
+              exact hf'.lower_bound (h_um_ym_subset hclosestm.1) (h_uM_yM_subset hclosestM.1)
+          _ ≤ Λ ^ 2 * (12 * δ) + Λ ^ 2 * C + Λ ^ 2 * 2 * C:= by gcongr
+          _ = Λ^2 * (24 * δ + 3 * C) - Λ^2 * 12 * δ := by ring
+          _ ≤ Λ^2 * ((2 * D + L + 2 * δ) + 11 * C) - 1 * 12 * δ := by
+              gcongr
+              . dsimp [D, L]
+                linarith only [hδ₀]
+              · norm_num
+        linarith only [this]
+      · have :=
+        calc dist (f closestm) (f z) + dist (f z) (f (closestM))
+            ≤ Λ * |closestm - closestM| + 1 * 2 * C := H
+          _ ≤ Λ * (Λ * (dm + (L + C + 2 * δ) + dM)) + 1 * 2 * C := by
+              gcongr
+              exact hD hclosestm.1 hclosestM.1
+          _ ≤ Λ * (Λ * ((D + 4 * C) + (L + C + 2 * δ) + (D + 4 * C))) + Λ^2 * 2 * C := by gcongr
+        simp only [Gromov_product_at, dist_comm] at this h_closest ⊢
+        linarith only [this, h_closest]
+    calc Gromov_product_at (f z) (f um) (f uM)
+        ≤ Gromov_product_at (f z) (f closestm) (f closestM) + 1 * L + 4 * δ + 0 * (1 - exp (- K * (uM - um))) := by
+          convert Rec hclosestm.1 hclosestM.1 using 1
+          ring
+      _ ≤ (Λ^2 * (D + L / 2 + δ + 11/2 * C) - 6 * δ) + Λ^2 * L + 4 * δ + Kmult * (1 - exp (- K * (uM - um))) := by
+          gcongr
+          simp only [neg_mul, sub_nonneg, exp_le_one_iff, neg_le, neg_zero]
+          positivity
+      _ = _ := by field_simp; ring
     -- End of the easy case 2.1
-    sorry
 
   /- Case 2.2: `dm` is large, i.e., all points in $f[um, ym]$ are far away from `H`. Moreover,
   assume that `dm ≥ dM`. Then we will find a pair of points `v` and `x` with `um ≤ v ≤ x ≤ ym`
