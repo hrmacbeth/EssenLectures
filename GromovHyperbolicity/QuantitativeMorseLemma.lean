@@ -30,7 +30,7 @@ variable {X : Type*} [MetricSpace X] [Gromov_hyperbolic_space X] [GeodesicSpace 
 
 open Gromov_hyperbolic_space
 
-set_option maxHeartbeats 400000 in
+set_option maxHeartbeats 500000 in
 /-- The next statement is the main step in the proof of the Morse-Gromov theorem given by Shchur
 in~\<^cite>\<open>"shchur"\<close>, asserting that a quasi-geodesic and a geodesic with the same endpoints are close.
 We show that a point on the quasi-geodesic is close to the geodesic -- the other inequality will
@@ -198,6 +198,7 @@ lemma Morse_Gromov_theorem_aux0
   -- have "K > 0" "L > 0" "D > 0" unfolding K_def L_def D_def using \<open>δ > 0\<close> \<open>Λ ≥ 1\<close> alpha_def by auto
   -- have Laux: "L ≥ 18 * δ" "D ≥ 50 * δ" "L ≤ D" "D ≤ 4 * L" unfolding L_def D_def using \<open>δ > 0\<close> by auto
   -- have Daux: "8 * δ ≤ (1 - α) * D" unfolding alpha_def D_def using \<open>δ > 0\<close> by auto
+  have : 0 < K := by ring_nf; positivity
   have : 1 ≤ Λ ^ 2 := by nlinarith only [hf'.one_le_lambda]
   have : Kmult > 0 := by ring_nf; positivity --" unfolding Kmult_def using Laux \<open>δ > 0\<close> \<open>K > 0\<close> \<open>Λ ≥ 1\<close> by (auto simp add: divide_simps)
 
@@ -758,46 +759,59 @@ lemma Morse_Gromov_theorem_aux0
         have : infDist (f v) H ≤ (2^(k+2)-1) * dm := sorry
   --               using v proj_setD(2)[OF p[of v]] by auto
         have :=
-        calc dist v closestM ≤ Λ * (infDist (f v) H + (L + C + 2 * δ) + infDist (f closestM) H) := sorry
+        calc |v - closestM| ≤ Λ * (infDist (f v) H + (L + C + 2 * δ) + infDist (f closestM) H) := sorry
   --               apply (rule D)
   --               using \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> \<open>x ∈ {um..ym}\<close> \<open>ym ∈ {um..z}\<close> \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> \<open>closestM ∈ {yM..uM}\<close> \<open>yM ∈ {z..uM}\<close> \<open>uM ∈ {z..b}\<close> by auto
-          _ ≤ Λ * ((2^(k+2)-1) * dm + 1 * (L + C + 2 * δ) + dM) := sorry
-  --               apply (intro mono_intros \<open>infDist (f v) H ≤ (2^(k+2)-1) * dm\<close>)
-  --               using dM_def \<open>Λ ≥ 1\<close> \<open>L > 0\<close> \<open>C ≥ 0\<close> \<open>δ > 0\<close> by (auto simp add: metric_space_class.dist_commute)
-          _ ≤ Λ * ((2^(k+2)-1) * dm + 2^k * (((L + 2 * δ)/D) * dm) + dm) := sorry
-  --               apply (intro mono_intros) using I \<open>Λ ≥ 1\<close> \<open>C ≥ 0\<close> \<open>δ > 0\<close> \<open>L > 0\<close> aux2 by auto
-          _ = Λ * 2^k * (4 + (L + 2 * δ)/D) * dm := sorry
-  --               by (simp add: algebra_simps)
-        have : dist v closestM / (Λ * (4 + (L + 2 * δ)/D)) ≤ 2^k * dm := sorry -- `*`
+          _ ≤ Λ * ((2^(k+2)-1) * dm + (L + C + 2 * δ) + dM) := by gcongr
+          _ = Λ * ((2^(k+2)-1) * dm + 1 * (L + C + 2 * δ) + dM) := by ring
+          _ ≤ Λ * ((2^(k+2)-1) * dm + 2^k * (((L + 2 * δ)/D) * dm) + dm) := by
+              gcongr
+              apply one_le_pow_of_one_le
+              norm_num
+          _ = Λ * 2^k * (4 + (L + 2 * δ)/D) * dm := by ring
+        have : |v - closestM| / (Λ * (4 + (L + 2 * δ)/D)) ≤ 2^k * dm := sorry -- `*`
   --               using \<open>Λ ≥ 1\<close> \<open>L > 0\<close> \<open>D > 0\<close> \<open>δ > 0\<close> by (simp add: divide_simps, simp add: algebra_simps)
         /- We reformulate this control inside of an exponential, as this is the form we
         will use later on. -/
         have :=
         calc exp (- (α * (2^k * dm) * log 2 / (5 * δ)))
-            ≤ exp (-(α * (dist v closestM / (Λ * (4 + (L + 2 * δ)/D))) * log 2 / (5 * δ))) := sorry
-  --               apply (intro mono_intros *) using alphaaux \<open>δ > 0\<close> by auto
-          _ = exp (-K * dist v closestM) := sorry
-  --               unfolding K_def by (simp add: divide_simps)
-          _ = exp (-K * (closestM - v)) := sorry
+            ≤ exp (-(α * (|v - closestM| / (Λ * (4 + (L + 2 * δ)/D))) * log 2 / (5 * δ))) := by
+              gcongr
+          _ = exp (-K * |v - closestM|) := by
+              dsimp [K]
+              congr
+              field_simp
+              ring
+          _ = exp (-K * (closestM - v)) := by
+              congr
+              rw [abs_of_nonpos]
+              · ring
+              sorry
   --               unfolding dist_real_def using \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> \<open>x ∈ {um..ym}\<close> \<open>ym ∈ {um..z}\<close> \<open>yM ∈ {z..uM}\<close> \<open>closestM ∈ {yM..uM}\<close> \<open>K > 0\<close> by auto
-        have : exp (- (α * (2^k * dm) * log 2 / (5 * δ))) ≤ exp (-K * (closestM - v)) := sorry
-  --               by simp
+        have : 0 ≤ x - v := sorry
         -- Plug in `x-v` to get the final form of this inequality.
         have :=
         calc K * (x - v) * exp (- (α * (2^k * dm) * log 2 / (5 * δ)))
-            ≤ K * (x - v) * exp (-K * (closestM - v)) := sorry
-  --               apply (rule mult_left_mono)
-  --               using \<open>δ > 0\<close> \<open>Λ ≥ 1\<close> \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> \<open>K > 0\<close> by auto
-          _ = ((1 + K * (x - v)) - 1) * exp (- K * (closestM - v)) := sorry
-  --               by (auto simp add: algebra_simps)
-          _ ≤ (exp (K * (x - v)) - 1) * exp (-K * (closestM - v)) := sorry
-  --               by (intro mono_intros, auto)
-          _ = exp (-K * (closestM - x)) - exp (-K * (closestM - v)) := sorry
-  --               by (simp add: algebra_simps mult_exp_exp)
-          _ ≤ exp (-K * (closestM - x)) - exp (-K * (uM - um)) := sorry
+            ≤ K * (x - v) * exp (-K * (closestM - v)) := by gcongr
+          _ = ((K * (x - v) + 1) - 1) * exp (- K * (closestM - v)) := by ring
+          _ ≤ (exp (K * (x - v)) - 1) * exp (-K * (closestM - v)) := by gcongr; apply add_one_le_exp
+          _ = exp (-K * (closestM - x)) - exp (-K * (closestM - v)) := by
+              rw [sub_mul, ← exp_add]
+              ring_nf
+          _ ≤ exp (-K * (closestM - x)) - exp (-K * (uM - um)) := by
+              gcongr _ - exp ?_
+              apply mul_le_mul_of_nonpos_left
+              · sorry
   --               using \<open>K > 0\<close> \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> \<open>x ∈ {um..ym}\<close> \<open>ym ∈ {um..z}\<close> \<open>yM ∈ {z..uM}\<close> \<open>closestM ∈ {yM..uM}\<close> by auto
-        have B : (x - v) * exp (- (α * 2^k * dm * log 2 / (5 * δ)))
-            ≤ (exp (-K * (closestM - x)) - exp (-K * (uM-um)))/K := sorry
+              rw [Left.neg_nonpos_iff]
+              positivity
+        have B : (x - v) * exp (- (α * (2^k * dm) * log 2 / (5 * δ)))
+            ≤ (exp (-K * (closestM - x)) - exp (-K * (uM-um)))/K := by
+          rw [le_div_iff]
+          · convert this using 1
+            ring
+          positivity
+          -- sorry
   --               using \<open>K > 0\<close> by (auto simp add: divide_simps algebra_simps)
         -- End of substep 1
 
@@ -888,18 +902,17 @@ lemma Morse_Gromov_theorem_aux0
   --               apply (intro mono_intros) using aux3 \<open>δ > 0\<close> \<open>Λ ≥ 1\<close> \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> by auto
           _ = (4 * exp (1/2 * log 2)) * Λ * (x - v) * (exp (-(1-α) * D * log 2 / (5 * δ)) * exp (-α * 2^k * dm * log 2 / (5 * δ))) := sorry
   --               unfolding mult_exp_exp by (auto simp add: algebra_simps divide_simps)
-          _ ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((x - v) * exp (-(α * 2^k * dm * log 2 / (5 * δ)))) := sorry
+          _ ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((x - v) * exp (-(α * (2^k * dm) * log 2 / (5 * δ)))) := sorry
   --               by (simp add: algebra_simps)
         -- This is the end of the second substep.
 
-        have : 0 ≤ x - v := sorry
         /- Use the second substep to show that `x-v` is bounded below, and therefore
         that `closestM - x` (the endpoints of the new geodesic we want to consider in the
         inductive argument) are quantitatively closer than `uM - um`, which means that we
         will be able to use the inductive assumption over this new geodesic. -/
         have :=
         calc L - 13 * δ
-            ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((x - v) * exp (-(α * 2^k * dm * log 2 / (5 * δ)))) := A  --
+            ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((x - v) * exp (-(α * (2^k * dm) * log 2 / (5 * δ)))) := A  --
           _ ≤ (4 * exp (1/2 * log 2)) * Λ * exp 0 * ((x - v) * exp 0) := by
               gcongr
               · rw [Left.neg_nonpos_iff]
@@ -948,7 +961,7 @@ lemma Morse_Gromov_theorem_aux0
         calc L + 4 * δ = ((L + 4 * δ)/(L - 13 * δ)) * (L - 13 * δ) := by field_simp
           _ ≤ ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp (1/2 * log 2)) * Λ
               * exp (- ((1 - α) * D * log 2 / (5 * δ))) * ((x - v)
-              * exp (- (α * 2 ^ k * dm * log 2 / (5 * δ))))) := by gcongr
+              * exp (- (α * (2 ^ k * dm) * log 2 / (5 * δ))))) := by gcongr
           _ ≤ ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp (1/2 * log 2)) * Λ
               * exp (- ((1 - α) * D * log 2 / (5 * δ)))
               * ((exp (-K * (closestM - x)) - exp (-K * (uM - um)))/K)) := by gcongr
