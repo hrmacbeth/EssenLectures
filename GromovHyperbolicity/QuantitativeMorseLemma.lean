@@ -908,16 +908,26 @@ lemma Morse_Gromov_theorem_aux0
           ((4 * exp (1/2 * log 2)) * Λ * (x - v) * exp (-(dm * 2^k - C/2 - QC k) * log 2 / (5 * δ))) := by
           linarith only [this]
         have A :=
-        calc L - 13 * δ ≤ (4 * exp (1/2 * log 2)) * Λ * (x - v) * exp (-(dm * 2^k - C/2 - QC k) * log 2 / (5 * δ)) := sorry
-  --               using \<open>δ > deltaG X\<close> Laux by auto
---             /- We separate the exponential gain coming from the contraction into two parts, one
---             to be spent to improve the constant, and one for the inductive argument. -/
-          _ ≤ (4 * exp (1/2 * log 2)) * Λ * (x - v) * exp (-((1-α) * D + α * 2^k * dm) * log 2 / (5 * δ)) := sorry
-  --               apply (intro mono_intros) using aux3 \<open>δ > 0\<close> \<open>Λ ≥ 1\<close> \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> by auto
-          _ = (4 * exp (1/2 * log 2)) * Λ * (x - v) * (exp (-(1-α) * D * log 2 / (5 * δ)) * exp (-α * 2^k * dm * log 2 / (5 * δ))) := sorry
-  --               unfolding mult_exp_exp by (auto simp add: algebra_simps divide_simps)
-          _ ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((x - v) * exp (-(α * (2^k * dm) * log 2 / (5 * δ)))) := sorry
-  --               by (simp add: algebra_simps)
+        calc L - 13 * δ
+            ≤ (4 * exp (1/2 * log 2)) * Λ * (x - v)
+              * exp (-(dm * 2^k - C/2 - QC k) * log 2 / (5 * δ)) := by
+              rw [le_max_iff] at this
+              apply this.resolve_left
+              push_neg
+              dsimp [L]
+              linarith only [hδ]
+          /- We separate the exponential gain coming from the contraction into two parts, one
+          to be spent to improve the constant, and one for the inductive argument. -/
+          _ ≤ (4 * exp (1/2 * log 2)) * Λ * (x - v)
+              * exp (-((1-α) * D + α * 2^k * dm) * log 2 / (5 * δ)) := by
+              gcongr -- `aux3`
+          _ = (4 * exp (1/2 * log 2)) * Λ * 1 * ((x - v)
+              * (exp (-(1-α) * D * log 2 / (5 * δ)) * exp (-α * 2^k * dm * log 2 / (5 * δ)))) := by
+              rw [← exp_add]
+              ring_nf
+          _ = (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((x - v)
+              * exp (-(α * (2^k * dm) * log 2 / (5 * δ)))) := by
+              ring_nf
         -- This is the end of the second substep.
 
         /- Use the second substep to show that `x-v` is bounded below, and therefore
