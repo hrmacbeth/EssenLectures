@@ -678,8 +678,7 @@ lemma Morse_Gromov_theorem_aux0
   --             using \<open>0 ≤ dm\<close> less_eq_real_def by fastforce
       have aux2 : L + C + 2 * δ ≤ ((L + 2 * δ)/D) * dm := by
         have :=
-        calc L + C = (L/D) * (D + (D/L) * C) := sorry
-    --             using \<open>L > 0\<close> \<open>D > 0\<close> by (simp add: algebra_simps divide_simps)
+        calc L + C = (L/D) * (D + (D/L) * C) := by field_simp; ring
           _ ≤ (L/D) * (D + 4 * C) := sorry
     --             apply (intro mono_intros)
     --             using \<open>L > 0\<close> \<open>D > 0\<close> \<open>C ≥ 0\<close> \<open>D ≤ 4 * L\<close> by (auto simp add: algebra_simps divide_simps)
@@ -811,8 +810,6 @@ lemma Morse_Gromov_theorem_aux0
           · convert this using 1
             ring
           positivity
-          -- sorry
-  --               using \<open>K > 0\<close> by (auto simp add: divide_simps algebra_simps)
         -- End of substep 1
 
         /- Substep 2: The projections of `f v` and `f x` on the cylinder `V k` are well separated,
@@ -821,15 +818,13 @@ lemma Morse_Gromov_theorem_aux0
         This leads to a uniform lower bound for `(x-v) * exp (-2^k * dm)`, which has been upper bounded
         in Substep 1. -/
         have :=
-        calc L - 4 * δ + 7 * QC k ≤ dist (q k um) (q k x) := sorry
-  --               using x by simp
-          _ ≤ dist (q k um) (q k v) + dist (q k v) (q k x) := sorry
-  --               by (intro mono_intros)
-          _ ≤ (9 * δ + 4 * QC k) + dist (q k v) (q k x) := sorry
-  --               using w(3)[of v] \<open>v ∈ {um..w}\<close> by auto
+        calc L - 4 * δ + 7 * QC k ≤ dist (q k um) (q k x) := hx₃
+          _ ≤ dist (q k um) (q k v) + dist (q k v) (q k x) := dist_triangle ..
+          _ ≤ (9 * δ + 4 * QC k) + dist (q k v) (q k x) := by
+              gcongr
+              apply hw₃ _ hv₁
         have :=
         calc L - 13 * δ + 3 * QC k ≤ dist (q k v) (q k x) := by linarith only [this]
-  --               by simp
           _ ≤ 3 * QC k + max (5 * deltaG X)
                 ((4 * exp (1/2 * log 2)) * Λ * (x - v)
                 * exp (-(dm * 2^k - C/2 - QC k) * log 2 / (5 * δ))) := by
