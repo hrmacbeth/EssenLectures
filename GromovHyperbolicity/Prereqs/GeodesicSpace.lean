@@ -3,6 +3,7 @@
 -/
 import Mathlib.Topology.Connected.PathConnected
 import Mathlib.Topology.MetricSpace.Isometry
+import Mathlib.Topology.MetricSpace.Thickening
 import GromovHyperbolicity.Prereqs.ClosestPointProjection
 
 /-! # Geodesic spaces
@@ -656,6 +657,10 @@ lemma proj_set_geodesic_same_basepoint {x y p : X} {A : Set X} (hp : p ∈ proj_
 --   then show ?thesis by auto
 -- qed
 
+lemma proj_set_thickening {p x : X} {Z : Set X} (hp : p ∈ proj_set x Z) {D : ℝ} (hD : 0 ≤ D)
+    (hD' : D ≤ dist p x) {G : Set X} (hG : geodesic_segment_between G p x) :
+    geodesic_segment_param G p D ∈ proj_set (geodesic_segment_param G p D) (Metric.cthickening D Z) := by
+  sorry
 -- lemma proj_set_thickening:
 --   assumes "p \<in> proj_set x Z"
 --           "0 \<le> D"
@@ -684,13 +689,10 @@ lemma proj_set_geodesic_same_basepoint {x y p : X} {A : Set X} (hp : p ∈ proj_
 --   qed
 -- qed
 
--- lemma proj_set_thickening':
---   assumes "p \<in> proj_set x Z"
---           "0 \<le> D"
---           "D \<le> E"
---           "E \<le> dist p x"
---           "geodesic_segment_between G p x"
---   shows "geodesic_segment_param G p D \<in> proj_set (geodesic_segment_param G p E) (\<Union>z\<in>Z. cball z D)"
+lemma proj_set_thickening' {p x : X} {Z : Set X} (hp : p ∈ proj_set x Z) {D : ℝ} (hD : 0 ≤ D)
+    {E : ℝ} (hDE : D ≤ E) (hE : E ≤ dist p x) {G : Set X} (hG : geodesic_segment_between G p x) :
+    geodesic_segment_param G p D ∈ proj_set (geodesic_segment_param G p E) (Metric.cthickening D Z) := by
+  sorry
 -- proof -
 --   define H where "H = geodesic_subsegment G p D (dist p x)"
 --   have H1: "geodesic_segment_between H (geodesic_segment_param G p D) x"

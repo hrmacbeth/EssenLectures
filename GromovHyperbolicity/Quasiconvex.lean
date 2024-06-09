@@ -2,7 +2,6 @@
     License: BSD -/
 import GromovHyperbolicity.GromovHyperbolic
 import Mathlib.Tactic.Peel
-import Mathlib.Topology.MetricSpace.Thickening
 
 /-! # Quasiconvexity -/
 

@@ -30,6 +30,7 @@ variable {X : Type*} [MetricSpace X] [Gromov_hyperbolic_space X] [GeodesicSpace 
 
 open Gromov_hyperbolic_space
 
+set_option maxHeartbeats 300000 in
 /-- The next statement is the main step in the proof of the Morse-Gromov theorem given by Shchur
 in~\<^cite>\<open>"shchur"\<close>, asserting that a quasi-geodesic and a geodesic with the same endpoints are close.
 We show that a point on the quasi-geodesic is close to the geodesic -- the other inequality will
@@ -327,7 +328,7 @@ lemma Morse_Gromov_theorem_aux0
     · rw [nonempty_Icc]
       exact hym.1.1
   let dm : ℝ := infDist (f closestm) H
-  have : 0 ≤ dm := infDist_nonneg
+  have dm_nonneg : 0 ≤ dm := infDist_nonneg
 
   -- Same things but in the interval $[z, uM]$.
   have I : dist (f um) m + dist m (f uM) = dist (f um) (f uM)
@@ -615,7 +616,7 @@ lemma Morse_Gromov_theorem_aux0
       · have : 1 ≤ (2:ℝ) ^ k := one_le_pow_of_one_le (by norm_num) k
         have : 0 ≤ (2:ℝ) ^ k - 1 := by linarith only [this]
         positivity
-    have (k : ℕ) : quasiconvex (QC k) (V k) := by
+    have V_quasiconvex (k : ℕ) : quasiconvex (QC k) (V k) := by
       dsimp [QC]
       split_ifs with h
       · simp only [h, pow_zero, sub_self, zero_mul, V, cthickening_zero]
@@ -924,42 +925,82 @@ lemma Morse_Gromov_theorem_aux0
       · right
         push_neg at h
         refine ⟨w, ⟨hw₁.1, hw₁.2.trans hx₁.2⟩, fun x hx ↦ (h x hx).le, ?_⟩
-        have : dist (q k um) (q (k+1) um) = 2^k * dm := sorry
-  --                 unfolding q_def apply (subst geodesic_segment_param(7)[where ?y = "f um"])
-  --                 using x(3)[of um] \<open>x ∈ {um..ym}\<close> aux by (auto simp add: metric_space_class.dist_commute, simp add: algebra_simps)
-        have : dist (q k w) (q (k+1) w) = 2^k * dm := sorry
-  --                 unfolding q_def apply (subst geodesic_segment_param(7)[where ?y = "f w"])
-  --                 using x(3)[of w] \<open>w ∈ {um..x}\<close> \<open>x ∈ {um..ym}\<close> aux by (auto simp add: metric_space_class.dist_commute, simp add: algebra_simps)
-        have i : q k um ∈ proj_set (q (k+1) um) (V k) := sorry
-  --                 unfolding q_def V_def apply (rule proj_set_thickening'[of _ "f um"])
-  --                 using p x(3)[of um] \<open>x ∈ {um..ym}\<close> aux by (auto simp add: algebra_simps metric_space_class.dist_commute)
-        have j : q k w ∈ proj_set (q (k+1) w) (V k) := sorry
-  --                 unfolding q_def V_def apply (rule proj_set_thickening'[of _ "f w"])
-  --                 using p x(3)[of w] \<open>x ∈ {um..ym}\<close> \<open>w ∈ {um..x}\<close> aux by (auto simp add: algebra_simps metric_space_class.dist_commute)
-
-        have :=
-        calc 5 * δ + 2 * QC k ≤ dist (q k um) (q k w) := sorry --" using w(2) by simp
-          _ ≤ max (5 * deltaG X + 2 * QC k)
-                (dist (q (k + 1) um) (q (k + 1) w) - dist (q k um) (q (k + 1) um)
-                  - dist (q k w) (q (k + 1) w) + 10 * deltaG X + 4 * QC k) := sorry
-  --                 by (rule proj_along_quasiconvex_contraction[OF \<open>quasiconvex (QC k) (V k)\<close> i j])
-          _ ≤ dist (q (k + 1) um) (q (k + 1) w) - dist (q k um) (q (k + 1) um)
-                  - dist (q k w) (q (k + 1) w) + 10 * deltaG X + 4 * QC k := sorry
-  --                 using \<open>deltaG X < δ\<close> by auto
-        have :=
-        calc 0 ≤ dist (q (k + 1) um) (q (k + 1) w) + 5 * δ + 2 * QC k
-          - dist (q k um) (q (k + 1) um) - dist (q k w) (q (k + 1) w) := sorry
-  --                 using \<open>deltaG X < δ\<close> by auto
-          _ = dist (q (k + 1) um) (q (k + 1) w) + 5 * δ + 2 * QC k - 2^(k+1) * dm := sorry
-  --                 by (simp only: \<open>dist (q k w) (q (k+1) w) = 2^k * dm\<close> \<open>dist (q k um) (q (k+1) um) = 2^k * dm\<close>, auto)
-        have : 2^(k+1) * dm - 5 * δ - 2 * QC k ≤ dist (q (k+1) um) (q (k+1) w) := sorry -- `*`
-  --                 using \<open>deltaG X < δ\<close> by auto
-        calc L - 4 * δ + 7 * QC (k+1) ≤ 2 * dm - 5 * δ - 2 * QC k := sorry
-  --                 unfolding QC_def L_def using \<open>δ > 0\<close> Laux I \<open>C ≥ 0\<close> by auto
-          _ ≤ 2^(k+1) * dm - 5 * δ - 2 * QC k := sorry
-  --                 using aux by (auto simp add: algebra_simps)
-          _ ≤ dist (q (k + 1) um) (q (k + 1) w) := sorry
-  --                 using * by auto
+        have h_pow : (1:ℝ) ≤ 2 ^ k := one_le_pow_of_one_le (by norm_num) k
+        have h_pow' : 0 ≤ (2:ℝ) ^ k - 1 := by linarith only [h_pow]
+        have h_pow'' : (1:ℝ) ≤ 2 ^ (k + 1) := one_le_pow_of_one_le (by norm_num) _
+        have h_pow''' : 0 ≤ (2:ℝ) ^ (k + 1) - 1 := by linarith only [h_pow'']
+        have hdm_mul : 0 ≤ dm * 2 ^ k := by positivity
+        have H₁ : (2 ^ k - 1) * dm ≤ (2 ^ (k + 1) - 1) * dm := by ring_nf; linarith only [hdm_mul]
+        have h₁ : dist (q k um) (q (k+1) um) = 2^k * dm := by
+          dsimp [q]
+          rw [geodesic_segment_param_in_geodesic_spaces7]
+          · rw [abs_of_nonpos]
+            · ring
+            · ring_nf
+              linarith only [hdm_mul]
+          · refine ⟨by positivity, ?_⟩
+            rw [dist_comm]
+            exact H₁.trans (hx₂ _ ⟨by rfl, hx₁.1⟩)
+          · refine ⟨by positivity, ?_⟩
+            rw [dist_comm]
+            refine le_trans ?_ (hx₂ _ ⟨by rfl, hx₁.1⟩)
+            ring_nf
+            linarith only [hdm_mul]
+        have h₂ : dist (q k w) (q (k+1) w) = 2^k * dm := by
+          dsimp [q]
+          rw [geodesic_segment_param_in_geodesic_spaces7]
+          · rw [abs_of_nonpos]
+            · ring
+            · ring_nf
+              linarith only [hdm_mul]
+          · refine ⟨by positivity, ?_⟩
+            rw [dist_comm]
+            exact H₁.trans (hx₂ _ hw₁)
+          · refine ⟨by positivity, ?_⟩
+            rw [dist_comm]
+            refine le_trans ?_ (hx₂ _ hw₁)
+            ring_nf
+            linarith only [hdm_mul]
+        have i : q k um ∈ proj_set (q (k+1) um) (V k) := by
+          refine proj_set_thickening' (hp _) ?_ H₁ ?_ (some_geodesic_is_geodesic_segment _ _).1
+          · positivity
+          · rw [dist_comm]
+            refine le_trans ?_ (h _ ⟨by rfl, hw₁.1⟩).le
+            rw [← sub_nonneg]
+            ring_nf
+            positivity
+        have j : q k w ∈ proj_set (q (k+1) w) (V k) := by
+          refine proj_set_thickening' (hp _) ?_ H₁ ?_ (some_geodesic_is_geodesic_segment _ _).1
+          · positivity
+          · rw [dist_comm]
+            refine le_trans ?_ (h _ ⟨hw₁.1, by rfl⟩).le
+            rw [← sub_nonneg]
+            ring_nf
+            positivity
+        have : 5 * δ + 2 * QC k ≤ dist (q (k + 1) um) (q (k + 1) w) - dist (q k um) (q (k + 1) um)
+                    - dist (q k w) (q (k + 1) w) + 10 * δ + 4 * QC k := by
+          have := proj_along_quasiconvex_contraction (V_quasiconvex k) i j
+          rw [le_max_iff] at this
+          obtain h₁ | h₂ := this
+          · linarith only [h₁, hw₂.1, hδ]
+          · linarith only [h₂, hw₂.1, hδ]
+        calc L - 4 * δ + 7 * QC (k+1) ≤ 2 * dm - 5 * δ - 2 * QC k := by
+              have h₁ : QC (k + 1) = 8 * δ := by simp [QC]
+              have h₂ : QC k ≤ 8 * δ := by
+                dsimp only [QC]
+                split_ifs
+                · positivity
+                · rfl
+              dsimp [L]
+              dsimp [D] at I₁
+              linarith only [I₁, h₁, h₂, hC, hδ₀]
+          _ ≤ 2^(k+1) * dm - 5 * δ - 2 * QC k := by
+              gcongr
+              ring_nf
+              linarith only [h_pow]
+          _ ≤ dist (q (k + 1) um) (q (k + 1) w) := by
+              ring_nf at this h₁ h₂ ⊢
+              linarith only [this, h₁, h₂]
 
     /- This is the end of the main induction over `k`. To conclude, choose `k` large enough
     so that the second alternative in this induction is impossible. It follows that the first
