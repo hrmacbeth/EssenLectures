@@ -432,30 +432,33 @@ lemma Morse_Gromov_theorem_aux0
   The distance between two points in $[um, ym]$ and $[yM, uM]$ can be controlled using
   the distances of their images under `f` to `H`, thanks to the quasi-isometry property. -/
   have hD {rm rM} (hrm : rm ∈ Icc um ym) (hrM : rM ∈ Icc yM uM) :
-      dist rm rM ≤ Λ * (infDist (f rm) H + (L + C + 2 * δ) + infDist (f rM) H) := by
-  --     proof -
-  --       have *: "dist m (p rm) ≤ L + dist m pi_z" "dist m (p rM) ≤ L + dist m pi_z"
-  --         using P0 that by force+
-  --       have := calc dist (p rm) (p rM) = abs(dist (p rm) m - dist (p rM) m)"
-  --         apply (rule dist_along_geodesic_wrt_endpoint[OF geodesic_segment_commute[OF H]])
-  --         using pH by auto
-  --       _ ≤ L + dist m pi_z"
-  --         unfolding abs_le_iff using * apply (auto simp add: metric_space_class.dist_commute)
-  --         by (metis diff_add_cancel le_add_same_cancel1 metric_space_class.zero_le_dist order_trans)+
-  --       finally have *: "dist (p rm) (p rM) ≤ L + 2 * δ"
-  --         using \<open>dist pi_z m ≤ 2 * δ\<close> by (simp add: metric_space_class.dist_commute)
-
-  --       have := calc (1/lambda) * dist rm rM - C ≤ dist (f rm) (f rM)"
-  --         apply (rule quasi_isometry_onD(2)[OF \<open>Λ C-quasi_isometry_on Icc a b f\<close>])
-  --         using \<open>rm ∈ {um..ym}\<close> \<open>ym ∈ {um..z}\<close> \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> \<open>rM ∈ {yM..uM}\<close> \<open>yM ∈ {z..uM}\<close> \<open>uM ∈ {z..b}\<close> by auto
-  --       _ ≤ dist (f rm) (p rm) + dist (p rm) (p rM) + dist (p rM) (f rM)"
-  --         by (intro mono_intros)
-  --       _ ≤ infDist (f rm) H + L + 2 * δ + infDist (f rM) H"
-  --         using * proj_setD(2)[OF p] by (simp add: metric_space_class.dist_commute)
-  --       finally show ?thesis
-  --         using \<open>Λ ≥ 1\<close> by (simp add: algebra_simps divide_simps)
-  --     qed
-    sorry
+      |rm - rM| ≤ Λ * (infDist (f rm) H + (L + C + 2 * δ) + infDist (f rM) H) := by
+    have := -- `*`
+    calc dist (p rm) (p rM) = |dist (p rm) m - dist (p rM) m| := by
+          rw [geodesic_segment_commute] at h_H
+          apply dist_along_geodesic_wrt_endpoint h_H (pH _) (pH _)
+      _ ≤ L + dist m pi_z := by
+          rw [abs_le]
+          have h₁ := P0 (Or.inl hrm)
+          have h₂ := P0 (Or.inr hrM)
+          have h₃ := @dist_nonneg _ _ (p rm) m
+          have h₄ := @dist_nonneg _ _ (p rM) m
+          simp only [dist_comm] at h₁ h₂ h₃ h₄ ⊢
+          constructor
+          · linarith only [h₂, h₃]
+          · linarith only [h₁, h₄]
+    have :=
+    calc (1/Λ) * |rm - rM| - C ≤ dist (f rm) (f rM) :=
+          hf'.lower_bound (h_um_ym_subset hrm) (h_uM_yM_subset hrM)
+      _ ≤ dist (f rm) (p rm) + dist (p rm) (p rM) + dist (p rM) (f rM) := dist_triangle4 ..
+      _ ≤ infDist (f rm) H + (L + 2 * δ) + infDist (f rM) H := by
+          have h₁ := (hp rm).2
+          have h₂ := (hp rM).2
+          simp only [dist_comm] at h₁ h₂ h_pi_z_m this ⊢
+          linarith only [h₁, h₂, h_pi_z_m, this]
+    calc |rm - rM| = Λ * ((1/Λ) * |rm - rM| - C) + Λ * C := by field_simp
+      _ ≤ Λ * (infDist (f rm) H + (L + 2 * δ) + infDist (f rM) H) + Λ * C := by gcongr
+      _ = _ := by ring
 
   /- Auxiliary fact for later use in the inductive argument:
   the distance from `f z` to `pi_z` is controlled by the distance from `f z` to any
@@ -463,66 +466,57 @@ lemma Morse_Gromov_theorem_aux0
   essentially given by `L`. This is a variation around Lemma 5 in~\<^cite>\<open>"shchur"\<close>. -/
   have Rec {rm rM} (hrm : rm ∈ Icc um ym) (hrM : rM ∈ Icc yM uM) :
       Gromov_product_at (f z) (f um) (f uM) ≤ Gromov_product_at (f z) (f rm) (f rM) + (L + 4 * δ) := by
-  --     proof -
-  --       have *: "dist (f rm) (p rm) + dist (p rm) (f z) ≤ dist (f rm) (f z) + 4 * deltaG X"
-  --         apply (rule dist_along_geodesic[of H]) using p H_def by auto
-  --       have := calc dist (f z) pi_z ≤ dist (f z) (p rm) + dist (p rm) pi_z"
-  --         by (intro mono_intros)
-  --       _ ≤ (Gromov_product_at (f z) (f rm) (p rm) + 2 * deltaG X) + L"
-  --         apply (intro mono_intros) using * P \<open>rm ∈ {um..ym}\<close> unfolding Gromov_product_at_def
-  --         by (auto simp add: metric_space_class.dist_commute algebra_simps divide_simps)
-  --       finally have A: "dist (f z) pi_z - L - 2 * deltaG X ≤ Gromov_product_at (f z) (f rm) (p rm)"
-  --         by simp
-  --       have *: "dist (f rM) (p rM) + dist (p rM) (f z) ≤ dist (f rM) (f z) + 4 * deltaG X"
-  --         apply (rule dist_along_geodesic[of H]) using p H_def by auto
-  --       have := calc dist (f z) pi_z ≤ dist (f z) (p rM) + dist (p rM) pi_z"
-  --         by (intro mono_intros)
-  --       _ ≤ (Gromov_product_at (f z) (p rM) (f rM) + 2 * deltaG X) + L"
-  --         apply (intro mono_intros) using * P \<open>rM ∈ {yM..uM}\<close> unfolding Gromov_product_at_def
-  --         by (auto simp add: metric_space_class.dist_commute algebra_simps divide_simps)
-  --       finally have B: "dist (f z) pi_z - L - 2 * deltaG X ≤ Gromov_product_at (f z) (p rM) (f rM)"
-  --         by simp
-  --       have C: "dist (f z) pi_z - L - 2 * deltaG X ≤ Gromov_product_at (f z) (p rm) (p rM)"
-  --       proof (cases "dist (f z) (p rm) ≤ dist (f z) (p rM)")
-  --         case True
-  --         have := calc dist (p rm) (p rM) = abs(dist (f z) (p rm) - dist (f z) (p rM))"
-  --           using proj_setD(1)[OF p] dist_along_geodesic_wrt_endpoint[OF H, of "p rm" "p rM"]
-  --           by (simp add: metric_space_class.dist_commute)
-  --         _ = dist (f z) (p rM) - dist (f z) (p rm)"
-  --           using True by auto
-  --         finally have *: "dist (f z) (p rm) = Gromov_product_at (f z) (p rm) (p rM)"
-  --           unfolding Gromov_product_at_def by auto
-  --         have := calc dist (f z) pi_z ≤ dist (f z) (p rm) + dist (p rm) pi_z"
-  --           by (intro mono_intros)
-  --         _ ≤ Gromov_product_at (f z) (p rm) (p rM) + L + 2 * deltaG X"
-  --           using * P[of rm] \<open>rm ∈ {um..ym}\<close> apply (simp add: metric_space_class.dist_commute)
-  --           using local.delta_nonneg by linarith
-  --         finally show ?thesis by simp
-  --       next
-  --         case False
-  --         have := calc dist (p rm) (p rM) = abs(dist (f z) (p rm) - dist (f z) (p rM))"
-  --           using proj_setD(1)[OF p] dist_along_geodesic_wrt_endpoint[OF H, of "p rm" "p rM"]
-  --           by (simp add: metric_space_class.dist_commute)
-  --         _ = dist (f z) (p rm) - dist (f z) (p rM)"
-  --           using False by auto
-  --         finally have *: "dist (f z) (p rM) = Gromov_product_at (f z) (p rm) (p rM)"
-  --           unfolding Gromov_product_at_def by auto
-  --         have := calc dist (f z) pi_z ≤ dist (f z) (p rM) + dist (p rM) pi_z"
-  --           by (intro mono_intros)
-  --         _ ≤ Gromov_product_at (f z) (p rm) (p rM) + L + 2 * deltaG X"
-  --           using * P[of rM] \<open>rM ∈ {yM..uM}\<close> apply (simp add: metric_space_class.dist_commute)
-  --           using local.delta_nonneg by linarith
-  --         finally show ?thesis by simp
-  --       qed
-
-  --       have := calc Gromov_product_at (f z) (f um) (f uM) - L - 2 * deltaG X ≤ Min {Gromov_product_at (f z) (f rm) (p rm), Gromov_product_at (f z) (p rm) (p rM), Gromov_product_at (f z) (p rM) (f rM)}"
-  --         using A B C unfolding Dpi_z by auto
-  --       _ ≤ Gromov_product_at (f z) (f rm) (f rM) + 2 * deltaG X"
-  --         by (intro mono_intros)
-  --       finally show ?thesis
-  --         using \<open>deltaG X < δ\<close> by auto
-  --     qed
-    sorry
+    have A : dist (f z) pi_z - L - 2 * deltaG X ≤ Gromov_product_at (f z) (f rm) (p rm) := by
+      have h₁ : dist (f rm) (p rm) + dist (p rm) (f z) ≤ dist (f rm) (f z) + 4 * deltaG X :=
+        dist_along_geodesic ⟨_, _, h_H⟩ (hp _) h_H'.2.2
+      have h₂ : dist (f z) pi_z ≤ dist (f z) (p rm) + dist (p rm) pi_z := dist_triangle ..
+      have h₃ := P (Or.inl hrm)
+      simp only [Gromov_product_at, dist_comm] at h₁ h₂ h₃ ⊢
+      linarith only [h₁, h₂, h₃]
+    have B : dist (f z) pi_z - L - 2 * deltaG X ≤ Gromov_product_at (f z) (p rM) (f rM) := by
+      have h₁ : dist (f rM) (p rM) + dist (p rM) (f z) ≤ dist (f rM) (f z) + 4 * deltaG X :=
+        dist_along_geodesic ⟨_, _, h_H⟩ (hp _) h_H'.2.2
+      have h₂ : dist (f z) pi_z ≤ dist (f z) (p rM) + dist (p rM) pi_z := dist_triangle ..
+      have h₃ := P (Or.inr hrM)
+      simp only [Gromov_product_at, dist_comm] at h₁ h₂ h₃ ⊢
+      linarith only [h₁, h₂, h₃]
+    have C : dist (f z) pi_z - L - 2 * deltaG X ≤ Gromov_product_at (f z) (p rm) (p rM) := by
+      by_cases h : dist (f z) (p rm) ≤ dist (f z) (p rM)
+      · have h₁ :=
+        calc dist (p rm) (p rM) = |dist (f z) (p rm) - dist (f z) (p rM)| := by
+              have := dist_along_geodesic_wrt_endpoint h_H (pH rm) (pH rM)
+              simp only [dist_comm] at this ⊢
+              linarith only [this]
+          _ = dist (f z) (p rM) - dist (f z) (p rm) := by
+              rw [abs_of_nonpos]
+              · ring
+              · linarith only [h]
+        have h₂ : dist (f z) pi_z ≤ dist (f z) (p rm) + dist (p rm) pi_z := dist_triangle ..
+        have h₃ := P (Or.inl hrm)
+        simp only [Gromov_product_at, dist_comm] at h h₁ h₂ h₃ ⊢
+        linarith only [h, h₁, h₂, h₃, delta_nonneg X]
+      · have h₁ :=
+        calc dist (p rm) (p rM) = |dist (f z) (p rm) - dist (f z) (p rM)| := by
+              have := dist_along_geodesic_wrt_endpoint h_H (pH rm) (pH rM)
+              simp only [dist_comm] at this ⊢
+              linarith only [this]
+          _ = dist (f z) (p rm) - dist (f z) (p rM) := by
+              rw [abs_of_nonneg]
+              linarith only [h]
+        have h₂ : dist (f z) pi_z ≤ dist (f z) (p rM) + dist (p rM) pi_z := dist_triangle ..
+        have h₃ := P (Or.inr hrM)
+        simp only [Gromov_product_at, dist_comm] at h h₁ h₂ h₃ ⊢
+        linarith only [h, h₁, h₂, h₃, delta_nonneg X]
+    have :=
+    calc Gromov_product_at (f z) (f um) (f uM) - L - 2 * deltaG X
+        ≤ min (Gromov_product_at (f z) (f rm) (p rm))
+            (min (Gromov_product_at (f z) (p rm) (p rM))
+              (Gromov_product_at (f z) (p rM) (f rM))) := by
+          simp only [le_min_iff, ← Dpi_z]
+          exact ⟨A, C, B⟩
+      _ ≤ Gromov_product_at (f z) (f rm) (f rM) + 2 * deltaG X :=
+            hyperb_ineq_4_points' (f z) (f rm) (p rm) (p rM) (f rM)
+    linarith only [this, hδ]
 
   /- We have proved the basic facts we will need in the main argument. This argument starts
   here. It is divided in several cases. -/
@@ -985,8 +979,9 @@ lemma Morse_Gromov_theorem_aux0
     obtain ⟨k, hk⟩ : ∃ k, 2^k > dist (f um) (p um)/dm + 1 := by
       refine tendsto_pow_atTop_atTop_of_one_lt ?_ |>.eventually_gt_atTop _ |>.exists
       norm_num
-    obtain h | ⟨x, hx₁, hx₂, hx₃⟩ := Ind_k k
-    · exact h
+    apply (Ind_k k).resolve_right
+    push_neg
+    intro x hx₁ hx₂
     have H₁ :=
     calc dist (f um) (p um) = ((dist (f um) (p um)/dm + 1) - 1) * dm := by field_simp
       _ < (2^k - 1) * dm := by gcongr
