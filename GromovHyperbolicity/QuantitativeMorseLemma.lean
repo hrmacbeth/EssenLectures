@@ -659,57 +659,54 @@ lemma Morse_Gromov_theorem_aux0
       there is nothing left to prove. Otherwise, we can start from this point at step `k`,
       say `x`, and either prove the desired inequality or construct a point with the good
       properties at step `k + 1`. -/
-      sorry
-  --         case Suck: (Suc k)
-  --         show ?case
-  --         proof (cases "Gromov_product_at (f z) (f um) (f uM) ≤ Λ\<^sup>2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um)))")
-  --           case True
-  --           then show ?thesis by simp
-  --         next
-  --           case False
-  --           then obtain x where x: "x ∈ {um..ym}" "dist (q k um) (q k x) ≥ L - 4 * δ + 7 * QC k"
-  --                                  "∀ w. w ∈ {um..x} → dist (f w) (p w) ≥ (2^(k+1)-1) * dm"
-  --             using Suck.IH by auto
+      by_cases h :
+        Gromov_product_at (f z) (f um) (f uM)
+          ≤ Λ ^ 2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um)))
+      · exact Or.inl h
 
-  --           text \<open>Some auxiliary technical inequalities to be used later on.\<close>
-  --           have aux: "(2 ^ k - 1) * dm ≤ (2*2^k-1) * dm" "0 ≤ 2 * 2 ^ k - (1::real)" "dm ≤ dm * 2 ^ k"
+      obtain ⟨x, hx₁, hx₂, hx₃⟩ :
+        ∃ x ∈ Icc um ym, (∀ w, w ∈ Icc um x → dist (f w) (p w) ≥ (2^(k+1)-1) * dm)
+          ∧ dist (q k um) (q k x) ≥ L - 4 * δ + 7 * QC k :=
+        IH.resolve_left h
+
+      -- Some auxiliary technical inequalities to be used later on.
+      have aux : (2 ^ k - 1) * dm ≤ (2*2^k-1) * dm ∧ 0 ≤ 2 * 2 ^ k - (1:ℝ) ∧ dm ≤ dm * 2 ^ k := sorry
   --             apply (auto simp add: algebra_simps)
   --             apply (metis power.simps(2) two_realpow_ge_one)
   --             using \<open>0 ≤ dm\<close> less_eq_real_def by fastforce
-  --           have := calc L + C = (L/D) * (D + (D/L) * C)"
-  --             using \<open>L > 0\<close> \<open>D > 0\<close> by (simp add: algebra_simps divide_simps)
-  --           _ ≤ (L/D) * (D + 4 * C)"
-  --             apply (intro mono_intros)
-  --             using \<open>L > 0\<close> \<open>D > 0\<close> \<open>C ≥ 0\<close> \<open>D ≤ 4 * L\<close> by (auto simp add: algebra_simps divide_simps)
-  --           _ ≤ (L/D) * dm"
-  --             apply (intro mono_intros) using I \<open>L > 0\<close> \<open>D > 0\<close> by auto
-  --           finally have "L + C ≤ (L/D) * dm"
-  --             by simp
-  --           moreover have "2 * δ ≤ (2 * δ)/D * dm"
-  --             using I \<open>C ≥ 0\<close> \<open>δ > 0\<close> \<open>D > 0\<close> by (auto simp add: algebra_simps divide_simps)
-  --           ultimately have aux2: "L + C + 2 * δ ≤ ((L + 2 * δ)/D) * dm"
+      have aux2 : L + C + 2 * δ ≤ ((L + 2 * δ)/D) * dm := by
+        have :=
+        calc L + C = (L/D) * (D + (D/L) * C) := sorry
+    --             using \<open>L > 0\<close> \<open>D > 0\<close> by (simp add: algebra_simps divide_simps)
+          _ ≤ (L/D) * (D + 4 * C) := sorry
+    --             apply (intro mono_intros)
+    --             using \<open>L > 0\<close> \<open>D > 0\<close> \<open>C ≥ 0\<close> \<open>D ≤ 4 * L\<close> by (auto simp add: algebra_simps divide_simps)
+          _ ≤ (L/D) * dm := sorry
+    --             apply (intro mono_intros) using I \<open>L > 0\<close> \<open>D > 0\<close> by auto
+        have : 2 * δ ≤ (2 * δ)/D * dm := sorry
+    --             using I \<open>C ≥ 0\<close> \<open>δ > 0\<close> \<open>D > 0\<close> by (auto simp add: algebra_simps divide_simps)
+        sorry
   --             by (auto simp add: algebra_simps divide_simps)
-  --           have aux3: "(1-α) * D + α * 2^k * dm ≤ dm * 2^k - C/2 - QC k"
-  --           proof (cases "k = 0")
-  --             case True
-  --             show ?thesis
+      have aux3 : (1-α) * D + α * 2^k * dm ≤ dm * 2^k - C/2 - QC k := by
+        dsimp [QC]
+        split_ifs with h
+        · simp [h]
   --                using I \<open>C ≥ 0\<close> unfolding True QC_def alpha_def by auto
-  --           next
-  --             case False
-  --             have := calc C/2 + QC k + (1-α) * D ≤ 2 * (1-α) * dm"
+          sorry
+        have :=
+        calc C/2 + 8 * δ + (1-α) * D ≤ 2 * (1-α) * dm := sorry
   --               using I \<open>C ≥ 0\<close> unfolding QC_def alpha_def using False Laux by auto
-  --             _ ≤ 2^k * (1-α) * dm"
+          _ ≤ 2^k * (1-α) * dm := sorry
   --               apply (intro mono_intros) using False alphaaux I \<open>D > 0\<close> \<open>C ≥ 0\<close> by auto
-  --             finally show ?thesis
-  --               by (simp add: algebra_simps)
-  --           qed
+        linarith only [this]
 
-  --           text \<open>Construct a point $w$ such that its projection on $V_k$ is close to that of $um$
-  --           and therefore far away from that of $x$. This is just the intermediate value theorem
-  --           (with some care as the closest point projection is not continuous).\<close>
-  --           have "\<exists>w ∈ {um..x}. (dist (q k um) (q k w) ∈ {(9 * δ + 4 * QC k) - 4 * δ - 2 * QC k .. 9 * δ + 4 * QC k})
-  --                   ∀  (∀ v ∈ {um..w}. dist (q k um) (q k v) ≤ 9 * δ + 4 * QC k)"
-  --           proof (rule quasi_convex_projection_small_gaps[where ?f = f and ?G = "V k"])
+      /- Construct a point `w` such that its projection on `V k` is close to that of `um`
+      and therefore far away from that of `x`. This is just the intermediate value theorem
+      (with some care as the closest point projection is not continuous). -/
+      obtain ⟨w, hw₁, hw₂, hw₃⟩ : ∃ w ∈ Icc um x,
+          dist (q k um) (q k w) ∈ Icc ((9 * δ + 4 * QC k) - 4 * δ - 2 * QC k) (9 * δ + 4 * QC k)
+          ∧ (∀ v ∈ Icc um w, dist (q k um) (q k v) ≤ 9 * δ + 4 * QC k) := by
+        apply quasi_convex_projection_small_gaps (f := f) (G := V k) <;> sorry
   --             show "continuous_on {um..x} f"
   --               apply (rule continuous_on_subset[OF \<open>continuous_on Icc a b f\<close>])
   --               using \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> \<open>ym ∈ {um..z}\<close> \<open>x ∈ {um..ym}\<close> by auto
@@ -722,21 +719,17 @@ lemma Morse_Gromov_theorem_aux0
   --               unfolding V_def q_def apply (rule proj_set_thickening)
   --               using aux p x(3)[OF that] by (auto simp add: metric_space_class.dist_commute)
   --           qed
-  --           then obtain w where w: "w ∈ {um..x}"
-  --                                  "dist (q k um) (q k w) ∈ {(9 * δ + 4 * QC k) - 4 * δ - 2 * QC k .. 9 * δ + 4 * QC k}"
-  --                                  "∀ v. v ∈ {um..w} → dist (q k um) (q k v) ≤ 9 * δ + 4 * QC k"
-  --             by auto
-  --           text \<open>There are now two cases to be considered: either one can find a point $v$ between
-  --           $um$ and $w$ which is close enough to $H$. Then this point will satisfy~\eqref{eq:xvK},
-  --           and we will be able to prove the desired inequality. Or there is no such point,
-  --           and then $w$ will have the good properties at step $k+1$\<close>
-  --           show ?thesis
-  --           proof (cases "\<exists>v ∈ {um..w}. dist (f v) (p v) ≤ (2^(k+2)-1) * dm")
-  --             case True
-  --             text \<open>First subcase: there is a good point $v$ between $um$ and $w$. This is the
-  --             heart of the argument: we will show that the desired inequality holds.\<close>
-  --             then obtain v where v: "v ∈ {um..w}" "dist (f v) (p v) ≤ (2^(k+2)-1) * dm"
-  --               by auto
+
+      /- There are now two cases to be considered: either one can find a point `v` between
+      `um` and `w` which is close enough to `H`. Then this point will satisfy~\eqref{eq:xvK},
+      and we will be able to prove the desired inequality. Or there is no such point,
+      and then `w` will have the good properties at step `k+1` -/
+      by_cases h : ∃ v ∈ Icc um w, dist (f v) (p v) ≤ (2^(k+2)-1) * dm
+      /- First subcase: there is a good point `v` between `um` and `w`. This is the
+      heart of the argument: we will show that the desired inequality holds. -/
+      · left
+        obtain ⟨v, hv₁, hv₂⟩ := h
+        sorry
   --             text \<open>Auxiliary basic fact to be used later on.\<close>
   --             have aux4: "dm * 2 ^ k ≤ infDist (f r) (V k)" if "r ∈ {v..x}" for r
   --             proof -
@@ -924,54 +917,49 @@ lemma Morse_Gromov_theorem_aux0
   --             _ = (lambda^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp(- K * (uM - um))))"
   --               unfolding K_def by (simp add: algebra_simps)
   --             finally show ?thesis by auto
-  --             text \<open>End of the first subcase, when there is a good point $v$ between $um$ and $w$.\<close>
-  --           next
-  --             case False
-  --             text \<open>Second subcase: between $um$ and $w$, all points are far away from $V_k$. We
-  --             will show that this implies that $w$ is admissible for the step $k+1$.\<close>
-  --             have "\<exists>w∈{um..ym}. (∀ v∈{um..w}. (2 ^ (Suc k + 1) - 1) * dm ≤ dist (f v) (p v)) ∀  L - 4 * δ + 7 * QC (Suc k) ≤ dist (q (Suc k) um) (q (Suc k) w)"
-  --             proof (rule bexI[of _ w], auto)
-  --               show "um ≤ w" "w ≤ ym" using \<open>w ∈ {um..x}\<close> \<open>x ∈ {um..ym}\<close> by auto
-  --               show "(4 * 2 ^ k - 1) * dm ≤ dist (f x) (p x)" if "um ≤ x" "x ≤ w" for x
-  --                 using False \<open>dm ≥ 0\<close> that by force
+        -- End of the first subcase, when there is a good point `v` between `um` and `w`.
 
-  --               have "dist (q k um) (q (k+1) um) = 2^k * dm"
+      /- Second subcase: between `um` and `w`, all points are far away from `V k`. We
+      will show that this implies that `w` is admissible for the step `k+1`. -/
+      · right
+        push_neg at h
+        refine ⟨w, ⟨hw₁.1, hw₁.2.trans hx₁.2⟩, fun x hx ↦ (h x hx).le, ?_⟩
+        have : dist (q k um) (q (k+1) um) = 2^k * dm := sorry
   --                 unfolding q_def apply (subst geodesic_segment_param(7)[where ?y = "f um"])
   --                 using x(3)[of um] \<open>x ∈ {um..ym}\<close> aux by (auto simp add: metric_space_class.dist_commute, simp add: algebra_simps)
-  --               have "dist (q k w) (q (k+1) w) = 2^k * dm"
+        have : dist (q k w) (q (k+1) w) = 2^k * dm := sorry
   --                 unfolding q_def apply (subst geodesic_segment_param(7)[where ?y = "f w"])
   --                 using x(3)[of w] \<open>w ∈ {um..x}\<close> \<open>x ∈ {um..ym}\<close> aux by (auto simp add: metric_space_class.dist_commute, simp add: algebra_simps)
-  --               have i: "q k um ∈ proj_set (q (k+1) um) (V k)"
+        have i : q k um ∈ proj_set (q (k+1) um) (V k) := sorry
   --                 unfolding q_def V_def apply (rule proj_set_thickening'[of _ "f um"])
   --                 using p x(3)[of um] \<open>x ∈ {um..ym}\<close> aux by (auto simp add: algebra_simps metric_space_class.dist_commute)
-  --               have j: "q k w ∈ proj_set (q (k+1) w) (V k)"
+        have j : q k w ∈ proj_set (q (k+1) w) (V k) := sorry
   --                 unfolding q_def V_def apply (rule proj_set_thickening'[of _ "f w"])
   --                 using p x(3)[of w] \<open>x ∈ {um..ym}\<close> \<open>w ∈ {um..x}\<close> aux by (auto simp add: algebra_simps metric_space_class.dist_commute)
 
-  --               have := calc 5 * δ + 2 * QC k ≤ dist (q k um) (q k w)" using w(2) by simp
-  --               _ ≤ max (5 * deltaG X + 2 * QC k)
-  --                                     (dist (q (k + 1) um) (q (k + 1) w) - dist (q k um) (q (k + 1) um) - dist (q k w) (q (k + 1) w) + 10 * deltaG X + 4 * QC k)"
+        have :=
+        calc 5 * δ + 2 * QC k ≤ dist (q k um) (q k w) := sorry --" using w(2) by simp
+          _ ≤ max (5 * deltaG X + 2 * QC k)
+                (dist (q (k + 1) um) (q (k + 1) w) - dist (q k um) (q (k + 1) um)
+                  - dist (q k w) (q (k + 1) w) + 10 * deltaG X + 4 * QC k) := sorry
   --                 by (rule proj_along_quasiconvex_contraction[OF \<open>quasiconvex (QC k) (V k)\<close> i j])
-  --               finally have "5 * δ + 2 * QC k ≤ dist (q (k + 1) um) (q (k + 1) w) - dist (q k um) (q (k + 1) um) - dist (q k w) (q (k + 1) w) + 10 * deltaG X + 4 * QC k"
+          _ ≤ dist (q (k + 1) um) (q (k + 1) w) - dist (q k um) (q (k + 1) um)
+                  - dist (q k w) (q (k + 1) w) + 10 * deltaG X + 4 * QC k := sorry
   --                 using \<open>deltaG X < δ\<close> by auto
-  --               then have "0 ≤ dist (q (k + 1) um) (q (k + 1) w) + 5 * δ + 2 * QC k - dist (q k um) (q (k + 1) um) - dist (q k w) (q (k + 1) w)"
+        have :=
+        calc 0 ≤ dist (q (k + 1) um) (q (k + 1) w) + 5 * δ + 2 * QC k
+          - dist (q k um) (q (k + 1) um) - dist (q k w) (q (k + 1) w) := sorry
   --                 using \<open>deltaG X < δ\<close> by auto
-  --               _ = dist (q (k + 1) um) (q (k + 1) w) + 5 * δ + 2 * QC k - 2^(k+1) * dm"
+          _ = dist (q (k + 1) um) (q (k + 1) w) + 5 * δ + 2 * QC k - 2^(k+1) * dm := sorry
   --                 by (simp only: \<open>dist (q k w) (q (k+1) w) = 2^k * dm\<close> \<open>dist (q k um) (q (k+1) um) = 2^k * dm\<close>, auto)
-  --               finally have *: "2^(k+1) * dm - 5 * δ - 2 * QC k ≤ dist (q (k+1) um) (q (k+1) w)"
+        have : 2^(k+1) * dm - 5 * δ - 2 * QC k ≤ dist (q (k+1) um) (q (k+1) w) := sorry -- `*`
   --                 using \<open>deltaG X < δ\<close> by auto
-  --               have := calc L - 4 * δ + 7 * QC (k+1) ≤ 2 * dm - 5 * δ - 2 * QC k"
+        calc L - 4 * δ + 7 * QC (k+1) ≤ 2 * dm - 5 * δ - 2 * QC k := sorry
   --                 unfolding QC_def L_def using \<open>δ > 0\<close> Laux I \<open>C ≥ 0\<close> by auto
-  --               _ ≤ 2^(k+1) * dm - 5 * δ - 2 * QC k"
+          _ ≤ 2^(k+1) * dm - 5 * δ - 2 * QC k := sorry
   --                 using aux by (auto simp add: algebra_simps)
-  --               finally show "L - 4 * δ + 7 * QC (Suc k) ≤ dist (q (Suc k) um) (q (Suc k) w)"
+          _ ≤ dist (q (k + 1) um) (q (k + 1) w) := sorry
   --                 using * by auto
-  --             qed
-  --             then show ?thesis
-  --               by simp
-  --           qed
-  --         qed
-  --       qed
 
     /- This is the end of the main induction over `k`. To conclude, choose `k` large enough
     so that the second alternative in this induction is impossible. It follows that the first
