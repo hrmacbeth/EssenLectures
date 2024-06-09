@@ -30,7 +30,7 @@ variable {X : Type*} [MetricSpace X] [Gromov_hyperbolic_space X] [GeodesicSpace 
 
 open Gromov_hyperbolic_space
 
-set_option maxHeartbeats 300000 in
+set_option maxHeartbeats 400000 in
 /-- The next statement is the main step in the proof of the Morse-Gromov theorem given by Shchur
 in~\<^cite>\<open>"shchur"\<close>, asserting that a quasi-geodesic and a geodesic with the same endpoints are close.
 We show that a point on the quasi-geodesic is close to the geodesic -- the other inequality will
@@ -183,7 +183,7 @@ lemma Morse_Gromov_theorem_aux0
     let L : ℝ := 18 * δ
     let D : ℝ := 55 * δ
     let K : ℝ := α * log 2 / (5 * (4 + (L + 2 * δ)/D) * δ * Λ)
-    let Kmult : ℝ := ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp (1/2 * log 2)) * Λ * exp (- (1 - α) * D * log 2 / (5 * δ)) / K)
+    let Kmult : ℝ := ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp (1/2 * log 2)) * Λ * exp (- ((1 - α) * D * log 2 / (5 * δ))) / K)
     ∀ um uM, um ∈ Icc a z → uM ∈ Icc z b
         → uM - um ≤ n * (1/4) * δ / Λ
         → Gromov_product_at (f z) (f um) (f uM)
@@ -796,7 +796,7 @@ lemma Morse_Gromov_theorem_aux0
   --               by (simp add: algebra_simps mult_exp_exp)
           _ ≤ exp (-K * (closestM - x)) - exp (-K * (uM - um)) := sorry
   --               using \<open>K > 0\<close> \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> \<open>x ∈ {um..ym}\<close> \<open>ym ∈ {um..z}\<close> \<open>yM ∈ {z..uM}\<close> \<open>closestM ∈ {yM..uM}\<close> by auto
-        have B : (x - v) * exp (- α * 2^k * dm * log 2 / (5 * δ))
+        have B : (x - v) * exp (- (α * 2^k * dm * log 2 / (5 * δ)))
             ≤ (exp (-K * (closestM - x)) - exp (-K * (uM-um)))/K := sorry
   --               using \<open>K > 0\<close> by (auto simp add: divide_simps algebra_simps)
         -- End of substep 1
@@ -879,7 +879,7 @@ lemma Morse_Gromov_theorem_aux0
         have : L - 13 * δ ≤ max (5 * deltaG X)
           ((4 * exp (1/2 * log 2)) * Λ * (x - v) * exp (-(dm * 2^k - C/2 - QC k) * log 2 / (5 * δ))) := by
           linarith only [this]
-        have :=
+        have A :=
         calc L - 13 * δ ≤ (4 * exp (1/2 * log 2)) * Λ * (x - v) * exp (-(dm * 2^k - C/2 - QC k) * log 2 / (5 * δ)) := sorry
   --               using \<open>δ > deltaG X\<close> Laux by auto
 --             /- We separate the exponential gain coming from the contraction into two parts, one
@@ -888,24 +888,43 @@ lemma Morse_Gromov_theorem_aux0
   --               apply (intro mono_intros) using aux3 \<open>δ > 0\<close> \<open>Λ ≥ 1\<close> \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> by auto
           _ = (4 * exp (1/2 * log 2)) * Λ * (x - v) * (exp (-(1-α) * D * log 2 / (5 * δ)) * exp (-α * 2^k * dm * log 2 / (5 * δ))) := sorry
   --               unfolding mult_exp_exp by (auto simp add: algebra_simps divide_simps)
-          _ ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-(1-α) * D * log 2 / (5 * δ)) * ((x - v) * exp (-α * 2^k * dm * log 2 / (5 * δ))) := sorry
+          _ ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((x - v) * exp (-(α * 2^k * dm * log 2 / (5 * δ)))) := sorry
   --               by (simp add: algebra_simps)
         -- This is the end of the second substep.
 
+        have : 0 ≤ x - v := sorry
         /- Use the second substep to show that `x-v` is bounded below, and therefore
         that `closestM - x` (the endpoints of the new geodesic we want to consider in the
         inductive argument) are quantitatively closer than `uM - um`, which means that we
         will be able to use the inductive assumption over this new geodesic. -/
-          _ ≤ (4 * exp (1/2 * log 2)) * Λ * exp 0 * ((x - v) * exp 0) := sorry
-  --               apply (intro mono_intros) using \<open>δ > 0\<close> \<open>Λ ≥ 1\<close> \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> alphaaux \<open>D > 0\<close> \<open>C ≥ 0\<close> I
-  --               by (auto simp add: divide_simps mult_nonpos_nonneg)
+        have :=
+        calc L - 13 * δ
+            ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((x - v) * exp (-(α * 2^k * dm * log 2 / (5 * δ)))) := A  --
+          _ ≤ (4 * exp (1/2 * log 2)) * Λ * exp 0 * ((x - v) * exp 0) := by
+              gcongr
+              · rw [Left.neg_nonpos_iff]
+                positivity
+              · rw [Left.neg_nonpos_iff]
+                positivity
           _ = (4 * exp (1/2 * log 2)) * Λ * (x-v) := by simp
-  --               by simp
-          _ ≤ 20 * Λ * (x - v) := sorry
-  --               apply (intro mono_intros, approximation 10)
-  --               using \<open>δ > 0\<close> \<open>Λ ≥ 1\<close> \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> by auto
-        have : x - v ≥ (1/4) * δ / Λ := sorry
-  --               using \<open>Λ ≥ 1\<close> L_def \<open>δ > 0\<close> by (simp add: divide_simps algebra_simps)
+          _ ≤ 20 * Λ * (x - v) := by
+              gcongr
+              -- FIXME `linarith` ought to be better at the following calculation, division bug?
+              calc 4 * exp (1 / 2 * log 2) ≤ 4 * exp (1 / 2 * 0.6931471808) := by
+                    gcongr
+                    exact log_two_lt_d9.le
+                _ ≤ 4 * exp 1 := by
+                    gcongr
+                    norm_num1
+                _ ≤ 4 * 2.7182818286 := by
+                    gcongr
+                    exact exp_one_lt_d9.le
+                _ ≤ 20 := by norm_num1
+        have : (1/4) * δ / Λ ≤ x - v := by
+          rw [div_le_iff]
+          · dsimp [L] at this
+            linarith only [this]
+          positivity
         have :=
         calc closestM - x + (1/4) * δ / Λ
             ≤ closestM - v := by sorry --simp
@@ -921,13 +940,18 @@ lemma Morse_Gromov_theorem_aux0
         the upper bound of the first substep to get a definite gain when one goes from
         the old geodesic to the new one. Then, apply the inductive assumption to the new one
         to conclude the desired inequality for the old one. -/
+        have : 0 < (L - 13 * δ) := by
+          dsimp [L]
+          ring_nf
+          positivity
         have :=
-        calc L + 4 * δ = ((L + 4 * δ)/(L - 13 * δ)) * (L - 13 * δ) := sorry
-  --               using Laux \<open>δ > 0\<close> by (simp add: algebra_simps divide_simps)
-          _ ≤ ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp (1/2 * log 2)) * Λ * exp (- (1 - α) * D * log 2 / (5 * δ)) * ((x - v) * exp (- α * 2 ^ k * dm * log 2 / (5 * δ)))) := sorry
-  --               apply (rule mult_left_mono) using A Laux \<open>δ > 0\<close> by (auto simp add: divide_simps)
-          _ ≤ ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp (1/2 * log 2)) * Λ * exp (- (1 - α) * D * log 2 / (5 * δ)) * ((exp (-K * (closestM - x)) - exp (-K * (uM - um)))/K)) := sorry
-  --               apply (intro mono_intros B) using Laux \<open>δ > 0\<close> \<open>Λ ≥ 1\<close> by (auto simp add: divide_simps)
+        calc L + 4 * δ = ((L + 4 * δ)/(L - 13 * δ)) * (L - 13 * δ) := by field_simp
+          _ ≤ ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp (1/2 * log 2)) * Λ
+              * exp (- ((1 - α) * D * log 2 / (5 * δ))) * ((x - v)
+              * exp (- (α * 2 ^ k * dm * log 2 / (5 * δ))))) := by gcongr
+          _ ≤ ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp (1/2 * log 2)) * Λ
+              * exp (- ((1 - α) * D * log 2 / (5 * δ)))
+              * ((exp (-K * (closestM - x)) - exp (-K * (uM - um)))/K)) := by gcongr
           _ = Kmult * (exp (-K * (closestM - x)) - exp (-K * (uM - um))) := by
               dsimp [Kmult]
               ring
@@ -1394,7 +1418,7 @@ lemma Morse_Gromov_theorem_aux1
   let L : ℝ := 18 * δ
   let D : ℝ := 55 * δ
   let K : ℝ := α * log 2 / (5 * (4 + (L + 2 * δ)/D) * δ * Λ)
-  let Kmult : ℝ := ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp (1/2 * log 2)) * Λ * exp (- (1 - α) * D * log 2 / (5 * δ)) / K)
+  let Kmult : ℝ := ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp (1/2 * log 2)) * Λ * exp (- ((1 - α) * D * log 2 / (5 * δ))) / K)
 
   obtain ⟨n, hn⟩ : ∃ n : ℕ, (b - a)/((1/4) * δ / Λ) ≤ n := exists_nat_ge _
   have : b - a ≤ n * (1/4) * δ / Λ := by
