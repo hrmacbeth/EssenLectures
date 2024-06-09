@@ -774,19 +774,23 @@ lemma Morse_Gromov_theorem_aux0
         of the distance of `f v` to `H`, i.e., by `2^k * dm`. The same control follows
         for `closestM - v` thanks to the quasi-isometry property. Then, we massage this
         inequality to put it in the form we will need, as an upper bound on `(x-v) * exp (-2^k * dm)`. -/
-        have : infDist (f v) H ≤ (2^(k+2)-1) * dm := sorry
-  --               using v proj_setD(2)[OF p[of v]] by auto
         have :=
-        calc |v - closestM| ≤ Λ * (infDist (f v) H + (L + C + 2 * δ) + infDist (f closestM) H) := sorry
-  --               apply (rule D)
-  --               using \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> \<open>x ∈ {um..ym}\<close> \<open>ym ∈ {um..z}\<close> \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> \<open>closestM ∈ {yM..uM}\<close> \<open>yM ∈ {z..uM}\<close> \<open>uM ∈ {z..b}\<close> by auto
-          _ ≤ Λ * ((2^(k+2)-1) * dm + (L + C + 2 * δ) + dM) := by gcongr
+        calc |v - closestM| ≤ Λ * (infDist (f v) H + (L + C + 2 * δ) + infDist (f closestM) H) := by
+              apply hD ⟨hv₁.1, ?_⟩ hclosestM.1
+              linarith only [hv₁.2, hw₁.2, hx₁.2]
+          _ ≤ Λ * ((2^(k+2)-1) * dm + (L + C + 2 * δ) + dM) := by
+              gcongr
+              rw [← (hp v).2]
+              exact hv₂
           _ = Λ * ((2^(k+2)-1) * dm + 1 * (L + C + 2 * δ) + dM) := by ring
           _ ≤ Λ * ((2^(k+2)-1) * dm + 2^k * (((L + 2 * δ)/D) * dm) + dm) := by
               gcongr
           _ = Λ * 2^k * (4 + (L + 2 * δ)/D) * dm := by ring
-        have : |v - closestM| / (Λ * (4 + (L + 2 * δ)/D)) ≤ 2^k * dm := sorry -- `*`
-  --               using \<open>Λ ≥ 1\<close> \<open>L > 0\<close> \<open>D > 0\<close> \<open>δ > 0\<close> by (simp add: divide_simps, simp add: algebra_simps)
+        have : |v - closestM| / (Λ * (4 + (L + 2 * δ)/D)) ≤ 2^k * dm := by
+          rw [div_le_iff]
+          convert this using 1
+          · ring
+          · positivity
         /- We reformulate this control inside of an exponential, as this is the form we
         will use later on. -/
         have :=
@@ -802,9 +806,8 @@ lemma Morse_Gromov_theorem_aux0
               congr
               rw [abs_of_nonpos]
               · ring
-              sorry
-  --               unfolding dist_real_def using \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> \<open>x ∈ {um..ym}\<close> \<open>ym ∈ {um..z}\<close> \<open>yM ∈ {z..uM}\<close> \<open>closestM ∈ {yM..uM}\<close> \<open>K > 0\<close> by auto
-        have : 0 ≤ x - v := sorry
+              linarith only [hv₁.2, hw₁.2, hx₁.2, hym.1.2, hyM.1.1, hclosestM.1.1]
+        have : 0 ≤ x - v := by linarith only [hv₁.2, hw₁.2]
         -- Plug in `x-v` to get the final form of this inequality.
         have :=
         calc K * (x - v) * exp (- (α * (2^k * dm) * log 2 / (5 * δ)))
@@ -817,8 +820,7 @@ lemma Morse_Gromov_theorem_aux0
           _ ≤ exp (-K * (closestM - x)) - exp (-K * (uM - um)) := by
               gcongr _ - exp ?_
               apply mul_le_mul_of_nonpos_left
-              · sorry
-  --               using \<open>K > 0\<close> \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> \<open>x ∈ {um..ym}\<close> \<open>ym ∈ {um..z}\<close> \<open>yM ∈ {z..uM}\<close> \<open>closestM ∈ {yM..uM}\<close> by auto
+              · linarith only [hv₁.1, hclosestM.1.2]
               rw [Left.neg_nonpos_iff]
               positivity
         have B : (x - v) * exp (- (α * (2^k * dm) * log 2 / (5 * δ)))
