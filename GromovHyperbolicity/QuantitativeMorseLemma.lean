@@ -610,7 +610,7 @@ lemma Morse_Gromov_theorem_aux0
   · have : 0 < dm := by dsimp [D] at I₁; linarith only [I₁, hC, hδ₀]
     let V : ℕ → Set X := fun k ↦ cthickening ((2^k - 1) * dm) H
     let QC : ℕ → ℝ := fun k ↦ if k = 0 then 0 else 8 * δ
-    have {k : ℕ} : 0 ≤ QC k := by dsimp [QC]; split <;> positivity
+    have QC_nonneg (k : ℕ) : 0 ≤ QC k := by dsimp [QC]; split <;> positivity
     have Q (k : ℕ) : quasiconvex (0 + 8 * deltaG X) (V k) := by
       apply quasiconvex_thickening
       · apply quasiconvex_of_geodesic ⟨_, _, h_H⟩
@@ -668,8 +668,14 @@ lemma Morse_Gromov_theorem_aux0
 
       obtain ⟨x, hx₁, hx₂, hx₃⟩ :
         ∃ x ∈ Icc um ym, (∀ w, w ∈ Icc um x → dist (f w) (p w) ≥ (2^(k+1)-1) * dm)
-          ∧ dist (q k um) (q k x) ≥ L - 4 * δ + 7 * QC k :=
+          ∧ L - 4 * δ + 7 * QC k ≤ dist (q k um) (q k x) :=
         IH.resolve_left h
+
+      -- these are basically `aux`
+      have h_pow : (1:ℝ) ≤ 2 ^ k := one_le_pow_of_one_le (by norm_num) k
+      have h_pow' : 0 ≤ (2:ℝ) ^ k - 1 := by linarith only [h_pow]
+      have hdm_mul : 0 ≤ dm * 2 ^ k := by positivity
+      have H₁ : (2 ^ k - 1) * dm ≤ (2 ^ (k + 1) - 1) * dm := by ring_nf; linarith only [hdm_mul]
 
       -- Some auxiliary technical inequalities to be used later on.
       have aux : (2 ^ k - 1) * dm ≤ (2*2^k-1) * dm ∧ 0 ≤ 2 * 2 ^ k - (1:ℝ) ∧ dm ≤ dm * 2 ^ k := sorry
@@ -701,25 +707,38 @@ lemma Morse_Gromov_theorem_aux0
   --               apply (intro mono_intros) using False alphaaux I \<open>D > 0\<close> \<open>C ≥ 0\<close> by auto
         linarith only [this]
 
+      have h_um_x_subset : Icc um x ⊆ Icc a b := by
+        rw [Icc_subset_Icc_iff] at h_um_ym_subset ⊢
+        · exact ⟨h_um_ym_subset.1, hx₁.2.trans h_um_ym_subset.2⟩
+        · exact hx₁.1
+        · exact hym.1.1
       /- Construct a point `w` such that its projection on `V k` is close to that of `um`
       and therefore far away from that of `x`. This is just the intermediate value theorem
       (with some care as the closest point projection is not continuous). -/
       obtain ⟨w, hw₁, hw₂, hw₃⟩ : ∃ w ∈ Icc um x,
           dist (q k um) (q k w) ∈ Icc ((9 * δ + 4 * QC k) - 4 * δ - 2 * QC k) (9 * δ + 4 * QC k)
           ∧ (∀ v ∈ Icc um w, dist (q k um) (q k v) ≤ 9 * δ + 4 * QC k) := by
-        apply quasi_convex_projection_small_gaps (f := f) (G := V k) <;> sorry
-  --             show "continuous_on {um..x} f"
-  --               apply (rule continuous_on_subset[OF \<open>continuous_on Icc a b f\<close>])
-  --               using \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> \<open>ym ∈ {um..z}\<close> \<open>x ∈ {um..ym}\<close> by auto
-  --             show "um ≤ x" using \<open>x ∈ {um..ym}\<close> by auto
-  --             show "quasiconvex (QC k) (V k)" by fact
-  --             show "deltaG TYPE('a) < δ" by fact
-  --             show "9 * δ + 4 * QC k ∈ {4 * δ + 2 * QC k..dist (q k um) (q k x)}"
-  --               using x(2) \<open>δ > 0\<close> \<open>QC k ≥ 0\<close> Laux by auto
-  --             show "q k w ∈ proj_set (f w) (V k)" if "w ∈ {um..x}" for w
-  --               unfolding V_def q_def apply (rule proj_set_thickening)
-  --               using aux p x(3)[OF that] by (auto simp add: metric_space_class.dist_commute)
-  --           qed
+        apply quasi_convex_projection_small_gaps (f := f) (G := V k)
+        · exact hf.mono h_um_x_subset
+        · exact hx₁.1
+        · exact V_quasiconvex _
+        · intro w hw
+          dsimp [q, V]
+          convert proj_set_thickening' (G := {p w‒f w}) (D := (2 ^ k - 1) * dm)
+            (E := dist (f w) (p w)) (Z := H) (p := p w) (hp w) ?_ ?_ ?_
+            (some_geodesic_is_geodesic_segment _ _).1 using 2
+          · rw [dist_comm, geodesic_segment_param_in_geodesic_spaces2]
+          · positivity
+          · exact H₁.trans (hx₂ _ hw)
+          · rw [dist_comm]
+        · exact hδ
+        · have := QC_nonneg k
+          refine ⟨?_, le_trans ?_ hx₃⟩
+          · ring_nf
+            linarith only [this, hδ₀]
+          · dsimp [L]
+            ring_nf
+            linarith only [this, hδ₀]
 
       /- There are now two cases to be considered: either one can find a point `v` between
       `um` and `w` which is close enough to `H`. Then this point will satisfy~\eqref{eq:xvK},
@@ -765,8 +784,6 @@ lemma Morse_Gromov_theorem_aux0
           _ = Λ * ((2^(k+2)-1) * dm + 1 * (L + C + 2 * δ) + dM) := by ring
           _ ≤ Λ * ((2^(k+2)-1) * dm + 2^k * (((L + 2 * δ)/D) * dm) + dm) := by
               gcongr
-              apply one_le_pow_of_one_le
-              norm_num
           _ = Λ * 2^k * (4 + (L + 2 * δ)/D) * dm := by ring
         have : |v - closestM| / (Λ * (4 + (L + 2 * δ)/D)) ≤ 2^k * dm := sorry -- `*`
   --               using \<open>Λ ≥ 1\<close> \<open>L > 0\<close> \<open>D > 0\<close> \<open>δ > 0\<close> by (simp add: divide_simps, simp add: algebra_simps)
@@ -982,12 +999,8 @@ lemma Morse_Gromov_theorem_aux0
       · right
         push_neg at h
         refine ⟨w, ⟨hw₁.1, hw₁.2.trans hx₁.2⟩, fun x hx ↦ (h x hx).le, ?_⟩
-        have h_pow : (1:ℝ) ≤ 2 ^ k := one_le_pow_of_one_le (by norm_num) k
-        have h_pow' : 0 ≤ (2:ℝ) ^ k - 1 := by linarith only [h_pow]
         have h_pow'' : (1:ℝ) ≤ 2 ^ (k + 1) := one_le_pow_of_one_le (by norm_num) _
         have h_pow''' : 0 ≤ (2:ℝ) ^ (k + 1) - 1 := by linarith only [h_pow'']
-        have hdm_mul : 0 ≤ dm * 2 ^ k := by positivity
-        have H₁ : (2 ^ k - 1) * dm ≤ (2 ^ (k + 1) - 1) * dm := by ring_nf; linarith only [hdm_mul]
         have h₁ : dist (q k um) (q (k+1) um) = 2^k * dm := by
           dsimp [q]
           rw [geodesic_segment_param_in_geodesic_spaces7]
