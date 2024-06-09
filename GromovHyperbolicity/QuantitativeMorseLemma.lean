@@ -954,11 +954,10 @@ lemma Morse_Gromov_theorem_aux0
           positivity
         have :=
         calc closestM - x + (1/4) * δ / Λ
-            ≤ closestM - v := by sorry --simp
-          _ ≤ uM - um := sorry
-  --               using \<open>closestM ∈ {yM..uM}\<close> \<open>v ∈ {um..w}\<close> by auto
-          _ ≤ (n + 1) * (1/4) * δ / Λ := sorry
-        have : closestM - x ≤ n * (1/4) * δ / Λ := by
+            ≤ closestM - v := by linarith only [this]
+          _ ≤ uM - um := by linarith only [hclosestM.1.2, hv₁.1]
+          _ ≤ (n + 1) * (1/4) * δ / Λ := by exact_mod_cast h_diff
+        have H₁ : closestM - x ≤ n * (1/4) * δ / Λ := by
           rw [← sub_nonneg] at this ⊢
           convert this using 1
           ring_nf -- FIXME why doesn't `linarith` work here?
@@ -971,7 +970,7 @@ lemma Morse_Gromov_theorem_aux0
           dsimp [L]
           ring_nf
           positivity
-        have :=
+        have H₂ :=
         calc L + 4 * δ = ((L + 4 * δ)/(L - 13 * δ)) * (L - 13 * δ) := by field_simp
           _ ≤ ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp (1/2 * log 2)) * Λ
               * exp (- ((1 - α) * D * log 2 / (5 * δ))) * ((x - v)
@@ -984,13 +983,16 @@ lemma Morse_Gromov_theorem_aux0
               ring
 
         calc Gromov_product_at (f z) (f um) (f uM)
-            ≤ Gromov_product_at (f z) (f x) (f closestM) + (L + 4 * δ) := sorry
-  --               apply (rule Rec) using \<open>closestM ∈ {yM..uM}\<close> \<open>x ∈ {um..ym}\<close> \<open>ym ∈ {um..z}\<close> by auto
+            ≤ Gromov_product_at (f z) (f x) (f closestM) + (L + 4 * δ) := Rec hx₁ hclosestM.1
           _ ≤ (Λ ^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ
               + Kmult * (1 - exp (- K * (closestM - x))))
-              + (Kmult * (exp (-K * (closestM - x)) - exp (-K * (uM-um)))) := sorry
-  --               apply (intro mono_intros C Suc.IH)
-  --               using \<open>x ∈ {um..ym}\<close> \<open>ym ∈ {um..z}\<close> \<open>um ∈ {a..z}\<close> \<open>closestM ∈ {yM..uM}\<close> \<open>yM ∈ {z..uM}\<close> \<open>uM ∈ {z..b}\<close> \<open>closestM - x ≤ n * (1/4) * δ / Λ\<close> by auto
+              + (Kmult * (exp (-K * (closestM - x)) - exp (-K * (uM-um)))) := by
+              have hx : x ∈ Icc a z :=
+                ⟨by linarith only [hum.1, hx₁.1], by linarith only [hx₁.2, hym.1.2]⟩
+              have : closestM ∈ Icc z b :=
+                ⟨by linarith only [hyM.1.1, hclosestM.1.1], by linarith only [hclosestM.1.2, huM.2]⟩
+              have := IH_n x closestM hx this H₁
+              linarith only [this, H₂]
           _ = (Λ^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um)))) := by
               dsimp [K]
               ring
