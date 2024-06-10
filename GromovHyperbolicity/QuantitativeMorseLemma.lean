@@ -170,14 +170,12 @@ what comes from the trivial cases 1 and 2.1 in the description of the proof befo
 of the theorem, while the most interesting term is the second term, corresponding to the induction
 per se. -/
 lemma Morse_Gromov_theorem_aux0
-    {f : ℝ → X} {a b : ℝ}
-    (hf : ContinuousOn f (Icc a b))
-    {Λ C : ℝ} (hf' : quasi_isometry_on Λ C (Icc a b) f)
-    (hab : a ≤ b)
-    {G : Set X} (hGf : geodesic_segment_between G (f a) (f b))
-    {z : ℝ} (hz : z ∈ Icc a b)
-    {δ : ℝ} (hδ : δ > deltaG X)
-    (n : ℕ) :
+    {f : ℝ → X} {um uM : ℝ}
+    (hf : ContinuousOn f (Icc um uM))
+    {Λ C : ℝ} (hf' : quasi_isometry_on Λ C (Icc um uM) f)
+    (h_um_uM : um ≤ uM)
+    {z : ℝ} (hz : z ∈ Icc um uM)
+    {δ : ℝ} (hδ : δ > deltaG X) :
     /- We give their values to the parameters `L`, `D` and `α` that we will use in the proof.
     We also define two constants $K$ and $K_{mult}$ that appear in the precise formulation of the
     bounds. Their values have no precise meaning, they are just the outcome of the computation. -/
@@ -186,10 +184,8 @@ lemma Morse_Gromov_theorem_aux0
     let D : ℝ := 55 * δ
     let K : ℝ := α * log 2 / (5 * (4 + (L + 2 * δ)/D) * δ * Λ)
     let Kmult : ℝ := ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp (1/2 * log 2)) * Λ * exp (- ((1 - α) * D * log 2 / (5 * δ))) / K)
-    ∀ um uM, um ∈ Icc a z → uM ∈ Icc z b
-        → uM - um ≤ n * (1/4) * δ / Λ
-        → Gromov_product_at (f z) (f um) (f uM)
-          ≤ Λ^2 * (D + (3/2) * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um))) := by
+    Gromov_product_at (f z) (f um) (f uM)
+      ≤ Λ^2 * (D + (3/2) * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um))) := by
   have hC := hf'.C_nonneg
   have := hf'.one_le_lambda
   have : Inhabited X := ⟨f 0⟩
@@ -204,22 +200,7 @@ lemma Morse_Gromov_theorem_aux0
   have : 1 ≤ Λ ^ 2 := by nlinarith only [hf'.one_le_lambda]
   have : Kmult > 0 := by ring_nf; positivity --" unfolding Kmult_def using Laux \<open>δ > 0\<close> \<open>K > 0\<close> \<open>Λ ≥ 1\<close> by (auto simp add: divide_simps)
 
-  induction' n with n IH_n
-  · -- Trivial base case of the induction
-    intro um uM hum huM h_diff
-    obtain ⟨rfl, rfl⟩ : z = um ∧ z = uM := by
-      ring_nf at h_diff -- FIXME why doesn't `linarith` do this normalization?
-      constructor <;> linarith only [h_diff, hum.2, huM.1]
-    calc Gromov_product_at (f z) (f z) (f z) = 0 := by simp
-      _ ≤ 1 * (D + (3/2) * L + δ + 11/2 * C) - 2 * δ + 0 * (1 - exp (- K * (z - z))) := by
-        ring_nf
-        positivity
-      _ ≤ Λ^2 * (D + (3/2) * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (z - z))) := by
-        gcongr
-        simp
-
-  intro um uM hum huM h_diff
-  have : 0 ≤ uM - um := by linarith only [hum.2, huM.1]
+  have : 0 ≤ uM - um := by linarith only [h_um_uM]
   by_cases hz_um_uM_L : Gromov_product_at (f z) (f um) (f uM) ≤ L
   · /- If `f z` is already close to the geodesic, there is nothing to do, and we do not need
     the induction assumption. This is case 1 in the description above. -/
@@ -312,8 +293,8 @@ lemma Morse_Gromov_theorem_aux0
   obtain ⟨ym, hym⟩ : ∃ ym ∈ Icc um z,
       (dist (p um) (p ym) ∈ Icc ((L + dist pi_z (p um)) - 4 * δ - 2 * 0) (L + dist pi_z (p um)))
                     ∧ (∀ r ∈ Icc um ym, dist (p um) (p r) ≤ L + dist pi_z (p um)) := by
-    refine quasi_convex_projection_small_gaps (f := f) (G := H) ?_ hum.2 ?_ (fun t _ ↦ hp t) hδ ?_
-    · exact hf.mono (Icc_subset_Icc hum.1 hz.2)
+    refine quasi_convex_projection_small_gaps (f := f) (G := H) ?_ hz.1 ?_ (fun t _ ↦ hp t) hδ ?_
+    · exact hf.mono (Icc_subset_Icc (by rfl) hz.2)
     · apply quasiconvex_of_geodesic
       exact ⟨_, _, h_H⟩
     · refine ⟨?_, ?_⟩
@@ -321,7 +302,7 @@ lemma Morse_Gromov_theorem_aux0
         linarith only [hδ₀, @dist_nonneg _ _ pi_z (p um)]
       · simp only [dist_comm, pz] at Dum Dpi_z hz_um_uM_L ⊢
         linarith only [Dum, hz_um_uM_L, Dpi_z]
-  have h_um_ym_subset : Icc um ym ⊆ Icc a b := Icc_subset_Icc hum.1 (hym.1.2.trans hz.2)
+  have h_um_ym_subset : Icc um ym ⊆ Icc um uM := Icc_subset_Icc (by rfl) (hym.1.2.trans hz.2)
   have : ContinuousOn (fun r ↦ infDist (f r) H) (Icc um ym) :=
     continuous_infDist_pt H |>.comp_continuousOn (hf.mono h_um_ym_subset)
 
@@ -377,8 +358,8 @@ lemma Morse_Gromov_theorem_aux0
   obtain ⟨yM, hyM⟩ : ∃ yM ∈ Icc z uM,
       (dist (p uM) (p yM) ∈ Icc ((L + dist pi_z (p uM)) - 4 * δ - 2 * 0) (L + dist pi_z (p uM)))
                     ∧ (∀ r ∈ Icc yM uM, dist (p uM) (p r) ≤ L + dist pi_z (p uM)) := by
-    refine quasi_convex_projection_small_gaps' (f := f) (G := H) ?_ huM.1 ?_ (fun t _ ↦ hp t) hδ ?_
-    · exact hf.mono (Icc_subset_Icc hz.1 huM.2)
+    refine quasi_convex_projection_small_gaps' (f := f) (G := H) ?_ hz.2 ?_ (fun t _ ↦ hp t) hδ ?_
+    · exact hf.mono (Icc_subset_Icc hz.1 (le_refl _))
     · apply quasiconvex_of_geodesic
       exact ⟨_, _, h_H⟩
     · refine ⟨?_, ?_⟩
@@ -386,7 +367,7 @@ lemma Morse_Gromov_theorem_aux0
         linarith only [hδ₀, @dist_nonneg _ _ pi_z (p uM)]
       · simp only [dist_comm, pz] at DuM Dpi_z hz_um_uM_L ⊢
         linarith only [DuM, hz_um_uM_L, Dpi_z]
-  have h_yM_uM_subset : Icc yM uM ⊆ Icc a b := Icc_subset_Icc (hz.1.trans hyM.1.1) huM.2
+  have h_yM_uM_subset : Icc yM uM ⊆ Icc um uM := Icc_subset_Icc (hz.1.trans hyM.1.1) (le_refl _)
   have : ContinuousOn (fun r ↦ infDist (f r) H) (Icc yM uM) :=
     continuous_infDist_pt H |>.comp_continuousOn (hf.mono h_yM_uM_subset)
 
@@ -731,7 +712,7 @@ lemma Morse_Gromov_theorem_aux0
         · rw [dist_comm]
           exact le_trans H₁ (hx₂ _ hr)
 
-      have h_um_x_subset : Icc um x ⊆ Icc a b := by
+      have h_um_x_subset : Icc um x ⊆ Icc um uM := by
         rw [Icc_subset_Icc_iff] at h_um_ym_subset ⊢
         · exact ⟨h_um_ym_subset.1, hx₁.2.trans h_um_ym_subset.2⟩
         · exact hx₁.1
@@ -885,9 +866,9 @@ lemma Morse_Gromov_theorem_aux0
                   apply geodesic_projection_exp_contracting (G := V 0) (f := f)
                   · intro x1 x2 hx1 hx2
                     apply hf'.upper_bound
-                    · exact ⟨by linarith only [hum.1, hv₁.1, hx1.1],
+                    · exact ⟨by linarith only [hv₁.1, hx1.1],
                         by linarith only [hx1.2, hx₁.2, hym.1.2, hz.2]⟩
-                    · exact ⟨by linarith only [hum.1, hv₁.1, hx2.1],
+                    · exact ⟨by linarith only [hv₁.1, hx2.1],
                         by linarith only [hx2.2, hx₁.2, hym.1.2, hz.2]⟩
                   · exact hv₁.2.trans hw₁.2
                   · simpa [hq0, V, H_closure] using hp v
@@ -908,9 +889,9 @@ lemma Morse_Gromov_theorem_aux0
                   apply quasiconvex_projection_exp_contracting (G := V k) (f := f)
                   · intro x1 x2 hx1 hx2
                     apply hf'.upper_bound
-                    · exact ⟨by linarith only [hum.1, hv₁.1, hx1.1],
+                    · exact ⟨by linarith only [hv₁.1, hx1.1],
                         by linarith only [hx1.2, hx₁.2, hym.1.2, hz.2]⟩
-                    · exact ⟨by linarith only [hum.1, hv₁.1, hx2.1],
+                    · exact ⟨by linarith only [hv₁.1, hx2.1],
                         by linarith only [hx2.2, hx₁.2, hym.1.2, hz.2]⟩
                   · exact hv₁.2.trans hw₁.2
                   · apply proj_mem
@@ -991,14 +972,28 @@ lemma Morse_Gromov_theorem_aux0
             linarith only [this]
           positivity
         have :=
-        calc closestM - x + (1/4) * δ / Λ
-            ≤ closestM - v := by linarith only [this]
-          _ ≤ uM - um := by linarith only [hclosestM.1.2, hv₁.1]
-          _ ≤ (n + 1) * (1/4) * δ / Λ := by exact_mod_cast h_diff
-        have H₁ : closestM - x ≤ n * (1/4) * δ / Λ := by
-          rw [← sub_nonneg] at this ⊢
-          convert this using 1
-          ring_nf -- FIXME why doesn't `linarith` work here?
+        calc (1/4) * δ / Λ
+            ≤ - v + x := by linarith only [this]
+          _ ≤ uM - um + x - closestM := by linarith only [hclosestM.1.2, hv₁.1]
+        -- start to set up for the well-founded induction
+        have h₂ : z ∈ Icc x closestM :=
+          ⟨by linarith only [hx₁.2, hym.1.2], by linarith only [hyM.1.1, hclosestM.1.1]⟩
+        have h₁ : x ≤ closestM := h₂.1.trans h₂.2
+        have : Nat.floor (4 * Λ * |closestM - x| / δ) < Nat.floor (4 * Λ * |uM - um| / δ) := by
+          calc Nat.floor (4 * Λ * |closestM - x| / δ) < Nat.floor (4 * Λ * |closestM - x| / δ + 1) := by
+                rw [Nat.floor_add_one]
+                · omega
+                positivity
+            _ ≤ Nat.floor (4 * Λ * |uM - um| / δ) := by
+                gcongr
+                rw [le_div_iff]
+                rw [div_le_iff] at this
+                field_simp
+                rw [abs_of_nonneg, abs_of_nonneg]
+                linarith only [this]
+                · positivity
+                · linarith only [h₁]
+                all_goals positivity
 
         /- Conclusion of the proof: combine the lower bound of the second substep with
         the upper bound of the first substep to get a definite gain when one goes from
@@ -1025,11 +1020,11 @@ lemma Morse_Gromov_theorem_aux0
           _ ≤ (Λ ^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ
               + Kmult * (1 - exp (- K * (closestM - x))))
               + (Kmult * (exp (-K * (closestM - x)) - exp (-K * (uM-um)))) := by
-              have hx : x ∈ Icc a z :=
-                ⟨by linarith only [hum.1, hx₁.1], by linarith only [hx₁.2, hym.1.2]⟩
-              have : closestM ∈ Icc z b :=
-                ⟨by linarith only [hyM.1.1, hclosestM.1.1], by linarith only [hclosestM.1.2, huM.2]⟩
-              have := IH_n x closestM hx this H₁
+              have h₃ : Icc x closestM ⊆ Icc um uM := by
+                rw [Icc_subset_Icc_iff h₁]
+                exact ⟨hx₁.1, hclosestM.1.2⟩
+              have := Morse_Gromov_theorem_aux0 (hf.mono h₃) (hf'.mono h₃) h₁ h₂ hδ
+              dsimp [D, K, Kmult, L] at this H₂ ⊢
               linarith only [this, H₂]
           _ = (Λ^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um)))) := by
               dsimp [K]
@@ -1264,7 +1259,7 @@ lemma Morse_Gromov_theorem_aux0
         · rw [dist_comm]
           exact le_trans H₁ (hx₂ _ hr)
 
-      have h_x_uM_subset : Icc x uM ⊆ Icc a b := by
+      have h_x_uM_subset : Icc x uM ⊆ Icc um uM := by
         rw [Icc_subset_Icc_iff] at h_yM_uM_subset ⊢
         · exact ⟨h_yM_uM_subset.1.trans hx₁.1, h_yM_uM_subset.2⟩
         · exact hx₁.2
@@ -1420,9 +1415,9 @@ lemma Morse_Gromov_theorem_aux0
                   · intro x1 x2 hx1 hx2
                     apply hf'.upper_bound
                     · exact ⟨by linarith only [hx1.1, hx₁.1, hyM.1.1, hz.1],
-                        by linarith only [huM.2, hv₁.2, hx1.2]⟩
+                        by linarith only [hv₁.2, hx1.2]⟩
                     · exact ⟨by linarith only [hx2.1, hx₁.1, hyM.1.1, hz.1],
-                        by linarith only [huM.2, hv₁.2, hx2.2]⟩
+                        by linarith only [hv₁.2, hx2.2]⟩
                   · exact hw₁.1.trans hv₁.1
                   · simpa [hq0, V, H_closure] using hp x
                   · simpa [hq0, V, H_closure] using hp v
@@ -1443,9 +1438,9 @@ lemma Morse_Gromov_theorem_aux0
                   · intro x1 x2 hx1 hx2
                     apply hf'.upper_bound
                     · exact ⟨by linarith only [hx1.1, hx₁.1, hyM.1.1, hz.1],
-                        by linarith only [huM.2, hv₁.2, hx1.2]⟩
+                        by linarith only [hv₁.2, hx1.2]⟩
                     · exact ⟨by linarith only [hx2.1, hx₁.1, hyM.1.1, hz.1],
-                        by linarith only [huM.2, hv₁.2, hx2.2]⟩
+                        by linarith only [hv₁.2, hx2.2]⟩
                   · exact hw₁.1.trans hv₁.1
                   · apply proj_mem
                     exact ⟨by rfl, hx₁.2⟩
@@ -1526,14 +1521,29 @@ lemma Morse_Gromov_theorem_aux0
             linarith only [this]
           positivity
         have :=
-        calc x + (1/4) * δ / Λ - closestm
-            ≤ v - closestm := by linarith only [this]
-          _ ≤ uM - um := by linarith only [hclosestm.1.1, hv₁.2]
-          _ ≤ (n + 1) * (1/4) * δ / Λ := by exact_mod_cast h_diff
-        have H₁ : x - closestm ≤ n * (1/4) * δ / Λ := by
-          rw [← sub_nonneg] at this ⊢
-          convert this using 1
-          ring_nf -- FIXME why doesn't `linarith` work here?
+        calc (1/4) * δ / Λ
+            ≤ v - x := by linarith only [this]
+          _ ≤ uM - um - x + closestm := by linarith only [hclosestm.1.1, hv₁.2]
+
+        -- start to set up for the well-founded induction
+        have h₂ : z ∈ Icc closestm x :=
+          ⟨by linarith only [hym.1.2, hclosestm.1.2], by linarith only [hx₁.1, hyM.1.1]⟩
+        have h₁ : closestm ≤ x := h₂.1.trans h₂.2
+        have : Nat.floor (4 * Λ * |x - closestm| / δ) < Nat.floor (4 * Λ * |uM - um| / δ) := by
+          calc Nat.floor (4 * Λ * |x - closestm| / δ) < Nat.floor (4 * Λ * |x - closestm| / δ + 1) := by
+                rw [Nat.floor_add_one]
+                · omega
+                positivity
+            _ ≤ Nat.floor (4 * Λ * |uM - um| / δ) := by
+                gcongr
+                rw [le_div_iff]
+                rw [div_le_iff] at this
+                field_simp
+                rw [abs_of_nonneg, abs_of_nonneg]
+                linarith only [this]
+                · positivity
+                · linarith only [h₁]
+                all_goals positivity
 
         /- Conclusion of the proof: combine the lower bound of the second substep with
         the upper bound of the first substep to get a definite gain when one goes from
@@ -1560,11 +1570,11 @@ lemma Morse_Gromov_theorem_aux0
           _ ≤ (Λ ^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ
               + Kmult * (1 - exp (- K * (x - closestm))))
               + (Kmult * (exp (-K * (x - closestm)) - exp (-K * (uM-um)))) := by
-              have hx : x ∈ Icc z b :=
-                ⟨by linarith only [hx₁.1, hyM.1.1], by linarith only [huM.2, hx₁.2]⟩
-              have : closestm ∈ Icc a z :=
-                ⟨by linarith only [hclosestm.1.1, hum.1], by linarith only [hym.1.2, hclosestm.1.2]⟩
-              have := IH_n closestm x this hx H₁
+              have h₃ : Icc closestm x ⊆ Icc um uM := by
+                rw [Icc_subset_Icc_iff h₁]
+                exact ⟨hclosestm.1.1, hx₁.2⟩
+              have := Morse_Gromov_theorem_aux0 (hf.mono h₃) (hf'.mono h₃) h₁ h₂ hδ
+              dsimp [D, K, Kmult, L] at this H₂ ⊢
               linarith only [this, H₂]
           _ = (Λ^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um)))) := by
               dsimp [K]
@@ -1666,6 +1676,7 @@ lemma Morse_Gromov_theorem_aux0
     have H₂ := hx₂ uM ⟨hx₁.2, by rfl⟩
     linarith only [H₁, H₂]
     -- end of the case where `D + 4 * C ≤ dM` and `dm ≤ dM`.
+termination_by Nat.floor (4 * Λ * |uM - um| / δ)
 
 /-- The main induction is over. To conclude, one should apply its result to the original
 geodesic segment joining the points $f(a)$ and $f(b)$. -/
@@ -1692,19 +1703,11 @@ lemma Morse_Gromov_theorem_aux1
   let K : ℝ := α * log 2 / (5 * (4 + (L + 2 * δ)/D) * δ * Λ)
   let Kmult : ℝ := ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp (1/2 * log 2)) * Λ * exp (- ((1 - α) * D * log 2 / (5 * δ))) / K)
 
-  obtain ⟨n, hn⟩ : ∃ n : ℕ, (b - a)/((1/4) * δ / Λ) ≤ n := exists_nat_ge _
-  have : b - a ≤ n * (1/4) * δ / Λ := by
-    rw [div_le_iff] at hn
-    · convert hn using 1
-      ring
-    · positivity
   calc infDist (f z) G
       ≤ Gromov_product_at (f z) (f a) (f b) + 2 * deltaG X := infDist_triangle_side _ hGf
     _ ≤ (Λ^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (-K * (b - a)))) + 2 * δ := by
         gcongr
-        refine Morse_Gromov_theorem_aux0 hf hf' hab hGf hz hδ n a b ?_ ?_ this
-        · exact ⟨by rfl, hz.1⟩
-        · exact ⟨hz.2, by rfl⟩
+        exact Morse_Gromov_theorem_aux0 hf hf' hab hz hδ
     _ = Λ^2 * (D + 3/2 * L + δ + 11/2 * C) + Kmult * (1 - exp (-K * (b - a))) := by ring
     _ ≤ Λ^2 * (D + 3/2 * L + δ + 11/2 * C) + Kmult * (1 - 0) := by
         gcongr

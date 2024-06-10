@@ -22,6 +22,11 @@ structure quasi_isometry_on (lambda C : ℝ) (s : Set X) (f : X → Y) : Prop :=
   (upper_bound {x y : X} (_ : x ∈ s) (_ : y ∈ s) : dist (f x) (f y) ≤ lambda * dist x y + C)
   (lower_bound {x y : X} (_ : x ∈ s) (_ : y ∈ s) : (1/lambda) * dist x y - C ≤ dist (f x) (f y))
 
+theorem quasi_isometry_on.mono {lambda C : ℝ} {s : Set X} {f : X → Y}
+    (hf : quasi_isometry_on lambda C s f) {t : Set X} (hts : t ⊆ s) :
+    quasi_isometry_on lambda C t f :=
+  sorry
+
 #exit
 
 abbreviation quasi_isometry :: "real \<Rightarrow> real \<Rightarrow> ('a::metric_space \<Rightarrow> 'b::metric_space) \<Rightarrow> bool"
