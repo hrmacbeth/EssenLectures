@@ -261,6 +261,9 @@ lemma Morse_Gromov_theorem_aux0
   have h_H : geodesic_segment_between H (f z) m := by
     dsimp [H]
     exact (some_geodesic_is_geodesic_segment _ _).1
+  have H_closure: closure H = H := by
+      rw [IsClosed.closure_eq]
+      exact (geodesic_segment_topology ⟨_, _, h_H⟩).2.2.2.2.1
   have Dpi_z : dist (f z) pi_z = Gromov_product_at (f z) (f um) (f uM) := by
     dsimp [pi_z, H]
     apply geodesic_segment_param6 h_H
@@ -621,9 +624,8 @@ lemma Morse_Gromov_theorem_aux0
       dsimp [QC]
       split_ifs with h
       · simp only [h, pow_zero, sub_self, zero_mul, V, cthickening_zero]
-        rw [IsClosed.closure_eq]
-        · apply quasiconvex_of_geodesic ⟨_, _, h_H⟩
-        exact (geodesic_segment_topology ⟨_, _, h_H⟩).2.2.2.2.1
+        rw [H_closure]
+        apply quasiconvex_of_geodesic ⟨_, _, h_H⟩
       · refine quasiconvex_mono ?_ (Q k)
         linarith only [hδ]
 
@@ -671,7 +673,7 @@ lemma Morse_Gromov_theorem_aux0
           ∧ L - 4 * δ + 7 * QC k ≤ dist (q k um) (q k x) :=
         IH.resolve_left h
 
-      -- these are basically `aux`
+      -- FIXME these are basically `aux`, clean up
       have h_pow : (1:ℝ) ≤ 2 ^ k := one_le_pow_of_one_le (by norm_num) k
       have h_pow' : 0 ≤ (2:ℝ) ^ k - 1 := by linarith only [h_pow]
       have hdm_mul : 0 ≤ dm * 2 ^ k := by positivity
@@ -850,59 +852,70 @@ lemma Morse_Gromov_theorem_aux0
               /- We use different statements for the projection in the case `k = 0` (projection on
               a geodesic) and `k > 0` (projection on a quasi-convex set) as the bounds are better in
               the first case, which is the most important one for the final value of the constant. -/
-              obtain rfl | hk := Nat.eq_zero_or_pos k
-              ·
-                have : dist (q 0 v) (q 0 x)
+              obtain rfl | hk := eq_or_ne k 0
+              · have : dist (q 0 v) (q 0 x)
                     ≤ max (5 * deltaG X)
-                      ((4 * exp (1/2 * log 2)) * Λ * (x - v) * exp (-(dm * 2^0 - C/2) * log 2 / (5 * δ))) := sorry
-        --               proof (rule geodesic_projection_exp_contracting[where ?G = "V k" and ?f = f])
-        --                 show "geodesic_segment (V k)" unfolding True V_def using geodesic_segmentI[OF H] by auto
-        --                 show "v ≤ x" using \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> by auto
-        --                 show "q k v ∈ proj_set (f v) (V k)"
-        --                   unfolding q_def V_def apply (rule proj_set_thickening)
-        --                   using aux p[of v] x(3)[of v] \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> by (auto simp add: metric_space_class.dist_commute)
-        --                 show "q k x ∈ proj_set (f x) (V k)"
-        --                   unfolding q_def V_def apply (rule proj_set_thickening)
-        --                   using aux p[of x] x(3)[of x] \<open>w ∈ {um..x}\<close> by (auto simp add: metric_space_class.dist_commute)
-        --                 show "15/2 * δ + C/2 ≤ dm * 2^k"
-        --                   apply (rule order_trans[of _ dm])
-        --                   using I \<open>δ > 0\<close> \<open>C ≥ 0\<close> Laux unfolding QC_def by auto
-        --                 show "deltaG TYPE('a) < δ" by fact
-        --                 show "∀ t. t ∈ {v..x} → dm * 2 ^ k ≤ infDist (f t) (V k)"
-        --                   using aux4 by auto
-        --                 show "0 ≤ C" "0 ≤ Λ" using \<open>C ≥ 0\<close> \<open>Λ ≥ 1\<close> by auto
-        --                 show "dist (f x1) (f x2) ≤ Λ * dist x1 x2 + C" if "x1 ∈ {v..x}" "x2 ∈ {v..x}" for x1 x2
-        --                   using quasi_isometry_onD(1)[OF assms(2)] that \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> \<open>x ∈ {um..ym}\<close> \<open>ym ∈ {um..z}\<close> \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> by auto
-        --               qed
-                simp only [hq0] at this ⊢
-        --               then show ?thesis unfolding QC_def True by auto
-                sorry
-              ·
-        --             next
-        --               case False
-        --               have "dist (q k v) (q k x) ≤ 2 * QC k + 8 * δ + max (5 * deltaG X) ((4 * exp(1/2 * log 2)) * Λ * (x - v) * exp(-(dm * 2^k - QC k -C/2) * log 2 / (5 * δ)))"
-        --               proof (rule quasiconvex_projection_exp_contracting[where ?G = "V k" and ?f = f])
-        --                 show "quasiconvex (QC k) (V k)" by fact
-        --                 show "v ≤ x" using \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> by auto
-        --                 show "q k v ∈ proj_set (f v) (V k)"
-        --                   unfolding q_def V_def apply (rule proj_set_thickening)
-        --                   using aux p[of v] x(3)[of v] \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> by (auto simp add: metric_space_class.dist_commute)
-        --                 show "q k x ∈ proj_set (f x) (V k)"
-        --                   unfolding q_def V_def apply (rule proj_set_thickening)
-        --                   using aux p[of x] x(3)[of x] \<open>w ∈ {um..x}\<close> by (auto simp add: metric_space_class.dist_commute)
-        --                 show "15/2 * δ + QC k + C/2 ≤ dm * 2^k"
-        --                   apply (rule order_trans[of _ dm])
-        --                   using I \<open>δ > 0\<close> \<open>C ≥ 0\<close> Laux unfolding QC_def by auto
-        --                 show "deltaG TYPE('a) < δ" by fact
-        --                 show "∀ t. t ∈ {v..x} → dm * 2 ^ k ≤ infDist (f t) (V k)"
-        --                   using aux4 by auto
-        --                 show "0 ≤ C" "0 ≤ Λ" using \<open>C ≥ 0\<close> \<open>Λ ≥ 1\<close> by auto
-        --                 show "dist (f x1) (f x2) ≤ Λ * dist x1 x2 + C" if "x1 ∈ {v..x}" "x2 ∈ {v..x}" for x1 x2
-        --                   using quasi_isometry_onD(1)[OF assms(2)] that \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> \<open>x ∈ {um..ym}\<close> \<open>ym ∈ {um..z}\<close> \<open>um ∈ {a..z}\<close> \<open>z ∈ Icc a b\<close> by auto
-        --               qed
-        --               then show ?thesis unfolding QC_def using False by (auto simp add: algebra_simps)
-        --             qed
-                sorry
+                      ((4 * exp (1/2 * log 2)) * Λ * (x - v)
+                      * exp (-(dm * 2^0 - C/2) * log 2 / (5 * δ))) := by
+                  apply geodesic_projection_exp_contracting (G := V 0) (f := f)
+                  · intro x1 x2 hx1 hx2
+                    apply hf'.upper_bound
+                    · exact ⟨by linarith only [hum.1, hv₁.1, hx1.1],
+                        by linarith only [hx1.2, hx₁.2, hym.1.2, hz.2]⟩
+                    · exact ⟨by linarith only [hum.1, hv₁.1, hx2.1],
+                        by linarith only [hx2.2, hx₁.2, hym.1.2, hz.2]⟩
+                  · exact hv₁.2.trans hw₁.2
+                  · simpa [hq0, V, H_closure] using hp v
+                  · simpa [hq0, V, H_closure] using hp x
+                  · intro t
+                    exact aux4
+                  · simp only [pow_zero]
+                    dsimp [D] at I₁
+                    linarith only [I₁, hC, hδ₀]
+                  · exact hδ
+                  · exact hC
+                  · positivity
+                  · simpa [V, H_closure] using (⟨_, _, h_H⟩ : geodesic_segment H)
+                simpa [hq0, QC] using this
+              · have : dist (q k v) (q k x)
+                    ≤ 2 * QC k + 8 * δ + max (5 * deltaG X)
+                      ((4 * exp (1/2 * log 2)) * Λ * (x - v) * exp (-(dm * 2^k - QC k -C/2) * log 2 / (5 * δ))) := by
+                  apply quasiconvex_projection_exp_contracting (G := V k) (f := f)
+                  · intro x1 x2 hx1 hx2
+                    apply hf'.upper_bound
+                    · exact ⟨by linarith only [hum.1, hv₁.1, hx1.1],
+                        by linarith only [hx1.2, hx₁.2, hym.1.2, hz.2]⟩
+                    · exact ⟨by linarith only [hum.1, hv₁.1, hx2.1],
+                        by linarith only [hx2.2, hx₁.2, hym.1.2, hz.2]⟩
+                  · exact hv₁.2.trans hw₁.2
+                  · dsimp [q, V]
+                    convert proj_set_thickening' (E := dist (p v) (f v)) (hp _) ?_ ?_ (by rfl) (some_geodesic_is_geodesic_segment _ _).1 using 2
+                    · rw [geodesic_segment_param_in_geodesic_spaces2]
+                    · positivity
+                    · rw [dist_comm]
+                      refine le_trans H₁ (hx₂ _ ?_)
+                      exact ⟨hv₁.1, hv₁.2.trans hw₁.2⟩
+                  · dsimp [q, V]
+                    convert proj_set_thickening' (E := dist (p x) (f x)) (hp _) ?_ ?_ (by rfl) (some_geodesic_is_geodesic_segment _ _).1 using 2
+                    · rw [geodesic_segment_param_in_geodesic_spaces2]
+                    · positivity
+                    · rw [dist_comm]
+                      refine le_trans H₁ (hx₂ _ ?_)
+                      exact ⟨hx₁.1, by rfl⟩
+                  · intro t
+                    exact aux4
+                  · dsimp [QC]
+                    rw [if_neg hk]
+                    dsimp [D] at I₁
+                    linarith only [hδ₀, hC, I₁, aux.2.2]
+                  · exact hδ
+                  · exact hC
+                  · positivity
+                  · apply V_quasiconvex
+                refine le_trans this ?_
+                simp only [if_neg hk, QC]
+                ring_nf
+                rfl
 
         have : L - 13 * δ ≤ max (5 * deltaG X)
           ((4 * exp (1/2 * log 2)) * Λ * (x - v) * exp (-(dm * 2^k - C/2 - QC k) * log 2 / (5 * δ))) := by
