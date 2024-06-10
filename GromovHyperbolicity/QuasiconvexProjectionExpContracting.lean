@@ -103,7 +103,7 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
     change _ ≤ _ / 2 at h₂
     linarith only [hpxx'M, hδ, h₁, h₂]
   have B : M - 4 * δ + dist x' y' ≤ dist py x' := by
-    rw [Gromov_product_commute] at Iyx Iyy
+    rw [gromovProductAt_commute] at Iyx Iyy
     have h₁ := le_min Iyx.le <| le_min Iy Iyy.ge
     have h₂ := hyperb_ineq_4_points py x' x y y'
     change _ ≤ _ / 2 at h₂

@@ -228,7 +228,7 @@ lemma Morse_Gromov_theorem_aux0
     linarith only [this, hδ]
   have H'' := -- `**`
   calc gromovProductAt (f z) (f um) (f uM) ≤ infDist (f z) {(f um)‒(f uM)} := by
-        apply Gromov_product_le_infDist
+        apply gromovProductAt_le_infDist
         exact (some_geodesic_is_geodesic_segment _ _).1
     _ ≤ dist (f z) m := by
         apply infDist_le_dist_of_mem
@@ -250,7 +250,7 @@ lemma Morse_Gromov_theorem_aux0
   have Dpi_z : dist (f z) pi_z = gromovProductAt (f z) (f um) (f uM) := by
     dsimp [pi_z, H]
     apply geodesic_segment_param6 h_H
-    exact ⟨Gromov_product_nonneg (f z) (f um) (f uM), H''⟩
+    exact ⟨gromovProductAt_nonneg (f z) (f um) (f uM), H''⟩
   have : dist (f z) m = dist (f z) pi_z + dist pi_z m := (geodesic_segment_dist h_H h_H'.1).symm
   have h_pi_z_m : dist pi_z m ≤ 2 * δ := by linarith only [this, Dpi_z, h_fz_m]
 
@@ -270,8 +270,8 @@ lemma Morse_Gromov_theorem_aux0
     _ = gromovProductAt (f um) (f z) (f uM) + dist (p um) (f z) := by
       simp [m]
       apply geodesic_segment_param_in_geodesic_spaces6
-      refine ⟨Gromov_product_nonneg (f um) (f z) (f uM), ?_⟩ -- TODO positivity extension
-      exact (Gromov_product_le_dist _ _ _).2
+      refine ⟨gromovProductAt_nonneg (f um) (f z) (f uM), ?_⟩ -- TODO positivity extension
+      exact (gromovProductAt_le_dist _ _ _).2
   have A : gromovProductAt (f z) (f um) (f uM) ≤ dist (p um) (f z) := by
     dsimp [gromovProductAt] at this ⊢
     simp only [dist_comm] at this ⊢
@@ -332,10 +332,10 @@ lemma Morse_Gromov_theorem_aux0
       gcongr
       exact proj_set_dist_le h_H'.2.1 (hp uM)
     _ = gromovProductAt (f uM) (f z) (f um) + dist (p uM) (f z) := by
-      have h₁ := Gromov_product_add (f um) (f uM) (f z)
+      have h₁ := gromovProductAt_add (f um) (f uM) (f z)
       have h₂ := I.1
       have h₃ := I.2
-      simp only [dist_comm, Gromov_product_commute] at h₁ h₂ h₃ ⊢
+      simp only [dist_comm, gromovProductAt_commute] at h₁ h₂ h₃ ⊢
       linarith only [h₁, h₂, h₃]
   have A : gromovProductAt (f z) (f um) (f uM) ≤ dist (p uM) (f z) := by
     dsimp [gromovProductAt] at this ⊢
