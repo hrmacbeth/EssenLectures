@@ -41,9 +41,9 @@ lemma quasiconvex_mono (hCD : C ≤ D) (hC : quasiconvex C G) : quasiconvex D G 
     peel hC.exists_nearby_geodesic hx hy
     linarith
 
-variable [Gromov_hyperbolic_space M] [GeodesicSpace M]
+variable [GromovHyperbolicSpace M] [GeodesicSpace M]
 
-local notation "δ" => Gromov_hyperbolic_space.deltaG M
+local notation "δ" => GromovHyperbolicSpace.deltaG M
 
 /-- The `r`-neighborhood of a quasi-convex set is still quasi-convex in a hyperbolic space,
 for a constant that does not depend on `r`. -/
@@ -133,7 +133,7 @@ lemma dist_along_quasiconvex (hCG : quasiconvex C G) {p x : M} (hp : p ∈ proj_
     · refine (geodesic_segment_topology ?_).1
       exact ⟨_, _, hH₁⟩
     · exact (geodesic_segment_endpoints hH₁).2.2
-  have I : dist x m ≤ Gromov_product_at x p y + 2 * δ := by
+  have I : dist x m ≤ gromovProductAt x p y + 2 * δ := by
     rw [← hm₂]
     apply infDist_triangle_side x hH₁
   have : ∀ e > 0, dist x p - dist x m - C ≤ e := by
@@ -149,10 +149,10 @@ lemma dist_along_quasiconvex (hCG : quasiconvex C G) {p x : M} (hp : p ∈ proj_
 --     finally show ?thesis using * by (auto simp add: metric_space_class.dist_commute)
     linarith
   have : dist x p - dist x m - C ≤ 0 := le_of_forall_le_of_dense this
-  rw [Gromov_product_at] at I
+  rw [gromovProductAt] at I
   linarith
 --   then show ?thesis
---     using I unfolding Gromov_product_at_def by (auto simp add: algebra_simps divide_simps)
+--     using I unfolding gromovProductAt_def by (auto simp add: algebra_simps divide_simps)
 -- qed
 
 /-- The next lemma is~\<^cite> Proposition 10.2.1 in "coornaert_delzant_papadopoulos" with better
@@ -165,7 +165,7 @@ lemma proj_along_quasiconvex_contraction (h : quasiconvex C G) {px x : M} (hx : 
     dist px py ≤ max (5 * δ + 2 * C) (dist x y - dist px x - dist py y + 10 * δ + 4 * C) := by
   have := dist_along_quasiconvex h hx <| hy.1
   have := dist_along_quasiconvex h hy <| hx.1
-  have := Gromov_hyperbolic_space.hyperb_quad_ineq x py y px
+  have := GromovHyperbolicSpace.hyperb_quad_ineq x py y px
   simp only [dist_comm] at *
   obtain _ | _ := max_cases (5 * δ + 2 * C) (dist x y - dist px x - dist py y + 10 * δ + 4 * C) <;>
   obtain _ | _ := max_cases (dist x y + dist px py) (dist px x + dist py y) <;>

@@ -10,6 +10,7 @@ import GromovHyperbolicity.Prereqs.Misc
 -/
 
 open Metric Set Classical
+attribute [gcongr] infDist_le_infDist_of_subset -- FIXME move this
 
 noncomputable section
 
@@ -71,31 +72,31 @@ lemma Gromov_hyperbolic_closure (h : Gromov_hyperbolic_subset δ A) :
 Gromov product of `x` and `y` based at `e` is the distance between `e` and the geodesic between
 `x` and `y`. It is also the time after which the geodesics from `e` to `x` and from `e` to `y`
 stop travelling together. -/
-def Gromov_product_at (e x y : X) : ℝ := (dist e x + dist e y - dist x y) / 2
+def gromovProductAt (e x y : X) : ℝ := (dist e x + dist e y - dist x y) / 2
 
-@[simp] lemma Gromov_product_nonneg (e x y : X) : Gromov_product_at e x y ≥ 0 := by
+@[simp] lemma Gromov_product_nonneg (e x y : X) : gromovProductAt e x y ≥ 0 := by
   have := dist_triangle x e y
-  simp only [Gromov_product_at, ge_iff_le]
+  simp only [gromovProductAt, ge_iff_le]
   cancel_denoms
   simpa [dist_comm, add_comm] using this
 
-lemma Gromov_product_commute (e x y : X) : Gromov_product_at e x y = Gromov_product_at e y x := by
-  simp only [Gromov_product_at, dist_comm, add_comm]
+lemma Gromov_product_commute (e x y : X) : gromovProductAt e x y = gromovProductAt e y x := by
+  simp only [gromovProductAt, dist_comm, add_comm]
 
 @[simp] lemma Gromov_product_le_dist (e x y : X) :
-    Gromov_product_at e x y ≤ dist e x ∧ Gromov_product_at e x y ≤ dist e y := by
+    gromovProductAt e x y ≤ dist e x ∧ gromovProductAt e x y ≤ dist e y := by
   have := dist_triangle e x y
   have := dist_triangle e y x
-  simp only [Gromov_product_at, dist_comm] at *
+  simp only [gromovProductAt, dist_comm] at *
   constructor <;> linarith
 
 lemma Gromov_product_le_infDist {x y : X} {G : Set X} (h : geodesic_segment_between G x y) {e : X} :
-    Gromov_product_at e x y ≤ infDist e G := by
+    gromovProductAt e x y ≤ infDist e G := by
   rw [infDist_eq_iInf]
   have : Nonempty G := ⟨_, (geodesic_segment_endpoints h).1⟩
   apply le_ciInf
   rintro ⟨z, hz⟩
-  dsimp [Gromov_product_at]
+  dsimp [gromovProductAt]
   have := dist_triangle e z x
   have := dist_triangle e z y
   have := geodesic_segment_dist h hz
@@ -103,57 +104,57 @@ lemma Gromov_product_le_infDist {x y : X} {G : Set X} (h : geodesic_segment_betw
   linarith
 
 lemma Gromov_product_add (e x y : X) :
-    Gromov_product_at e x y + Gromov_product_at x e y = dist e x := by
-  simp only [Gromov_product_at, dist_comm]
+    gromovProductAt e x y + gromovProductAt x e y = dist e x := by
+  simp only [gromovProductAt, dist_comm]
   ring
 
 lemma Gromov_product_geodesic_segment {x y : X} {G : Set X}
     (h : geodesic_segment_between G x y) {t : ℝ} (ht₀ : 0 ≤ t) (ht : t ≤ dist x y) :
-    Gromov_product_at x y (geodesic_segment_param G x t) = t := by
+    gromovProductAt x y (geodesic_segment_param G x t) = t := by
   have : dist x (geodesic_segment_param G x t) = t := geodesic_segment_param6 h ⟨ht₀, ht⟩
   have :
       dist x (geodesic_segment_param G x t) + dist (geodesic_segment_param G x t) y = dist x y := by
     apply geodesic_segment_dist h
     exact geodesic_segment_param3 h ⟨ht₀, ht⟩
-  dsimp [Gromov_product_at]
+  dsimp [gromovProductAt]
   simp only [dist_comm] at *
   linarith
 
-@[simp] lemma Gromov_product_e_x_x (e x : X) : Gromov_product_at e x x = dist e x := by
-  simp [Gromov_product_at]
+@[simp] lemma Gromov_product_e_x_x (e x : X) : gromovProductAt e x x = dist e x := by
+  simp [gromovProductAt]
 
 /-- The Gromov product is continuous in its three variables. -/
 -- never used?
-@[fun_prop] lemma Gromov_product_at_continuous :
-    Continuous (fun (p : X × X × X) ↦ Gromov_product_at p.1 p.2.1 p.2.2) := by
-  simp only [Gromov_product_at]
+@[fun_prop] lemma gromovProductAt_continuous :
+    Continuous (fun (p : X × X × X) ↦ gromovProductAt p.1 p.2.1 p.2.2) := by
+  simp only [gromovProductAt]
   fun_prop (disch := norm_num)
 
 end
 
 /-! ## Typeclass for Gromov hyperbolic spaces
 
-We could (should?) just derive `Gromov_hyperbolic_space` from `metric_space`.
+We could (should?) just derive `GromovHyperbolicSpace` from `MetricSpace`.
 However, in this case, properties of metric spaces are not available when working in the locale!
 It is more efficient to ensure that we have a metric space by putting a type class restriction
 in the definition. The δ in Gromov-hyperbolicity type class is called `deltaG` to
 avoid name clashes. -/
 
-class Gromov_hyperbolic_space (X : Type*) [MetricSpace X] where
+class GromovHyperbolicSpace (X : Type*) [MetricSpace X] where
   deltaG : ℝ
   hyperb_quad_ineq0 : Gromov_hyperbolic_subset deltaG (Set.univ : Set X)
 
-variable {X : Type*} [MetricSpace X] [Gromov_hyperbolic_space X]
+variable {X : Type*} [MetricSpace X] [GromovHyperbolicSpace X]
 
-local notation "δ" => Gromov_hyperbolic_space.deltaG X
+local notation "δ" => GromovHyperbolicSpace.deltaG X
 
-lemma Gromov_hyperbolic_space.hyperb_quad_ineq (x y z t : X) :
+lemma GromovHyperbolicSpace.hyperb_quad_ineq (x y z t : X) :
     dist x y + dist z t ≤ max (dist x z + dist y t) (dist x t + dist y z) + 2 * δ := by
-  apply Gromov_hyperbolic_space.hyperb_quad_ineq0 <;> aesop
+  apply GromovHyperbolicSpace.hyperb_quad_ineq0 <;> aesop
 
 /-- It readily follows from the definition that the completion of a δ-hyperbolic
 space is still δ-hyperbolic. -/
-instance deltaG_metric_completion : Gromov_hyperbolic_space (UniformSpace.Completion X) where
+instance deltaG_metric_completion : GromovHyperbolicSpace (UniformSpace.Completion X) where
   deltaG := δ
   hyperb_quad_ineq0 := by
     intro x hx y hy z hz t ht
@@ -161,9 +162,9 @@ instance deltaG_metric_completion : Gromov_hyperbolic_space (UniformSpace.Comple
     induction x, y, z, t using UniformSpace.Completion.induction_on₄
     · apply isClosed_le <;> fun_prop
     · simp only [UniformSpace.Completion.dist_eq]
-      apply Gromov_hyperbolic_space.hyperb_quad_ineq
+      apply GromovHyperbolicSpace.hyperb_quad_ineq
 
-open Gromov_hyperbolic_space
+open GromovHyperbolicSpace
 
 variable (X) in -- TODO `positivity` attribute
 @[simp] lemma delta_nonneg [Inhabited X] : δ ≥ 0 := by
@@ -172,9 +173,9 @@ variable (X) in -- TODO `positivity` attribute
   aesop
 
 lemma hyperb_ineq (e x y z : X) :
-    Gromov_product_at e x z ≥ min (Gromov_product_at e x y) (Gromov_product_at e y z) - δ := by
+    gromovProductAt e x z ≥ min (gromovProductAt e x y) (gromovProductAt e y z) - δ := by
   have H := hyperb_quad_ineq e y x z
-  simp only [Gromov_product_at, dist_comm, ← max_add_add_right, ← min_sub_sub_right,
+  simp only [gromovProductAt, dist_comm, ← max_add_add_right, ← min_sub_sub_right,
     le_max_iff, min_le_iff] at *
   refine Or.elim H (fun _ => Or.inr ?_) (fun _ => Or.inl ?_) <;>
   · cancel_denoms
@@ -183,13 +184,13 @@ lemma hyperb_ineq (e x y z : X) :
     assumption
 
 lemma hyperb_ineq' (e x y z : X) :
-    Gromov_product_at e x z + δ ≥ min (Gromov_product_at e x y) (Gromov_product_at e y z) := by
+    gromovProductAt e x z + δ ≥ min (gromovProductAt e x y) (gromovProductAt e y z) := by
   have := hyperb_ineq e x y z
   aesop
 
 lemma hyperb_ineq_4_points (e x y z t : X) :
-    min (Gromov_product_at e x y) (min (Gromov_product_at e y z) (Gromov_product_at e z t)) - 2 * δ
-    ≤ Gromov_product_at e x t := by
+    min (gromovProductAt e x y) (min (gromovProductAt e y z) (gromovProductAt e z t)) - 2 * δ
+    ≤ gromovProductAt e x t := by
   have : Inhabited X := ⟨e⟩
   have h1 := hyperb_ineq e x y z
   have h2 := hyperb_ineq e x z t
@@ -199,8 +200,8 @@ lemma hyperb_ineq_4_points (e x y z t : X) :
   obtain h1a | h1b := h1 <;> obtain h2a | h2b := h2 <;> linarith
 
 lemma hyperb_ineq_4_points' (e x y z t : X) :
-    min (Gromov_product_at e x y) (min (Gromov_product_at e y z) (Gromov_product_at e z t))
-    ≤ Gromov_product_at e x t + 2 * δ := by
+    min (gromovProductAt e x y) (min (gromovProductAt e y z) (gromovProductAt e z t))
+    ≤ gromovProductAt e x t + 2 * δ := by
   have := hyperb_ineq_4_points e x y z t
   aesop
 
@@ -212,18 +213,18 @@ triangles are thin is hyperbolic). -/
 lemma thin_triangles1 {x y z : X} {G : Set X}
     (hxy : geodesic_segment_between G x y) {H : Set X} (hxz : geodesic_segment_between H x z)
     -- not sure whether inequalities are sharp or non-sharp
-    {t : ℝ} (ht₀ : 0 ≤ t) (ht : t ≤ Gromov_product_at x y z) :
+    {t : ℝ} (ht₀ : 0 ≤ t) (ht : t ≤ gromovProductAt x y z) :
     dist (geodesic_segment_param G x t) (geodesic_segment_param H x t) ≤ 4 * δ := by
   have : Inhabited X := ⟨x⟩
-  have h1 : Gromov_product_at x z (geodesic_segment_param H x t) = t := by
+  have h1 : gromovProductAt x z (geodesic_segment_param H x t) = t := by
     apply Gromov_product_geodesic_segment hxz ht₀
     have := Gromov_product_le_dist x y z
     linarith
-  have : min (Gromov_product_at x y z) (Gromov_product_at x z (geodesic_segment_param H x t)) - δ
-      ≤ Gromov_product_at x y (geodesic_segment_param H x t) := hyperb_ineq ..
-  have I : t - δ ≤ Gromov_product_at x y (geodesic_segment_param H x t) := by
+  have : min (gromovProductAt x y z) (gromovProductAt x z (geodesic_segment_param H x t)) - δ
+      ≤ gromovProductAt x y (geodesic_segment_param H x t) := hyperb_ineq ..
+  have I : t - δ ≤ gromovProductAt x y (geodesic_segment_param H x t) := by
     rwa [h1, min_eq_right ht] at this
-  have h2 : Gromov_product_at x (geodesic_segment_param G x t) y = t := by
+  have h2 : gromovProductAt x (geodesic_segment_param G x t) y = t := by
     rw [Gromov_product_commute]
     apply Gromov_product_geodesic_segment hxy ht₀
     have := Gromov_product_le_dist x y z
@@ -234,11 +235,11 @@ lemma thin_triangles1 {x y z : X} {G : Set X}
         · ring
         · have : 0 ≤ δ := delta_nonneg X
           linarith
-    _ ≤ min (Gromov_product_at x (geodesic_segment_param G x t) y)
-          (Gromov_product_at x y (geodesic_segment_param H x t)) - δ := by
+    _ ≤ min (gromovProductAt x (geodesic_segment_param G x t) y)
+          (gromovProductAt x y (geodesic_segment_param H x t)) - δ := by
         rw [h2]
         gcongr
-    _ ≤ Gromov_product_at x (geodesic_segment_param G x t) (geodesic_segment_param H x t) :=
+    _ ≤ gromovProductAt x (geodesic_segment_param G x t) (geodesic_segment_param H x t) :=
         hyperb_ineq ..
   have A : dist x (geodesic_segment_param G x t) = t := by
     refine geodesic_segment_param6 hxy ⟨ht₀, ?_⟩
@@ -248,7 +249,7 @@ lemma thin_triangles1 {x y z : X} {G : Set X}
     refine geodesic_segment_param6 hxz ⟨ht₀, ?_⟩
     calc t ≤ _ := ht
       _ ≤ _ := (Gromov_product_le_dist _ _ _).2
-  rw [Gromov_product_at] at I
+  rw [gromovProductAt] at I
   linarith
 
 theorem thin_triangles {x y z w : X}
@@ -261,7 +262,7 @@ theorem thin_triangles {x y z w : X}
     rw [← geodesic_segment_param5 hyz] at hw
     obtain ⟨t, ht, htw⟩ := hw
     exact ⟨t, ht, htw.symm⟩
-  by_cases ht : t ≤ Gromov_product_at y x z
+  by_cases ht : t ≤ gromovProductAt y x z
   · have : dist w (geodesic_segment_param Gxy y t) ≤ 4 * δ := by
       rw [htw]
       refine thin_triangles1 hyz (z := x) ?_ ht0.1 ?_
@@ -275,7 +276,7 @@ theorem thin_triangles {x y z w : X}
     calc t ≤ _ := ht
       _ ≤ _ := (Gromov_product_le_dist _ _ _).1
   · let s := dist y z - t
-    have hs : s ∈ Ico 0 (Gromov_product_at z y x) := by
+    have hs : s ∈ Ico 0 (gromovProductAt z y x) := by
       dsimp [s, Ico, Icc] at ht0 ⊢
       push_neg at ht
       have := Gromov_product_add y z x
@@ -299,34 +300,34 @@ theorem thin_triangles {x y z w : X}
 /-- The distance of a vertex of a triangle to the opposite side is essentially given by the
 Gromov product, up to `2 * δ`. -/
 lemma dist_triangle_side_middle {x y : X} {G : Set X} (z : X) (hxy : geodesic_segment_between G x y) :
-    dist z (geodesic_segment_param G x (Gromov_product_at x z y))
-      ≤ Gromov_product_at z x y + 2 * δ := by
-  let m := geodesic_segment_param G x (Gromov_product_at x z y)
+    dist z (geodesic_segment_param G x (gromovProductAt x z y))
+      ≤ gromovProductAt z x y + 2 * δ := by
+  let m := geodesic_segment_param G x (gromovProductAt x z y)
   have : m ∈ G := by
     refine geodesic_segment_param3 hxy ⟨?_, ?_⟩
     · exact Gromov_product_nonneg x z y
     · exact (Gromov_product_le_dist _ _ _).2
-  have A : dist x m = Gromov_product_at x z y := by
+  have A : dist x m = gromovProductAt x z y := by
     refine geodesic_segment_param6 hxy ⟨?_, ?_⟩
     · exact Gromov_product_nonneg x z y
     · exact (Gromov_product_le_dist _ _ _).2
   have B : dist x m + dist m y = dist x y := geodesic_segment_dist hxy this
-  have hxzym : dist x z + dist y m = Gromov_product_at z x y + dist x y := by
-    simp only [dist_comm, Gromov_product_at] at A B ⊢
+  have hxzym : dist x z + dist y m = gromovProductAt z x y + dist x y := by
+    simp only [dist_comm, gromovProductAt] at A B ⊢
     linarith
-  have hxmyz : dist x m + dist y z = Gromov_product_at z x y + dist x y := by
-    simp only [dist_comm, Gromov_product_at] at A B ⊢
+  have hxmyz : dist x m + dist y z = gromovProductAt z x y + dist x y := by
+    simp only [dist_comm, gromovProductAt] at A B ⊢
     linarith
   have : dist x y + dist z m ≤ max (dist x z + dist y m) (dist x m + dist y z) + 2 * δ :=
     hyperb_quad_ineq ..
-  have : dist z m ≤ Gromov_product_at z x y + 2 * δ := by
+  have : dist z m ≤ gromovProductAt z x y + 2 * δ := by
     rw [hxzym, hxmyz, max_self] at this
     linarith
   exact this
 
 -- needed for `dist_along_quasiconvex`
 lemma infDist_triangle_side {x y : X} (z : X) {G : Set X} (hxy : geodesic_segment_between G x y) :
-    infDist z G ≤ Gromov_product_at z x y + 2 * δ := by
+    infDist z G ≤ gromovProductAt z x y + 2 * δ := by
   refine le_trans ?_ <| dist_triangle_side_middle z hxy
   apply infDist_le_dist_of_mem
   refine geodesic_segment_param3 hxy ⟨?_, ?_⟩
@@ -351,27 +352,25 @@ lemma dist_le_max_dist_triangle {x y m : X} {G : Set X} (hxy : geodesic_segment_
     rw [add_comm]
     gcongr
     exact le_max_right ..
-  obtain hzxmy | hzxmy := le_or_lt (Gromov_product_at z x m) (Gromov_product_at z m y)
+  obtain hzxmy | hzxmy := le_or_lt (gromovProductAt z x m) (gromovProductAt z m y)
   · have :=
-    calc Gromov_product_at z x m = min (Gromov_product_at z x m) (Gromov_product_at z m y) :=
+    calc gromovProductAt z x m = min (gromovProductAt z x m) (gromovProductAt z m y) :=
           min_eq_left hzxmy |>.symm
-      _ ≤ Gromov_product_at z x y + δ := hyperb_ineq' z x m y
-    dsimp [Gromov_product_at] at this
+      _ ≤ gromovProductAt z x y + δ := hyperb_ineq' z x m y
+    dsimp [gromovProductAt] at this
     have : dist x m + dist m y = dist x y := geodesic_segment_dist hxy hm
     have := le_max_right (dist x z) (dist y z)
     simp only [dist_comm] at *
     linarith
   · have :=
-    calc Gromov_product_at z y m = min (Gromov_product_at z x m) (Gromov_product_at z m y) :=
+    calc gromovProductAt z y m = min (gromovProductAt z x m) (gromovProductAt z m y) :=
           by simpa [Gromov_product_commute] using min_eq_right hzxmy.le |>.symm
-      _ ≤ Gromov_product_at z x y + δ := hyperb_ineq' z x m y
-    dsimp [Gromov_product_at] at this
+      _ ≤ gromovProductAt z x y + δ := hyperb_ineq' z x m y
+    dsimp [gromovProductAt] at this
     have : dist x m + dist m y = dist x y := geodesic_segment_dist hxy hm
     have := le_max_left (dist x z) (dist y z)
     simp only [dist_comm] at *
     linarith
-
-attribute [gcongr] infDist_le_infDist_of_subset -- FIXME move this
 
 /-- A useful variation around the previous properties is that quadrilaterals are thin, in the
 following sense: if one has a union of three geodesics from `x` to `t`, then a geodesic from `x`

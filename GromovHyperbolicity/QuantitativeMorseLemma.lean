@@ -27,9 +27,9 @@ We will also give afterwards (in a separate file)
 for completeness the proof in~\<^cite> "bridson_haefliger", as it brings
 up interesting tools, although the dependency it gives is worse. -/
 
-variable {X : Type*} [MetricSpace X] [Gromov_hyperbolic_space X] [GeodesicSpace X]
+variable {X : Type*} [MetricSpace X] [GromovHyperbolicSpace X] [GeodesicSpace X]
 
-open Gromov_hyperbolic_space
+open GromovHyperbolicSpace
 
 #time
 set_option maxHeartbeats 1000000 in
@@ -184,7 +184,7 @@ lemma Morse_Gromov_theorem_aux0
     let D : ℝ := 55 * δ
     let K : ℝ := α * log 2 / (5 * (4 + (L + 2 * δ)/D) * δ * Λ)
     let Kmult : ℝ := ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp (1/2 * log 2)) * Λ * exp (- ((1 - α) * D * log 2 / (5 * δ))) / K)
-    Gromov_product_at (f z) (f um) (f uM)
+    gromovProductAt (f z) (f um) (f uM)
       ≤ Λ^2 * (D + (3/2) * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um))) := by
   have hC := hf'.C_nonneg
   have := hf'.one_le_lambda
@@ -201,10 +201,10 @@ lemma Morse_Gromov_theorem_aux0
   have : Kmult > 0 := by ring_nf; positivity --" unfolding Kmult_def using Laux \<open>δ > 0\<close> \<open>K > 0\<close> \<open>Λ ≥ 1\<close> by (auto simp add: divide_simps)
 
   have : 0 ≤ uM - um := by linarith only [h_um_uM]
-  by_cases hz_um_uM_L : Gromov_product_at (f z) (f um) (f uM) ≤ L
+  by_cases hz_um_uM_L : gromovProductAt (f z) (f um) (f uM) ≤ L
   · /- If `f z` is already close to the geodesic, there is nothing to do, and we do not need
     the induction assumption. This is case 1 in the description above. -/
-    calc Gromov_product_at (f z) (f um) (f uM) ≤ L := hz_um_uM_L
+    calc gromovProductAt (f z) (f um) (f uM) ≤ L := hz_um_uM_L
       _ ≤ 1 * (D + (3/2) * L + δ + 11/2 * C) - 2 * δ + 0 * (1 - exp (- K * (uM - um))) := by
         dsimp [L, D]
         linarith only [hf'.C_nonneg, hδ₀]
@@ -220,14 +220,14 @@ lemma Morse_Gromov_theorem_aux0
   `m` (within distance `2 * δ`). We will push the points `f um` and `f uM`
   towards `f z` by considering points whose projection on a geodesic `H` between `m` and
   `z` is roughly at distance `L` of `pi_z`. -/
-  let m := geodesic_segment_param {(f um)‒(f uM)} (f um) (Gromov_product_at (f um) (f z) (f uM))
-  have : dist (f z) m ≤ Gromov_product_at (f z) (f um) (f uM) + 2 * deltaG X := by
+  let m := geodesic_segment_param {(f um)‒(f uM)} (f um) (gromovProductAt (f um) (f z) (f uM))
+  have : dist (f z) m ≤ gromovProductAt (f z) (f um) (f uM) + 2 * deltaG X := by
     apply dist_triangle_side_middle
     exact (some_geodesic_is_geodesic_segment _ _).1
-  have h_fz_m : dist (f z) m ≤ Gromov_product_at (f z) (f um) (f uM) + 2 * δ := by -- `*`
+  have h_fz_m : dist (f z) m ≤ gromovProductAt (f z) (f um) (f uM) + 2 * δ := by -- `*`
     linarith only [this, hδ]
   have H'' := -- `**`
-  calc Gromov_product_at (f z) (f um) (f uM) ≤ infDist (f z) {(f um)‒(f uM)} := by
+  calc gromovProductAt (f z) (f um) (f uM) ≤ infDist (f z) {(f um)‒(f uM)} := by
         apply Gromov_product_le_infDist
         exact (some_geodesic_is_geodesic_segment _ _).1
     _ ≤ dist (f z) m := by
@@ -236,7 +236,7 @@ lemma Morse_Gromov_theorem_aux0
         simp
 
   let H : Set X := {(f z)‒m}
-  let pi_z := geodesic_segment_param H (f z) (Gromov_product_at (f z) (f um) (f uM))
+  let pi_z := geodesic_segment_param H (f z) (gromovProductAt (f z) (f um) (f uM))
   have h_H' : pi_z ∈ H ∧ m ∈ H ∧ f z ∈ H := by
     simp only [some_geodesic_endpoints, and_self, and_true, pi_z, H]
     apply geodesic_segment_param_in_segment
@@ -247,7 +247,7 @@ lemma Morse_Gromov_theorem_aux0
   have H_closure: closure H = H := by
       rw [IsClosed.closure_eq]
       exact (geodesic_segment_topology ⟨_, _, h_H⟩).2.2.2.2.1
-  have Dpi_z : dist (f z) pi_z = Gromov_product_at (f z) (f um) (f uM) := by
+  have Dpi_z : dist (f z) pi_z = gromovProductAt (f z) (f um) (f uM) := by
     dsimp [pi_z, H]
     apply geodesic_segment_param6 h_H
     exact ⟨Gromov_product_nonneg (f z) (f um) (f uM), H''⟩
@@ -267,13 +267,13 @@ lemma Morse_Gromov_theorem_aux0
     _ ≤ dist (f um) m + dist (p um) (f z) := by
       gcongr
       exact proj_set_dist_le h_H'.2.1 (hp um)
-    _ = Gromov_product_at (f um) (f z) (f uM) + dist (p um) (f z) := by
+    _ = gromovProductAt (f um) (f z) (f uM) + dist (p um) (f z) := by
       simp [m]
       apply geodesic_segment_param_in_geodesic_spaces6
       refine ⟨Gromov_product_nonneg (f um) (f z) (f uM), ?_⟩ -- TODO positivity extension
       exact (Gromov_product_le_dist _ _ _).2
-  have A : Gromov_product_at (f z) (f um) (f uM) ≤ dist (p um) (f z) := by
-    dsimp [Gromov_product_at] at this ⊢
+  have A : gromovProductAt (f z) (f um) (f uM) ≤ dist (p um) (f z) := by
+    dsimp [gromovProductAt] at this ⊢
     simp only [dist_comm] at this ⊢
     linarith only [this]
   -- On `H`, the point `pi_z` lies between `p um` and `f z`
@@ -319,7 +319,7 @@ lemma Morse_Gromov_theorem_aux0
 
   -- Same things but in the interval $[z, uM]$.
   have I : dist (f um) m + dist m (f uM) = dist (f um) (f uM)
-            ∧ dist (f um) m = Gromov_product_at (f um) (f z) (f uM) := by
+            ∧ dist (f um) m = gromovProductAt (f um) (f z) (f uM) := by
     constructor
     · apply geodesic_segment_dist (some_geodesic_is_geodesic_segment (f um) (f uM)).1
       apply geodesic_segment_param_in_geodesic_spaces3
@@ -331,14 +331,14 @@ lemma Morse_Gromov_theorem_aux0
     _ ≤ dist (f uM) m + dist (p uM) (f z) := by
       gcongr
       exact proj_set_dist_le h_H'.2.1 (hp uM)
-    _ = Gromov_product_at (f uM) (f z) (f um) + dist (p uM) (f z) := by
+    _ = gromovProductAt (f uM) (f z) (f um) + dist (p uM) (f z) := by
       have h₁ := Gromov_product_add (f um) (f uM) (f z)
       have h₂ := I.1
       have h₃ := I.2
       simp only [dist_comm, Gromov_product_commute] at h₁ h₂ h₃ ⊢
       linarith only [h₁, h₂, h₃]
-  have A : Gromov_product_at (f z) (f um) (f uM) ≤ dist (p uM) (f z) := by
-    dsimp [Gromov_product_at] at this ⊢
+  have A : gromovProductAt (f z) (f um) (f uM) ≤ dist (p uM) (f z) := by
+    dsimp [gromovProductAt] at this ⊢
     simp only [dist_comm] at this ⊢
     linarith only [this]
   -- On `H`, the point `pi_z` lies between `p uM` and `f z`
@@ -453,22 +453,22 @@ lemma Morse_Gromov_theorem_aux0
   intermediate geodesic between points in $f[um, ym]$ and $f[yM, uM]$, up to a constant
   essentially given by `L`. This is a variation around Lemma 5 in~\<^cite>\<open>"shchur"\<close>. -/
   have Rec {rm rM} (hrm : rm ∈ Icc um ym) (hrM : rM ∈ Icc yM uM) :
-      Gromov_product_at (f z) (f um) (f uM) ≤ Gromov_product_at (f z) (f rm) (f rM) + (L + 4 * δ) := by
-    have A : dist (f z) pi_z - L - 2 * deltaG X ≤ Gromov_product_at (f z) (f rm) (p rm) := by
+      gromovProductAt (f z) (f um) (f uM) ≤ gromovProductAt (f z) (f rm) (f rM) + (L + 4 * δ) := by
+    have A : dist (f z) pi_z - L - 2 * deltaG X ≤ gromovProductAt (f z) (f rm) (p rm) := by
       have h₁ : dist (f rm) (p rm) + dist (p rm) (f z) ≤ dist (f rm) (f z) + 4 * deltaG X :=
         dist_along_geodesic ⟨_, _, h_H⟩ (hp _) h_H'.2.2
       have h₂ : dist (f z) pi_z ≤ dist (f z) (p rm) + dist (p rm) pi_z := dist_triangle ..
       have h₃ := P (Or.inl hrm)
-      simp only [Gromov_product_at, dist_comm] at h₁ h₂ h₃ ⊢
+      simp only [gromovProductAt, dist_comm] at h₁ h₂ h₃ ⊢
       linarith only [h₁, h₂, h₃]
-    have B : dist (f z) pi_z - L - 2 * deltaG X ≤ Gromov_product_at (f z) (p rM) (f rM) := by
+    have B : dist (f z) pi_z - L - 2 * deltaG X ≤ gromovProductAt (f z) (p rM) (f rM) := by
       have h₁ : dist (f rM) (p rM) + dist (p rM) (f z) ≤ dist (f rM) (f z) + 4 * deltaG X :=
         dist_along_geodesic ⟨_, _, h_H⟩ (hp _) h_H'.2.2
       have h₂ : dist (f z) pi_z ≤ dist (f z) (p rM) + dist (p rM) pi_z := dist_triangle ..
       have h₃ := P (Or.inr hrM)
-      simp only [Gromov_product_at, dist_comm] at h₁ h₂ h₃ ⊢
+      simp only [gromovProductAt, dist_comm] at h₁ h₂ h₃ ⊢
       linarith only [h₁, h₂, h₃]
-    have C : dist (f z) pi_z - L - 2 * deltaG X ≤ Gromov_product_at (f z) (p rm) (p rM) := by
+    have C : dist (f z) pi_z - L - 2 * deltaG X ≤ gromovProductAt (f z) (p rm) (p rM) := by
       by_cases h : dist (f z) (p rm) ≤ dist (f z) (p rM)
       · have h₁ :=
         calc dist (p rm) (p rM) = |dist (f z) (p rm) - dist (f z) (p rM)| := by
@@ -481,7 +481,7 @@ lemma Morse_Gromov_theorem_aux0
               · linarith only [h]
         have h₂ : dist (f z) pi_z ≤ dist (f z) (p rm) + dist (p rm) pi_z := dist_triangle ..
         have h₃ := P (Or.inl hrm)
-        simp only [Gromov_product_at, dist_comm] at h h₁ h₂ h₃ ⊢
+        simp only [gromovProductAt, dist_comm] at h h₁ h₂ h₃ ⊢
         linarith only [h, h₁, h₂, h₃, delta_nonneg X]
       · have h₁ :=
         calc dist (p rm) (p rM) = |dist (f z) (p rm) - dist (f z) (p rM)| := by
@@ -493,16 +493,16 @@ lemma Morse_Gromov_theorem_aux0
               linarith only [h]
         have h₂ : dist (f z) pi_z ≤ dist (f z) (p rM) + dist (p rM) pi_z := dist_triangle ..
         have h₃ := P (Or.inr hrM)
-        simp only [Gromov_product_at, dist_comm] at h h₁ h₂ h₃ ⊢
+        simp only [gromovProductAt, dist_comm] at h h₁ h₂ h₃ ⊢
         linarith only [h, h₁, h₂, h₃, delta_nonneg X]
     have :=
-    calc Gromov_product_at (f z) (f um) (f uM) - L - 2 * deltaG X
-        ≤ min (Gromov_product_at (f z) (f rm) (p rm))
-            (min (Gromov_product_at (f z) (p rm) (p rM))
-              (Gromov_product_at (f z) (p rM) (f rM))) := by
+    calc gromovProductAt (f z) (f um) (f uM) - L - 2 * deltaG X
+        ≤ min (gromovProductAt (f z) (f rm) (p rm))
+            (min (gromovProductAt (f z) (p rm) (p rM))
+              (gromovProductAt (f z) (p rM) (f rM))) := by
           simp only [le_min_iff, ← Dpi_z]
           exact ⟨A, C, B⟩
-      _ ≤ Gromov_product_at (f z) (f rm) (f rM) + 2 * deltaG X :=
+      _ ≤ gromovProductAt (f z) (f rm) (f rM) + 2 * deltaG X :=
             hyperb_ineq_4_points' (f z) (f rm) (p rm) (p rM) (f rM)
     linarith only [this, hδ]
 
@@ -514,7 +514,7 @@ lemma Morse_Gromov_theorem_aux0
   /- Case 2.1 of the description before the statement: there are points in $f[um, ym]$ and
   in $f[yM, uM]$ which are close to `H`. Then one can conclude directly, without relying
   on the inductive argument, thanks to the quasi-isometry property. -/
-    have I : Gromov_product_at (f z) (f closestm) (f closestM) ≤ Λ^2 * (D + L / 2 + δ + 11/2 * C) - 6 * δ := by
+    have I : gromovProductAt (f z) (f closestm) (f closestM) ≤ Λ^2 * (D + L / 2 + δ + 11/2 * C) - 6 * δ := by
       have H :=
       calc dist (f closestm) (f z) + dist (f z) (f (closestM))
             ≤ (Λ * |closestm - z| + C) + (Λ * |z - closestM| + C) := by
@@ -530,9 +530,9 @@ lemma Morse_Gromov_theorem_aux0
               rw [abs_of_nonpos, abs_of_nonpos, abs_of_nonpos] <;> linarith only [h₁, h₂, h₃, h₄]
       by_cases h_closest : dist (f closestm) (f closestM) ≤ 12 * δ
       · have :=
-        calc 2 * Gromov_product_at (f z) (f closestm) (f closestM)
+        calc 2 * gromovProductAt (f z) (f closestm) (f closestM)
             ≤ dist (f closestm) (f z) + dist (f z) (f (closestM)) := by
-              dsimp [Gromov_product_at]
+              dsimp [gromovProductAt]
               have := @dist_nonneg _ _ (f closestm) (f closestM)
               simp only [dist_comm] at this ⊢
               linarith only [this]
@@ -559,10 +559,10 @@ lemma Morse_Gromov_theorem_aux0
               gcongr
               exact hD hclosestm.1 hclosestM.1
           _ ≤ Λ * (Λ * ((D + 4 * C) + (L + C + 2 * δ) + (D + 4 * C))) + Λ^2 * 2 * C := by gcongr
-        simp only [Gromov_product_at, dist_comm] at this h_closest ⊢
+        simp only [gromovProductAt, dist_comm] at this h_closest ⊢
         linarith only [this, h_closest]
-    calc Gromov_product_at (f z) (f um) (f uM)
-        ≤ Gromov_product_at (f z) (f closestm) (f closestM) + 1 * L + 4 * δ + 0 * (1 - exp (- K * (uM - um))) := by
+    calc gromovProductAt (f z) (f um) (f uM)
+        ≤ gromovProductAt (f z) (f closestm) (f closestM) + 1 * L + 4 * δ + 0 * (1 - exp (- K * (uM - um))) := by
           convert Rec hclosestm.1 hclosestM.1 using 1
           ring
       _ ≤ (Λ^2 * (D + L / 2 + δ + 11/2 * C) - 6 * δ) + Λ^2 * L + 4 * δ + Kmult * (1 - exp (- K * (uM - um))) := by
@@ -615,7 +615,7 @@ lemma Morse_Gromov_theorem_aux0
 
     -- The inductive argument
     have Ind_k (k : ℕ) :
-        Gromov_product_at (f z) (f um) (f uM)
+        gromovProductAt (f z) (f um) (f uM)
           ≤ Λ^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um)))
         ∨ (∃ x ∈ Icc um ym, (∀ w ∈ Icc um x, dist (f w) (p w) ≥ (2^(k+1)-1) * dm)
             ∧ dist (q k um) (q k x) ≥ L - 4 * δ + 7 * QC k) := by
@@ -641,7 +641,7 @@ lemma Morse_Gromov_theorem_aux0
       say `x`, and either prove the desired inequality or construct a point with the good
       properties at step `k + 1`. -/
       by_cases h :
-        Gromov_product_at (f z) (f um) (f uM)
+        gromovProductAt (f z) (f um) (f uM)
           ≤ Λ ^ 2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um)))
       · exact Or.inl h
 
@@ -1015,8 +1015,8 @@ lemma Morse_Gromov_theorem_aux0
               dsimp [Kmult]
               ring
 
-        calc Gromov_product_at (f z) (f um) (f uM)
-            ≤ Gromov_product_at (f z) (f x) (f closestM) + (L + 4 * δ) := Rec hx₁ hclosestM.1
+        calc gromovProductAt (f z) (f um) (f uM)
+            ≤ gromovProductAt (f z) (f x) (f closestM) + (L + 4 * δ) := Rec hx₁ hclosestM.1
           _ ≤ (Λ ^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ
               + Kmult * (1 - exp (- K * (closestM - x))))
               + (Kmult * (exp (-K * (closestM - x)) - exp (-K * (uM-um)))) := by
@@ -1162,7 +1162,7 @@ lemma Morse_Gromov_theorem_aux0
 
     -- The inductive argument
     have Ind_k (k : ℕ) :
-        Gromov_product_at (f z) (f um) (f uM)
+        gromovProductAt (f z) (f um) (f uM)
           ≤ Λ^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um)))
         ∨ (∃ x ∈ Icc yM uM, (∀ w ∈ Icc x uM, dist (f w) (p w) ≥ (2^(k+1)-1) * dM)
             ∧ dist (q k uM) (q k x) ≥ L - 4 * δ + 7 * QC k) := by
@@ -1188,7 +1188,7 @@ lemma Morse_Gromov_theorem_aux0
       say `x`, and either prove the desired inequality or construct a point with the good
       properties at step `k + 1`. -/
       by_cases h :
-        Gromov_product_at (f z) (f um) (f uM)
+        gromovProductAt (f z) (f um) (f uM)
           ≤ Λ ^ 2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um)))
       · exact Or.inl h
 
@@ -1565,8 +1565,8 @@ lemma Morse_Gromov_theorem_aux0
               dsimp [Kmult]
               ring
 
-        calc Gromov_product_at (f z) (f um) (f uM)
-            ≤ Gromov_product_at (f z) (f closestm) (f x) + (L + 4 * δ) := Rec hclosestm.1 hx₁
+        calc gromovProductAt (f z) (f um) (f uM)
+            ≤ gromovProductAt (f z) (f closestm) (f x) + (L + 4 * δ) := Rec hclosestm.1 hx₁
           _ ≤ (Λ ^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ
               + Kmult * (1 - exp (- K * (x - closestm))))
               + (Kmult * (exp (-K * (x - closestm)) - exp (-K * (uM-um)))) := by
@@ -1704,7 +1704,7 @@ lemma Morse_Gromov_theorem_aux1
   let Kmult : ℝ := ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp (1/2 * log 2)) * Λ * exp (- ((1 - α) * D * log 2 / (5 * δ))) / K)
 
   calc infDist (f z) G
-      ≤ Gromov_product_at (f z) (f a) (f b) + 2 * deltaG X := infDist_triangle_side _ hGf
+      ≤ gromovProductAt (f z) (f a) (f b) + 2 * deltaG X := infDist_triangle_side _ hGf
     _ ≤ (Λ^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (-K * (b - a)))) + 2 * δ := by
         gcongr
         exact Morse_Gromov_theorem_aux0 hf hf' hab hz hδ
@@ -1876,7 +1876,7 @@ of Shchur~\<^cite>\<open>"shchur"\<close>, with optimal control in terms of the 
 This statement follows readily from the previous one and from the fact that quasi-geodesics can be
 approximated by Lipschitz ones.\<close>
 
-theorem (in Gromov_hyperbolic_space_geodesic) Morse_Gromov_theorem:
+theorem (in GromovHyperbolicSpace_geodesic) Morse_Gromov_theorem:
   fixes f::"real → 'a"
   assumes "lambda C-quasi_isometry_on Icc a b f"
           "geodesic_segment_between G (f a) (f b)"
@@ -1963,7 +1963,7 @@ qed
 
 text \<open>This theorem implies the same statement for two quasi-geodesics sharing their endpoints.\<close>
 
-theorem (in Gromov_hyperbolic_space_geodesic) Morse_Gromov_theorem2:
+theorem (in GromovHyperbolicSpace_geodesic) Morse_Gromov_theorem2:
   fixes c d::"real → 'a"
   assumes "lambda C-quasi_isometry_on Icc a b c"
           "lambda C-quasi_isometry_on Icc a b d"

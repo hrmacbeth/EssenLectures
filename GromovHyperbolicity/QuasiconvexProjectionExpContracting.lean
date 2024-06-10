@@ -8,9 +8,9 @@ open Set Metric Real Classical
 /-! The main result of this file is `quasiconvex_projection_exp_contracting`, a key technical result
 used in the Gouëzel-Shchur quantitative Morse lemma. -/
 
-variable {X : Type*} [MetricSpace X] [Gromov_hyperbolic_space X] [GeodesicSpace X]
+variable {X : Type*} [MetricSpace X] [GromovHyperbolicSpace X] [GeodesicSpace X]
 
-open Gromov_hyperbolic_space BigOperators
+open GromovHyperbolicSpace BigOperators
 
 variable {G : Set X}
 
@@ -67,11 +67,11 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
     simpa only [dist_comm] using proj_set_dist_le hpyG.1 this
   have : dist px x = dist px x' + dist x' x := by
     rw [← geodesic_segment_dist (some_geodesic_is_geodesic_segment px x).1 hx'_mem]
-  have Ixx : Gromov_product_at px x' x = M := by
-    dsimp only [Gromov_product_at]
+  have Ixx : gromovProductAt px x' x = M := by
+    dsimp only [gromovProductAt]
     linarith only [this, hpxx'M]
-  have Iyx : Gromov_product_at py x x' ≥ M := by
-    simp only [Gromov_product_at, dist_comm] at Ixx hpxpyx hpxpyx' ⊢
+  have Iyx : gromovProductAt py x x' ≥ M := by
+    simp only [gromovProductAt, dist_comm] at Ixx hpxpyx hpxpyx' ⊢
     linarith only [Ixx, hpxpyx, hpxpyx']
   have hy'_mem : y' ∈ {py‒y} := geodesic_segment_param_in_segment (some_geodesic_endpoints).2.2
   have : py ∈ proj_set y' G := by
@@ -84,17 +84,17 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
     simpa only [dist_comm] using proj_set_dist_le hpxG.1 this
   have : dist py y = dist py y' + dist y' y := by
     rw [← geodesic_segment_dist (some_geodesic_is_geodesic_segment py y).1 hy'_mem]
-  have Iyy : Gromov_product_at py y' y = M := by
-    dsimp only [Gromov_product_at]
+  have Iyy : gromovProductAt py y' y = M := by
+    dsimp only [gromovProductAt]
     linarith only [this, hpyy'M]
-  have Ixy : Gromov_product_at px y y' ≥ M := by
-    simp only [Gromov_product_at, dist_comm] at Iyy hpypxy hpypyy' ⊢
+  have Ixy : gromovProductAt px y y' ≥ M := by
+    simp only [gromovProductAt, dist_comm] at Iyy hpypxy hpypyy' ⊢
     linarith only [Iyy, hpypxy, hpypyy']
-  have Ix : Gromov_product_at px x y ≥ M := by
-    dsimp only [Gromov_product_at]
+  have Ix : gromovProductAt px x y ≥ M := by
+    dsimp only [gromovProductAt]
     linarith only [hpypxy, hxy, hpx, hpy]
-  have Iy : Gromov_product_at py x y ≥ M := by
-    dsimp only [Gromov_product_at] at *
+  have Iy : gromovProductAt py x y ≥ M := by
+    dsimp only [gromovProductAt] at *
     linarith only [hpxpyx, hxy, hpx, hpy]
   /- Third step: prove the estimate -/
   have A : M - 4 * δ + dist x' y' ≤ dist px y' := by
