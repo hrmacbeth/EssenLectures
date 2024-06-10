@@ -18,7 +18,7 @@ remain within uniformly bounded distance. We use the first definition to ensure 
 structure quasiconvex (C : ℝ) (X : Set M) : Prop :=
   (C_nonneg : 0 ≤ C)
   (exists_nearby_geodesic {x y : M} (_ : x ∈ X) (_ : y ∈ X) :
-    ∃ G, geodesic_segment_between G x y ∧ (∀ z ∈ G, infDist z X ≤ C))
+    ∃ G, geodesicSegmentBetween G x y ∧ (∀ z ∈ G, infDist z X ≤ C))
 
 variable {C D : ℝ} {X G : Set M}
 
@@ -66,7 +66,7 @@ lemma quasiconvex_thickening [Inhabited M] (h : quasiconvex C X) {r : ℝ} (hr :
 --       using * by auto
 --     obtain pz where pz: "pz∈X" "z∈cball pz r"
 --       using * by auto
---     obtain G where G: "geodesic_segment_between G py pz" "(∀ p ∈ G. infDist p X ≤ C)"
+--     obtain G where G: "geodesicSegmentBetween G py pz" "(∀ p ∈ G. infDist p X ≤ C)"
 --       using quasiconvexD[OF assms(1) \<open>py∈X\<close> \<open>pz∈X\<close>] by auto
 --     have A: "infDist w ({y--py} \<union> G \<union> {pz--z}) ≤ 8 * δ"
 --       by (rule thin_quadrilaterals[OF _ G(1) _ _ \<open>w∈{y--z}\<close>, where ?x = y and ?t = z], auto)
@@ -116,7 +116,7 @@ lemma quasiconvex_thickening [Inhabited M] (h : quasiconvex C X) {r : ℝ} (hr :
 --     ultimately show ?thesis
 --       using A u(2) by auto
 --   qed
---   show "∃ G. geodesic_segment_between G y z ∧ (∀ w ∈ G. infDist w (\<Union>x ∈ X. cball x r) ≤ C + 8 * deltaG TYPE('a))"
+--   show "∃ G. geodesicSegmentBetween G y z ∧ (∀ w ∈ G. infDist w (\<Union>x ∈ X. cball x r) ≤ C + 8 * deltaG TYPE('a))"
 --     apply (rule exI[of _ "{y--z}"]) using A by auto
 -- qed
 
@@ -126,7 +126,7 @@ an equality, up to an additive constant. -/
 lemma dist_along_quasiconvex (hCG : quasiconvex C G) {p x : M} (hp : p ∈ proj_set x G) {y : M} (hy : y ∈ G) :
     dist x p + dist p y ≤ dist x y + 4 * δ + 2 * C := by
   have : p ∈ G := hp.1
-  obtain ⟨H, hH₁, hH₂⟩ : ∃ H, geodesic_segment_between H p y ∧ ∀ q ∈ H, infDist q G ≤ C :=
+  obtain ⟨H, hH₁, hH₂⟩ : ∃ H, geodesicSegmentBetween H p y ∧ ∀ q ∈ H, infDist q G ≤ C :=
     hCG.exists_nearby_geodesic this hy
   obtain ⟨m, hm₁, hm₂⟩ : ∃ m ∈ H, infDist x H = dist x m := by
     apply IsCompact.exists_infDist_eq_dist

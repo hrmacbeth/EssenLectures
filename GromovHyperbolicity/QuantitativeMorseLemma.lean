@@ -241,7 +241,7 @@ lemma Morse_Gromov_theorem_aux0
     simp only [some_geodesic_endpoints, and_self, and_true, pi_z, H]
     apply geodesic_segment_param_in_segment
     exact some_geodesic_endpoints.2.2
-  have h_H : geodesic_segment_between H (f z) m := by
+  have h_H : geodesicSegmentBetween H (f z) m := by
     dsimp [H]
     exact (some_geodesic_is_geodesic_segment _ _).1
   have H_closure: closure H = H := by
@@ -1685,7 +1685,7 @@ lemma Morse_Gromov_theorem_aux1
     (hf : ContinuousOn f (Icc a b))
     {Λ C : ℝ} (hf' : quasi_isometry_on Λ C (Icc a b) f)
     (hab : a ≤ b)
-    {G : Set X} (hGf : geodesic_segment_between G (f a) (f b))
+    {G : Set X} (hGf : geodesicSegmentBetween G (f a) (f b))
     {z : ℝ} (hz : z ∈ Icc a b)
     {δ : ℝ} (hδ : δ > deltaG X) :
     infDist (f z) G ≤ Λ ^ 2 * (11/2 * C + 95 * δ) := by
@@ -1751,7 +1751,7 @@ lemma Morse_Gromov_theorem_aux2
     {f : ℝ → X} {a b : ℝ}
     (hf : ContinuousOn f (Icc a b))
     {Λ C : ℝ} (hf' : quasi_isometry_on Λ C (Icc a b) f)
-    {G : Set X} (hG : geodesic_segment_between G (f a) (f b)) :
+    {G : Set X} (hG : geodesicSegmentBetween G (f a) (f b)) :
     hausdorffDist (f '' (Icc a b)) G ≤ Λ^2 * (11/2 * C + 92 * deltaG X) := by
   sorry
 
@@ -1786,7 +1786,7 @@ proof (cases "a ≤ b")
       then have p: "p 0 = f a" "p (dist (f a) (f b)) = f b"
         unfolding p_def using assms(3) by auto
       obtain t where t: "x = p t" "t ∈ {0..dist (f a) (f b)}"
-        unfolding p_def using \<open>x ∈ G\<close> \<open>geodesic_segment_between G (f a) (f b)\<close> by (metis geodesic_segment_param(5) imageE)
+        unfolding p_def using \<open>x ∈ G\<close> \<open>geodesicSegmentBetween G (f a) (f b)\<close> by (metis geodesic_segment_param(5) imageE)
       define Km where "Km = (\<Union>z ∈ p`{0..t}. cball z D)"
       define KM where "KM = (\<Union>z ∈ p`{t..dist (f a) (f b)}. cball z D)"
       have "f`Icc a b \<subseteq> Km \<union> KM"
@@ -1798,7 +1798,7 @@ proof (cases "a ≤ b")
         then obtain z where z: "z ∈ G" "infDist x G = dist x z"
           by auto
         obtain tz where tz: "z = p tz" "tz ∈ {0..dist (f a) (f b)}"
-          unfolding p_def using \<open>z ∈ G\<close> \<open>geodesic_segment_between G (f a) (f b)\<close> by (metis geodesic_segment_param(5) imageE)
+          unfolding p_def using \<open>z ∈ G\<close> \<open>geodesicSegmentBetween G (f a) (f b)\<close> by (metis geodesic_segment_param(5) imageE)
         have "infDist x G ≤ D"
           using I \<open>x ∈ f`Icc a b\<close> by auto
         then have "dist z x ≤ D"
@@ -1842,7 +1842,7 @@ proof (cases "a ≤ b")
       obtain tM where tM: "tM ∈ {t..dist (f a) (f b)}" "dist (p tM) y ≤ D"
         using y(3) unfolding KM_def by auto
       define H where "H = p`{tm..tM}"
-      have *: "geodesic_segment_between H (p tm) (p tM)"
+      have *: "geodesicSegmentBetween H (p tm) (p tM)"
         unfolding H_def p_def apply (rule geodesic_segmentI2)
         using assms(3) \<open>tm ∈ {0..t}\<close> \<open>tM ∈ {t..dist (f a) (f b)}\<close> isometry_on_subset
         using assms(3) geodesic_segment_param(4) by (auto) fastforce
@@ -1879,7 +1879,7 @@ approximated by Lipschitz ones.\<close>
 theorem (in GromovHyperbolicSpace_geodesic) Morse_Gromov_theorem:
   fixes f::"real → 'a"
   assumes "lambda C-quasi_isometry_on Icc a b f"
-          "geodesic_segment_between G (f a) (f b)"
+          "geodesicSegmentBetween G (f a) (f b)"
   shows "hausdorff_distance (f`Icc a b) G ≤ 92 * Λ^2 * (C + deltaG X)"
 proof -
   have C: "C ≥ 0" "lambda ≥ 1" using quasi_isometry_onD[OF assms(1)] by auto
