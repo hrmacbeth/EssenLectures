@@ -680,34 +680,56 @@ lemma Morse_Gromov_theorem_aux0
       have H₁ : (2 ^ k - 1) * dm ≤ (2 ^ (k + 1) - 1) * dm := by ring_nf; linarith only [hdm_mul]
 
       -- Some auxiliary technical inequalities to be used later on.
-      have aux : (2 ^ k - 1) * dm ≤ (2*2^k-1) * dm ∧ 0 ≤ 2 * 2 ^ k - (1:ℝ) ∧ dm ≤ dm * 2 ^ k := sorry
-  --             apply (auto simp add: algebra_simps)
-  --             apply (metis power.simps(2) two_realpow_ge_one)
-  --             using \<open>0 ≤ dm\<close> less_eq_real_def by fastforce
+      have aux : (2 ^ k - 1) * dm ≤ (2*2^k-1) * dm ∧ 0 ≤ 2 * 2 ^ k - (1:ℝ) ∧ dm ≤ dm * 2 ^ k := by
+        refine ⟨?_, ?_, ?_⟩
+        · simpa using H₁
+        · simpa using h_pow'
+        · calc _ = dm * 1 := by ring
+            _ ≤ _ := by gcongr
       have aux2 : L + C + 2 * δ ≤ ((L + 2 * δ)/D) * dm := by
-        have :=
+        have h₁ :=
         calc L + C = (L/D) * (D + (D/L) * C) := by field_simp; ring
-          _ ≤ (L/D) * (D + 4 * C) := sorry
-    --             apply (intro mono_intros)
-    --             using \<open>L > 0\<close> \<open>D > 0\<close> \<open>C ≥ 0\<close> \<open>D ≤ 4 * L\<close> by (auto simp add: algebra_simps divide_simps)
-          _ ≤ (L/D) * dm := sorry
-    --             apply (intro mono_intros) using I \<open>L > 0\<close> \<open>D > 0\<close> by auto
-        have : 2 * δ ≤ (2 * δ)/D * dm := sorry
-    --             using I \<open>C ≥ 0\<close> \<open>δ > 0\<close> \<open>D > 0\<close> by (auto simp add: algebra_simps divide_simps)
-        sorry
-  --             by (auto simp add: algebra_simps divide_simps)
+          _ ≤ (L/D) * (D + 4 * C) := by
+              gcongr
+              rw [div_le_iff]
+              · dsimp [D, L]
+                linarith only [hδ₀]
+              positivity
+          _ ≤ (L/D) * dm := by gcongr
+        have h₂ :=
+        calc 2 * δ = (2 * δ) / D * D := by field_simp
+          _ ≤ (2 * δ)/D * dm := by
+              gcongr
+              linarith only [I₁, hC]
+        rw [add_div, add_mul]
+        linarith only [h₁, h₂]
       have aux3 : (1-α) * D + α * 2^k * dm ≤ dm * 2^k - C/2 - QC k := by
         dsimp [QC]
         split_ifs with h
-        · simp [h]
-  --                using I \<open>C ≥ 0\<close> unfolding True QC_def alpha_def by auto
-          sorry
+        · simp only [h, pow_zero]
+          dsimp [α, D] at I₁ ⊢
+          linarith only [I₁, hδ₀, hC]
         have :=
-        calc C/2 + 8 * δ + (1-α) * D ≤ 2 * (1-α) * dm := sorry
-  --               using I \<open>C ≥ 0\<close> unfolding QC_def alpha_def using False Laux by auto
-          _ ≤ 2^k * (1-α) * dm := sorry
-  --               apply (intro mono_intros) using False alphaaux I \<open>D > 0\<close> \<open>C ≥ 0\<close> by auto
+        calc C/2 + 8 * δ + (1-α) * D
+            ≤ 2 * (1-α) * dm := by
+              dsimp [α, D] at I₁ ⊢
+              linarith only [I₁, hδ₀, hC]
+          _ = 2 ^ 1 * (1-α) * dm := by ring
+          _ ≤ 2^k * (1-α) * dm := by
+              gcongr
+              · norm_num
+              · show 0 < k
+                positivity
         linarith only [this]
+
+      have proj_mem {r : ℝ} (hr : r ∈ Icc um x) : q k r ∈ proj_set (f r) (V k) := by
+        dsimp [q, V]
+        convert proj_set_thickening' (E := dist (p r) (f r)) (hp _) ?_ ?_ (by rfl)
+            (some_geodesic_is_geodesic_segment _ _).1 using 2
+        · rw [geodesic_segment_param_in_geodesic_spaces2]
+        · positivity
+        · rw [dist_comm]
+          exact le_trans H₁ (hx₂ _ hr)
 
       have h_um_x_subset : Icc um x ⊆ Icc a b := by
         rw [Icc_subset_Icc_iff] at h_um_ym_subset ⊢
@@ -751,26 +773,29 @@ lemma Morse_Gromov_theorem_aux0
       heart of the argument: we will show that the desired inequality holds. -/
       · left
         obtain ⟨v, hv₁, hv₂⟩ := h
+
         -- Auxiliary basic fact to be used later on.
         have aux4 {r : ℝ} (hr : r ∈ Icc v x) : dm * 2 ^ k ≤ infDist (f r) (V k) := by
-  --               have *: "q k r ∈ proj_set (f r) (V k)"
-  --                 unfolding q_def V_def apply (rule proj_set_thickening)
-  --                 using aux p[of r] x(3)[of r] that \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> by (auto simp add: metric_space_class.dist_commute)
-  --               have := calc infDist (f r) (V k) = dist (geodesic_segment_param {p r‒f r} (p r) (dist (p r) (f r))) (geodesic_segment_param {p r‒f r} (p r) ((2 ^ k - 1) * dm))"
-  --                 using proj_setD(2)[OF *] unfolding q_def by auto
-  --               _ = abs(dist (p r) (f r) - (2 ^ k - 1) * dm)"
-  --                 apply (rule geodesic_segment_param(7)[where ?y = "f r"])
-  --                 using x(3)[of r] \<open>r ∈ {v..x}\<close> \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> aux by (auto simp add: metric_space_class.dist_commute)
-  --               _ = dist (f r) (p r) - (2 ^ k - 1) * dm"
-  --                 using x(3)[of r] \<open>r ∈ {v..x}\<close> \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> aux by (auto simp add: metric_space_class.dist_commute)
-  --               finally have "dist (f r) (p r) = infDist (f r) (V k) + (2 ^ k - 1) * dm" by simp
-  --               moreover have "(2^(k+1) - 1) * dm ≤ dist (f r) (p r)"
-  --                 apply (rule x(3)) using \<open>r ∈ {v..x}\<close> \<open>v ∈ {um..w}\<close> \<open>w ∈ {um..x}\<close> by auto
-  --               ultimately have "(2^(k+1) - 1) * dm ≤ infDist (f r) (V k) + (2 ^ k - 1) * dm"
-  --                 by simp
-  --               then show ?thesis by (auto simp add: algebra_simps)
-  --             qed
-          sorry
+          have hr : r ∈ Icc um x := ⟨hv₁.1.trans hr.1, hr.2⟩
+          have h₁ :=
+          calc infDist (f r) (V k)
+              = dist (geodesic_segment_param {p r‒f r} (p r) (dist (p r) (f r)))
+                  (geodesic_segment_param {p r‒f r} (p r) ((2 ^ k - 1) * dm)) := by
+                  rw [← (proj_mem hr).2]
+                  dsimp [q]
+                  rw [geodesic_segment_param_in_geodesic_spaces2]
+              _ = |dist (p r) (f r) - (2 ^ k - 1) * dm| := by
+                  apply geodesic_segment_param_in_geodesic_spaces7
+                  · simpa using dist_nonneg
+                  refine ⟨by positivity, ?_⟩
+                  rw [dist_comm]
+                  exact le_trans H₁ (hx₂ _ hr)
+              _ = dist (f r) (p r) - (2 ^ k - 1) * dm := by
+                  rw [dist_comm (p r), abs_of_nonneg]
+                  linarith only [hx₂ r hr, H₁]
+          have h₂ : (2^(k+1) - 1) * dm ≤ dist (f r) (p r) := hx₂ _ hr
+          ring_nf at h₂
+          linarith only [h₁, h₂]
 
         /- Substep 1: We can control the distance from `f v` to `f closestM` in terms of the distance
         of the distance of `f v` to `H`, i.e., by `2^k * dm`. The same control follows
@@ -888,20 +913,10 @@ lemma Morse_Gromov_theorem_aux0
                     · exact ⟨by linarith only [hum.1, hv₁.1, hx2.1],
                         by linarith only [hx2.2, hx₁.2, hym.1.2, hz.2]⟩
                   · exact hv₁.2.trans hw₁.2
-                  · dsimp [q, V]
-                    convert proj_set_thickening' (E := dist (p v) (f v)) (hp _) ?_ ?_ (by rfl) (some_geodesic_is_geodesic_segment _ _).1 using 2
-                    · rw [geodesic_segment_param_in_geodesic_spaces2]
-                    · positivity
-                    · rw [dist_comm]
-                      refine le_trans H₁ (hx₂ _ ?_)
-                      exact ⟨hv₁.1, hv₁.2.trans hw₁.2⟩
-                  · dsimp [q, V]
-                    convert proj_set_thickening' (E := dist (p x) (f x)) (hp _) ?_ ?_ (by rfl) (some_geodesic_is_geodesic_segment _ _).1 using 2
-                    · rw [geodesic_segment_param_in_geodesic_spaces2]
-                    · positivity
-                    · rw [dist_comm]
-                      refine le_trans H₁ (hx₂ _ ?_)
-                      exact ⟨hx₁.1, by rfl⟩
+                  · apply proj_mem
+                    exact ⟨hv₁.1, hv₁.2.trans hw₁.2⟩
+                  · apply proj_mem
+                    exact ⟨hx₁.1, by rfl⟩
                   · intro t
                     exact aux4
                   · dsimp [QC]
