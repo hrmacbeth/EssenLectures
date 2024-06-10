@@ -68,7 +68,7 @@ class GromovHyperbolicSpace (X : Type*) [MetricSpace X] where
   deltaG : ℝ
   delta_nonneg : 0 ≤ deltaG
   hyperb_quad_ineq0 : ∀ x y z t : X,
-    dist x y + dist z t ≤ max (dist x z + dist y t) (dist x t + dist y z) + 2 * δ
+    dist x y + dist z t ≤ max (dist x z + dist y t) (dist x t + dist y z) + 2 * deltaG
 
 variable {X : Type*} [MetricSpace X] [GromovHyperbolicSpace X]
 
@@ -76,7 +76,7 @@ local notation "δ" => GromovHyperbolicSpace.deltaG X
 
 lemma GromovHyperbolicSpace.hyperb_quad_ineq (x y z t : X) :
     dist x y + dist z t ≤ max (dist x z + dist y t) (dist x t + dist y z) + 2 * δ :=
-  GromovHyperbolicSpace.hyperb_quad_ineq0 ..
+  GromovHyperbolicSpace.hyperb_quad_ineq0 x y z t
 
 open GromovHyperbolicSpace
 

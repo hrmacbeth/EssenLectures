@@ -13,5 +13,7 @@ package «gromov-hyperbolicity» where
 require mathlib from git
   "https://github.com/leanprover-community/mathlib4.git" @ s!"v{Lean.versionString}"
 
+lean_lib Examples
+
 @[default_target]
-lean_lib GromovHyperbolicity
+lean_lib EssenLectures
