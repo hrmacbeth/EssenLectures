@@ -673,17 +673,21 @@ lemma Morse_Gromov_theorem_aux0
           ∧ L - 4 * δ + 7 * QC k ≤ dist (q k um) (q k x) :=
         IH.resolve_left h
 
-      -- FIXME these are basically `aux`, clean up
+      -- FIXME these are basically `aux`, deduplicate
       have h_pow : (1:ℝ) ≤ 2 ^ k := one_le_pow_of_one_le (by norm_num) k
       have h_pow' : 0 ≤ (2:ℝ) ^ k - 1 := by linarith only [h_pow]
+      have h_pow'' : (1:ℝ) ≤ 2 ^ (k + 1) := one_le_pow_of_one_le (by norm_num) _
+      have h_pow''' : 0 ≤ (2:ℝ) ^ (k + 1) - 1 := by linarith only [h_pow'']
       have hdm_mul : 0 ≤ dm * 2 ^ k := by positivity
       have H₁ : (2 ^ k - 1) * dm ≤ (2 ^ (k + 1) - 1) * dm := by ring_nf; linarith only [hdm_mul]
 
       -- Some auxiliary technical inequalities to be used later on.
       have aux : (2 ^ k - 1) * dm ≤ (2*2^k-1) * dm ∧ 0 ≤ 2 * 2 ^ k - (1:ℝ) ∧ dm ≤ dm * 2 ^ k := by
         refine ⟨?_, ?_, ?_⟩
-        · simpa using H₁
-        · simpa using h_pow'
+        · convert H₁ using 1
+          ring
+        · convert h_pow''' using 1
+          ring
         · calc _ = dm * 1 := by ring
             _ ≤ _ := by gcongr
       have aux2 : L + C + 2 * δ ≤ ((L + 2 * δ)/D) * dm := by
@@ -1041,8 +1045,6 @@ lemma Morse_Gromov_theorem_aux0
       · right
         push_neg at h
         refine ⟨w, ⟨hw₁.1, hw₁.2.trans hx₁.2⟩, fun x hx ↦ (h x hx).le, ?_⟩
-        have h_pow'' : (1:ℝ) ≤ 2 ^ (k + 1) := one_le_pow_of_one_le (by norm_num) _
-        have h_pow''' : 0 ≤ (2:ℝ) ^ (k + 1) - 1 := by linarith only [h_pow'']
         have h₁ : dist (q k um) (q (k+1) um) = 2^k * dm := by
           dsimp [q]
           rw [geodesic_segment_param_in_geodesic_spaces7]
