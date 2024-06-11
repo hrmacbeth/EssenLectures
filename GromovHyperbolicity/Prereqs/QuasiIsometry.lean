@@ -2,9 +2,12 @@
     License: BSD
 -/
 import Mathlib.Topology.MetricSpace.Isometry
+import GromovHyperbolicity.Prereqs.GeodesicSpace
+import Mathlib.Topology.MetricSpace.HausdorffDistance
 
 /- # Quasi-isometries -/
 
+open Set Metric
 variable {X : Type*} [MetricSpace X] {Y : Type*} [MetricSpace Y]
 
 /-- A $(\lambda, C)$ quasi-isometry is a function which behaves like an isometry, up to
@@ -27,191 +30,190 @@ theorem quasi_isometry_on.mono {lambda C : ℝ} {s : Set X} {f : X → Y}
     quasi_isometry_on lambda C t f :=
   sorry
 
-#exit
 
-abbreviation quasi_isometry :: "real \<Rightarrow> real \<Rightarrow> ('a::metric_space \<Rightarrow> 'b::metric_space) \<Rightarrow> bool"
-  ("_ _ -quasi'_isometry" [1000, 999])
-  where "quasi_isometry lambda C f \<equiv> lambda C-quasi_isometry_on UNIV f"
+-- abbreviation quasi_isometry :: "real \<Rightarrow> real \<Rightarrow> ('a::metric_space \<Rightarrow> 'b::metric_space) \<Rightarrow> bool"
+--   ("_ _ -quasi'_isometry" [1000, 999])
+--   where "quasi_isometry lambda C f \<equiv> lambda C-quasi_isometry_on UNIV f"
 
 
-subsection \<open>Basic properties of quasi-isometries\<close>
+-- subsection \<open>Basic properties of quasi-isometries\<close>
 
-lemma quasi_isometry_onD:
-  assumes "lambda C-quasi_isometry_on X f"
-  shows "∧x y. x ∈ X \<Longrightarrow> y ∈ X \<Longrightarrow> dist (f x) (f y) ≤ lambda * dist x y + C"
-        "∧x y. x ∈ X \<Longrightarrow> y ∈ X \<Longrightarrow> dist (f x) (f y) ≥ (1/lambda) * dist x y - C"
-        "lambda ≥ 1" "C ≥ 0"
-using assms unfolding quasi_isometry_on_def by auto
+-- lemma quasi_isometry_onD:
+--   assumes "lambda C-quasi_isometry_on X f"
+--   shows "∧x y. x ∈ X \<Longrightarrow> y ∈ X \<Longrightarrow> dist (f x) (f y) ≤ lambda * dist x y + C"
+--         "∧x y. x ∈ X \<Longrightarrow> y ∈ X \<Longrightarrow> dist (f x) (f y) ≥ (1/lambda) * dist x y - C"
+--         "lambda ≥ 1" "C ≥ 0"
+-- using assms unfolding quasi_isometry_on_def by auto
 
-lemma quasi_isometry_onI [intro]:
-  assumes "∧x y. x ∈ X \<Longrightarrow> y ∈ X \<Longrightarrow> dist (f x) (f y) ≤ lambda * dist x y + C"
-          "∧x y. x ∈ X \<Longrightarrow> y ∈ X \<Longrightarrow> dist (f x) (f y) ≥ (1/lambda) * dist x y - C"
-          "lambda ≥ 1" "C ≥ 0"
-  shows "lambda C-quasi_isometry_on X f"
-using assms unfolding quasi_isometry_on_def by auto
+-- lemma quasi_isometry_onI [intro]:
+--   assumes "∧x y. x ∈ X \<Longrightarrow> y ∈ X \<Longrightarrow> dist (f x) (f y) ≤ lambda * dist x y + C"
+--           "∧x y. x ∈ X \<Longrightarrow> y ∈ X \<Longrightarrow> dist (f x) (f y) ≥ (1/lambda) * dist x y - C"
+--           "lambda ≥ 1" "C ≥ 0"
+--   shows "lambda C-quasi_isometry_on X f"
+-- using assms unfolding quasi_isometry_on_def by auto
 
-lemma isometry_quasi_isometry_on:
-  assumes "isometry_on X f"
-  shows "1 0-quasi_isometry_on X f"
-using assms unfolding isometry_on_def quasi_isometry_on_def by auto
+-- lemma isometry_quasi_isometry_on:
+--   assumes "isometry_on X f"
+--   shows "1 0-quasi_isometry_on X f"
+-- using assms unfolding isometry_on_def quasi_isometry_on_def by auto
 
-lemma quasi_isometry_on_change_params:
-  assumes "lambda C-quasi_isometry_on X f" "mu ≥ lambda" "D ≥ C"
-  shows "mu D-quasi_isometry_on X f"
-proof (rule quasi_isometry_onI)
-  have P1: "lambda ≥ 1" "C ≥ 0" using quasi_isometry_onD[OF assms(1)] by auto
-  then show P2: "mu ≥ 1" "D ≥ 0" using assms by auto
-  fix x y assume inX: "x ∈ X" "y ∈ X"
-  have "dist (f x) (f y) ≤ lambda * dist x y + C"
-    using quasi_isometry_onD[OF assms(1)] inX by auto
-  also have "... ≤ mu * dist x y + D"
-    using assms by (auto intro!: mono_intros)
-  finally show "dist (f x) (f y) ≤ mu * dist x y + D" by simp
-  have "dist (f x) (f y) ≥ (1/lambda) * dist x y - C"
-    using quasi_isometry_onD[OF assms(1)] inX by auto
-  moreover have "(1/lambda) * dist x y + (- C) ≥ (1/mu) * dist x y + (- D)"
-    apply (intro mono_intros)
-    using P1 P2 assms by (auto simp add: divide_simps)
-  ultimately show "dist (f x) (f y) ≥ (1/mu) * dist x y - D" by simp
-qed
+-- lemma quasi_isometry_on_change_params:
+--   assumes "lambda C-quasi_isometry_on X f" "mu ≥ lambda" "D ≥ C"
+--   shows "mu D-quasi_isometry_on X f"
+-- proof (rule quasi_isometry_onI)
+--   have P1: "lambda ≥ 1" "C ≥ 0" using quasi_isometry_onD[OF assms(1)] by auto
+--   then show P2: "mu ≥ 1" "D ≥ 0" using assms by auto
+--   fix x y assume inX: "x ∈ X" "y ∈ X"
+--   have "dist (f x) (f y) ≤ lambda * dist x y + C"
+--     using quasi_isometry_onD[OF assms(1)] inX by auto
+--   also have "... ≤ mu * dist x y + D"
+--     using assms by (auto intro!: mono_intros)
+--   finally show "dist (f x) (f y) ≤ mu * dist x y + D" by simp
+--   have "dist (f x) (f y) ≥ (1/lambda) * dist x y - C"
+--     using quasi_isometry_onD[OF assms(1)] inX by auto
+--   moreover have "(1/lambda) * dist x y + (- C) ≥ (1/mu) * dist x y + (- D)"
+--     apply (intro mono_intros)
+--     using P1 P2 assms by (auto simp add: divide_simps)
+--   ultimately show "dist (f x) (f y) ≥ (1/mu) * dist x y - D" by simp
+-- qed
 
-lemma quasi_isometry_on_subset:
-  assumes "lambda C-quasi_isometry_on X f"
-          "Y \<subseteq> X"
-  shows "lambda C-quasi_isometry_on Y f"
-using assms unfolding quasi_isometry_on_def by auto
+-- lemma quasi_isometry_on_subset:
+--   assumes "lambda C-quasi_isometry_on X f"
+--           "Y \<subseteq> X"
+--   shows "lambda C-quasi_isometry_on Y f"
+-- using assms unfolding quasi_isometry_on_def by auto
 
-lemma quasi_isometry_on_perturb:
-  assumes "lambda C-quasi_isometry_on X f"
-          "D ≥ 0"
-          "∧x. x ∈ X \<Longrightarrow> dist (f x) (g x) ≤ D"
-  shows "lambda (C + 2 * D)-quasi_isometry_on X g"
-proof (rule quasi_isometry_onI)
-  show "lambda ≥ 1" "C + 2 * D ≥ 0" using \<open>D ≥ 0\<close> quasi_isometry_onD[OF assms(1)] by auto
-  fix x y assume *: "x ∈ X" "y ∈ X"
-  have "dist (g x) (g y) ≤ dist (f x) (f y) + 2 * D"
-    using assms(3)[OF *(1)] assms(3)[OF *(2)] dist_triangle4[of "g x" "g y" "f x" "f y"] by (simp add: dist_commute)
-  then show "dist (g x) (g y) ≤ lambda * dist x y + (C + 2 * D)"
-    using quasi_isometry_onD(1)[OF assms(1) *] by auto
-  have "dist (g x) (g y) ≥ dist (f x) (f y) - 2 * D"
-    using assms(3)[OF *(1)] assms(3)[OF *(2)] dist_triangle4[of "f x" "f y" "g x" "g y"] by (simp add: dist_commute)
-  then show "dist (g x) (g y) ≥ (1/lambda) * dist x y - (C + 2 * D)"
-    using quasi_isometry_onD(2)[OF assms(1) *] by auto
-qed
+-- lemma quasi_isometry_on_perturb:
+--   assumes "lambda C-quasi_isometry_on X f"
+--           "D ≥ 0"
+--           "∧x. x ∈ X \<Longrightarrow> dist (f x) (g x) ≤ D"
+--   shows "lambda (C + 2 * D)-quasi_isometry_on X g"
+-- proof (rule quasi_isometry_onI)
+--   show "lambda ≥ 1" "C + 2 * D ≥ 0" using \<open>D ≥ 0\<close> quasi_isometry_onD[OF assms(1)] by auto
+--   fix x y assume *: "x ∈ X" "y ∈ X"
+--   have "dist (g x) (g y) ≤ dist (f x) (f y) + 2 * D"
+--     using assms(3)[OF *(1)] assms(3)[OF *(2)] dist_triangle4[of "g x" "g y" "f x" "f y"] by (simp add: dist_commute)
+--   then show "dist (g x) (g y) ≤ lambda * dist x y + (C + 2 * D)"
+--     using quasi_isometry_onD(1)[OF assms(1) *] by auto
+--   have "dist (g x) (g y) ≥ dist (f x) (f y) - 2 * D"
+--     using assms(3)[OF *(1)] assms(3)[OF *(2)] dist_triangle4[of "f x" "f y" "g x" "g y"] by (simp add: dist_commute)
+--   then show "dist (g x) (g y) ≥ (1/lambda) * dist x y - (C + 2 * D)"
+--     using quasi_isometry_onD(2)[OF assms(1) *] by auto
+-- qed
 
-lemma quasi_isometry_on_compose:
-  assumes "lambda C-quasi_isometry_on X f"
-          "mu D-quasi_isometry_on Y g"
-          "f`X \<subseteq> Y"
-  shows "(lambda * mu) (C * mu + D)-quasi_isometry_on X (g o f)"
-proof (rule quasi_isometry_onI)
-  have I: "lambda ≥ 1" "C ≥ 0" "mu ≥ 1" "D ≥ 0"
-    using quasi_isometry_onD[OF assms(1)] quasi_isometry_onD[OF assms(2)] by auto
-  then show "lambda * mu ≥ 1" "C * mu + D ≥ 0"
-    by (auto, metis dual_order.order_iff_strict le_numeral_extra(2) mult_le_cancel_right1 order.strict_trans1)
-  fix x y assume inX: "x ∈ X" "y ∈ X"
-  then have inY: "f x ∈ Y" "f y ∈ Y" using \<open>f`X \<subseteq> Y\<close> by auto
-  have "dist ((g o f) x) ((g o f) y) ≤ mu * dist (f x) (f y) + D"
-    using quasi_isometry_onD(1)[OF assms(2) inY] by simp
-  also have "... ≤ mu * (lambda * dist x y + C) + D"
-    using \<open>mu ≥ 1\<close> quasi_isometry_onD(1)[OF assms(1) inX] by auto
-  finally show "dist ((g o f) x) ((g o f) y) ≤ (lambda * mu) * dist x y + (C * mu + D)"
-    by (auto simp add: algebra_simps)
+-- lemma quasi_isometry_on_compose:
+--   assumes "lambda C-quasi_isometry_on X f"
+--           "mu D-quasi_isometry_on Y g"
+--           "f`X \<subseteq> Y"
+--   shows "(lambda * mu) (C * mu + D)-quasi_isometry_on X (g o f)"
+-- proof (rule quasi_isometry_onI)
+--   have I: "lambda ≥ 1" "C ≥ 0" "mu ≥ 1" "D ≥ 0"
+--     using quasi_isometry_onD[OF assms(1)] quasi_isometry_onD[OF assms(2)] by auto
+--   then show "lambda * mu ≥ 1" "C * mu + D ≥ 0"
+--     by (auto, metis dual_order.order_iff_strict le_numeral_extra(2) mult_le_cancel_right1 order.strict_trans1)
+--   fix x y assume inX: "x ∈ X" "y ∈ X"
+--   then have inY: "f x ∈ Y" "f y ∈ Y" using \<open>f`X \<subseteq> Y\<close> by auto
+--   have "dist ((g o f) x) ((g o f) y) ≤ mu * dist (f x) (f y) + D"
+--     using quasi_isometry_onD(1)[OF assms(2) inY] by simp
+--   also have "... ≤ mu * (lambda * dist x y + C) + D"
+--     using \<open>mu ≥ 1\<close> quasi_isometry_onD(1)[OF assms(1) inX] by auto
+--   finally show "dist ((g o f) x) ((g o f) y) ≤ (lambda * mu) * dist x y + (C * mu + D)"
+--     by (auto simp add: algebra_simps)
 
-  have "(1/(lambda * mu)) * dist x y - (C * mu + D) ≤ (1/(lambda * mu)) * dist x y - (C/mu + D)"
-    using \<open>mu ≥ 1\<close> \<open>C ≥ 0\<close> apply (auto, auto simp add: divide_simps)
-    by (metis eq_iff less_eq_real_def mult.commute mult_eq_0_iff mult_le_cancel_right1 order.trans)
-  also have "... = (1/mu) * ((1/lambda) * dist x y - C) - D"
-    by (auto simp add: algebra_simps)
-  also have "... ≤ (1/mu) * dist (f x) (f y) - D"
-    using \<open>mu ≥ 1\<close> quasi_isometry_onD(2)[OF assms(1) inX] by (auto simp add: divide_simps)
-  also have "... ≤ dist ((g o f) x) ((g o f) y)"
-    using quasi_isometry_onD(2)[OF assms(2) inY] by auto
-  finally show "1 / (lambda * mu) * dist x y - (C * mu + D) ≤ dist ((g \<circ> f) x) ((g \<circ> f) y)"
-    by auto
-qed
+--   have "(1/(lambda * mu)) * dist x y - (C * mu + D) ≤ (1/(lambda * mu)) * dist x y - (C/mu + D)"
+--     using \<open>mu ≥ 1\<close> \<open>C ≥ 0\<close> apply (auto, auto simp add: divide_simps)
+--     by (metis eq_iff less_eq_real_def mult.commute mult_eq_0_iff mult_le_cancel_right1 order.trans)
+--   also have "... = (1/mu) * ((1/lambda) * dist x y - C) - D"
+--     by (auto simp add: algebra_simps)
+--   also have "... ≤ (1/mu) * dist (f x) (f y) - D"
+--     using \<open>mu ≥ 1\<close> quasi_isometry_onD(2)[OF assms(1) inX] by (auto simp add: divide_simps)
+--   also have "... ≤ dist ((g o f) x) ((g o f) y)"
+--     using quasi_isometry_onD(2)[OF assms(2) inY] by auto
+--   finally show "1 / (lambda * mu) * dist x y - (C * mu + D) ≤ dist ((g \<circ> f) x) ((g \<circ> f) y)"
+--     by auto
+-- qed
 
-lemma quasi_isometry_on_bounded:
-  assumes "lambda C-quasi_isometry_on X f"
-          "bounded X"
-  shows "bounded (f`X)"
-proof (cases "X = {}")
-  case True
-  then show ?thesis by auto
-next
-  case False
-  obtain x where "x ∈ X" using False by auto
-  obtain e where e: "∧z. z ∈ X \<Longrightarrow> dist x z ≤ e"
-    using bounded_any_center assms(2) by metis
-  have "dist (f x) y ≤ C + lambda * e" if "y ∈ f`X" for y
-  proof -
-    obtain z where *: "z ∈ X" "y = f z" using \<open>y ∈ f`X\<close> by auto
-    have "dist (f x) y ≤ lambda * dist x z + C"
-      unfolding \<open>y = f z\<close> using * quasi_isometry_onD(1)[OF assms(1) \<open>x ∈ X\<close> \<open>z ∈ X\<close>] by (auto simp add: add_mono)
-    also have "... ≤ C + lambda * e" using e[OF \<open>z ∈ X\<close>] quasi_isometry_onD(3)[OF assms(1)] by auto
-    finally show ?thesis by simp
-  qed
-  then show ?thesis unfolding bounded_def by auto
-qed
+-- lemma quasi_isometry_on_bounded:
+--   assumes "lambda C-quasi_isometry_on X f"
+--           "bounded X"
+--   shows "bounded (f`X)"
+-- proof (cases "X = {}")
+--   case True
+--   then show ?thesis by auto
+-- next
+--   case False
+--   obtain x where "x ∈ X" using False by auto
+--   obtain e where e: "∧z. z ∈ X \<Longrightarrow> dist x z ≤ e"
+--     using bounded_any_center assms(2) by metis
+--   have "dist (f x) y ≤ C + lambda * e" if "y ∈ f`X" for y
+--   proof -
+--     obtain z where *: "z ∈ X" "y = f z" using \<open>y ∈ f`X\<close> by auto
+--     have "dist (f x) y ≤ lambda * dist x z + C"
+--       unfolding \<open>y = f z\<close> using * quasi_isometry_onD(1)[OF assms(1) \<open>x ∈ X\<close> \<open>z ∈ X\<close>] by (auto simp add: add_mono)
+--     also have "... ≤ C + lambda * e" using e[OF \<open>z ∈ X\<close>] quasi_isometry_onD(3)[OF assms(1)] by auto
+--     finally show ?thesis by simp
+--   qed
+--   then show ?thesis unfolding bounded_def by auto
+-- qed
 
-lemma quasi_isometry_on_empty:
-  assumes "C ≥ 0" "lambda ≥ 1"
-  shows "lambda C-quasi_isometry_on {} f"
-using assms unfolding quasi_isometry_on_def by auto
+-- lemma quasi_isometry_on_empty:
+--   assumes "C ≥ 0" "lambda ≥ 1"
+--   shows "lambda C-quasi_isometry_on {} f"
+-- using assms unfolding quasi_isometry_on_def by auto
 
-text \<open>Quasi-isometries change the distance to a set by at most $\lambda \cdot + C$, this follows
-readily from the fact that this inequality holds pointwise.\<close>
+-- text \<open>Quasi-isometries change the distance to a set by at most $\lambda \cdot + C$, this follows
+-- readily from the fact that this inequality holds pointwise.\<close>
 
-lemma quasi_isometry_on_infdist:
-  assumes "lambda C-quasi_isometry_on X f"
-          "w ∈ X"
-          "S \<subseteq> X"
-  shows "infdist (f w) (f`S) ≤ lambda * infdist w S + C"
-        "infdist (f w) (f`S) ≥ (1/lambda) * infdist w S - C"
-proof -
-  have "lambda ≥ 1" "C ≥ 0" using quasi_isometry_onD[OF assms(1)] by auto
-  show "infdist (f w) (f`S) ≤ lambda * infdist w S + C"
-  proof (cases "S = {}")
-    case True
-    then show ?thesis
-      using \<open>C ≥ 0\<close> unfolding infdist_def by auto
-  next
-    case False
-    then have "(INF x∈S. dist (f w) (f x)) ≤ (INF x∈S. lambda * dist w x + C)"
-      apply (rule cINF_superset_mono)
-        apply (meson bdd_belowI2 zero_le_dist) using assms by (auto intro!: quasi_isometry_onD(1)[OF assms(1)])
-    also have "... = (INF t∈(dist w)`S. lambda * t + C)"
-      by (auto simp add: image_comp)
-    also have "... = lambda * Inf ((dist w)`S) + C"
-      apply (rule continuous_at_Inf_mono[symmetric])
-      unfolding mono_def using \<open>lambda ≥ 1\<close> False by (auto intro!: continuous_intros)
-    finally show ?thesis unfolding infdist_def using False by (auto simp add: image_comp)
-  qed
-  show "1 / lambda * infdist w S - C ≤ infdist (f w) (f ` S)"
-  proof (cases "S = {}")
-    case True
-    then show ?thesis
-      using \<open>C ≥ 0\<close> unfolding infdist_def by auto
-  next
-    case False
-    then have "(1/lambda) * infdist w S - C = (1/lambda) * Inf ((dist w)`S) - C"
-      unfolding infdist_def by auto
-    also have "... = (INF t∈(dist w)`S. (1/lambda) * t - C)"
-      apply (rule continuous_at_Inf_mono)
-      unfolding mono_def using \<open>lambda ≥ 1\<close> False by (auto simp add: divide_simps intro!: continuous_intros)
-    also have "... = (INF x∈S. (1/lambda) * dist w x - C)"
-      by (auto simp add: image_comp)
-    also have "... ≤ (INF x∈S. dist (f w) (f x))"
-      apply (rule cINF_superset_mono[OF False]) apply (rule bdd_belowI2[of _ "-C"])
-      using assms \<open>lambda ≥ 1\<close> apply simp apply simp apply (rule quasi_isometry_onD(2)[OF assms(1)])
-      using assms by auto
-    finally show ?thesis unfolding infdist_def using False by (auto simp add: image_comp)
-  qed
-qed
+-- lemma quasi_isometry_on_infdist:
+--   assumes "lambda C-quasi_isometry_on X f"
+--           "w ∈ X"
+--           "S \<subseteq> X"
+--   shows "infdist (f w) (f`S) ≤ lambda * infdist w S + C"
+--         "infdist (f w) (f`S) ≥ (1/lambda) * infdist w S - C"
+-- proof -
+--   have "lambda ≥ 1" "C ≥ 0" using quasi_isometry_onD[OF assms(1)] by auto
+--   show "infdist (f w) (f`S) ≤ lambda * infdist w S + C"
+--   proof (cases "S = {}")
+--     case True
+--     then show ?thesis
+--       using \<open>C ≥ 0\<close> unfolding infdist_def by auto
+--   next
+--     case False
+--     then have "(INF x∈S. dist (f w) (f x)) ≤ (INF x∈S. lambda * dist w x + C)"
+--       apply (rule cINF_superset_mono)
+--         apply (meson bdd_belowI2 zero_le_dist) using assms by (auto intro!: quasi_isometry_onD(1)[OF assms(1)])
+--     also have "... = (INF t∈(dist w)`S. lambda * t + C)"
+--       by (auto simp add: image_comp)
+--     also have "... = lambda * Inf ((dist w)`S) + C"
+--       apply (rule continuous_at_Inf_mono[symmetric])
+--       unfolding mono_def using \<open>lambda ≥ 1\<close> False by (auto intro!: continuous_intros)
+--     finally show ?thesis unfolding infdist_def using False by (auto simp add: image_comp)
+--   qed
+--   show "1 / lambda * infdist w S - C ≤ infdist (f w) (f ` S)"
+--   proof (cases "S = {}")
+--     case True
+--     then show ?thesis
+--       using \<open>C ≥ 0\<close> unfolding infdist_def by auto
+--   next
+--     case False
+--     then have "(1/lambda) * infdist w S - C = (1/lambda) * Inf ((dist w)`S) - C"
+--       unfolding infdist_def by auto
+--     also have "... = (INF t∈(dist w)`S. (1/lambda) * t - C)"
+--       apply (rule continuous_at_Inf_mono)
+--       unfolding mono_def using \<open>lambda ≥ 1\<close> False by (auto simp add: divide_simps intro!: continuous_intros)
+--     also have "... = (INF x∈S. (1/lambda) * dist w x - C)"
+--       by (auto simp add: image_comp)
+--     also have "... ≤ (INF x∈S. dist (f w) (f x))"
+--       apply (rule cINF_superset_mono[OF False]) apply (rule bdd_belowI2[of _ "-C"])
+--       using assms \<open>lambda ≥ 1\<close> apply simp apply simp apply (rule quasi_isometry_onD(2)[OF assms(1)])
+--       using assms by auto
+--     finally show ?thesis unfolding infdist_def using False by (auto simp add: image_comp)
+--   qed
+-- qed
 
-subsection \<open>Quasi-geodesics\<close>
+/-! ## Quasi-geodesics -/
 
-text \<open>A quasi-geodesic is a quasi-isometric embedding of a real segment into a metric space. As the
+/-- A quasi-geodesic is a quasi-isometric embedding of a real segment into a metric space. As the
 embedding need not be continuous, a quasi-geodesic does not have to be compact, nor connected, which
 can be a problem. However, in a geodesic space, it is always possible to deform a quasi-geodesic
 into a continuous one (at the price of worsening the quasi-isometry constants). This is the content
@@ -220,16 +222,25 @@ III.H.1.11 in~\<^cite>\<open>"bridson_haefliger"\<close>. The strategy of the pr
 quasi-geodesic $c$ is defined on $[a,b]$. Then, on the points $a$, $a+C/\lambda$, $\cdots$,
 $a+ N \cdot C/\lambda$, $b$, take $d$ equal to $c$, where $N$ is chosen so that the distance
 between the last point and $b$ is in $[C/\lambda, 2C/\lambda)$. In the intervals, take $d$ to
-be geodesic.\<close>
+be geodesic. -/
 -- **Lemma 2.1**
-proposition (in geodesic_space) quasi_geodesic_made_lipschitz:
-  fixes c::"real \<Rightarrow> 'a"
-  assumes "lambda C-quasi_isometry_on {a..b} c" "dist (c a) (c b) ≥ 2 * C"
-  shows "\<exists>d. continuous_on {a..b} d ∧ d a = c a ∧ d b = c b
-              ∧ (∀ x∈{a..b}. dist (c x) (d x) ≤ 4 * C)
-              ∧ lambda (4 * C)-quasi_isometry_on {a..b} d
-              ∧ (2 * lambda)-lipschitz_on {a..b} d
-              ∧ hausdorff_distance (c`{a..b}) (d`{a..b}) ≤ 2 * C"
+theorem quasi_geodesic_made_lipschitz [GeodesicSpace X]
+    {c : ℝ → X} {Λ : NNReal} {C a b : ℝ} (hc : quasi_isometry_on Λ C (Icc a b) c) (hab : dist (c a) (c b) ≥ 2 * C) :
+    ∃ d : ℝ → X, ContinuousOn d (Icc a b) ∧ d a = c a ∧ d b = c b
+    ∧ ∀ x ∈ Icc a b, dist (c x) (d x) ≤ 4 * C
+    ∧ quasi_isometry_on Λ (4 * C) (Icc a b) d
+    ∧ LipschitzOnWith (2 * Λ) d (Icc a b)
+    ∧ hausdorffDist (c '' (Icc a b)) (d '' (Icc a b)) ≤ 2 * C :=
+  sorry
+  -- assumes "lambda C-quasi_isometry_on {a..b} c" "dist (c a) (c b) ≥ 2 * C"
+  -- shows "\<exists>d. continuous_on {a..b} d ∧ d a = c a ∧ d b = c b
+  --             ∧ (∀ x∈{a..b}. dist (c x) (d x) ≤ 4 * C)
+  --             ∧ lambda (4 * C)-quasi_isometry_on {a..b} d
+  --             ∧ (2 * lambda)-lipschitz_on {a..b} d
+  --             ∧ hausdorff_distance (c`{a..b}) (d`{a..b}) ≤ 2 * C"
+  -- sorry
+
+#exit
 proof -
   consider "C = 0" | "C > 0 ∧ b ≤ a" | "C > 0 ∧ a < b ∧ b ≤ a + 2 * C/lambda" | "C > 0 ∧ a +2 * C/lambda < b"
     using quasi_isometry_onD(4)[OF assms(1)] by fastforce
