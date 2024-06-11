@@ -241,7 +241,7 @@ lemma Morse_Gromov_theorem_aux0
     simp only [some_geodesic_endpoints, and_self, and_true, pi_z, H]
     apply geodesic_segment_param_in_segment
     exact some_geodesic_endpoints.2.2
-  have h_H : geodesicSegmentBetween H (f z) m := by
+  have h_H : GeodesicSegmentBetween H (f z) m := by
     dsimp [H]
     exact (some_geodesic_is_geodesic_segment _ _).1
   have H_closure: closure H = H := by
@@ -1685,7 +1685,7 @@ lemma Morse_Gromov_theorem_aux1
     (hf : ContinuousOn f (Icc a b))
     {Λ C : ℝ} (hf' : quasi_isometry_on Λ C (Icc a b) f)
     (hab : a ≤ b)
-    {G : Set X} (hGf : geodesicSegmentBetween G (f a) (f b))
+    {G : Set X} (hGf : GeodesicSegmentBetween G (f a) (f b))
     {z : ℝ} (hz : z ∈ Icc a b)
     {δ : ℝ} (hδ : δ > deltaG X) :
     infDist (f z) G ≤ Λ ^ 2 * (11/2 * C + 95 * δ) := by
@@ -1751,7 +1751,7 @@ lemma Morse_Gromov_theorem_aux2
     {f : ℝ → X} {a b : ℝ}
     (hf : ContinuousOn f (Icc a b))
     {Λ C : ℝ} (hf' : quasi_isometry_on Λ C (Icc a b) f)
-    {G : Set X} (hG : geodesicSegmentBetween G (f a) (f b)) :
+    {G : Set X} (hG : GeodesicSegmentBetween G (f a) (f b)) :
     hausdorffDist (f '' (Icc a b)) G ≤ Λ^2 * (11/2 * C + 92 * deltaG X) := by
   sorry
 

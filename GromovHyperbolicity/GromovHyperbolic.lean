@@ -90,7 +90,7 @@ lemma gromovProductAt_commute (e x y : X) : gromovProductAt e x y = gromovProduc
   simp only [gromovProductAt, dist_comm] at *
   constructor <;> linarith
 
-lemma gromovProductAt_le_infDist {x y : X} {G : Set X} (h : geodesicSegmentBetween G x y) {e : X} :
+lemma gromovProductAt_le_infDist {x y : X} {G : Set X} (h : GeodesicSegmentBetween G x y) {e : X} :
     gromovProductAt e x y ≤ infDist e G := by
   rw [infDist_eq_iInf]
   have : Nonempty G := ⟨_, (geodesic_segment_endpoints h).1⟩
@@ -109,7 +109,7 @@ lemma gromovProductAt_add (e x y : X) :
   ring
 
 lemma gromovProductAt_geodesic_segment {x y : X} {G : Set X}
-    (h : geodesicSegmentBetween G x y) {t : ℝ} (ht₀ : 0 ≤ t) (ht : t ≤ dist x y) :
+    (h : GeodesicSegmentBetween G x y) {t : ℝ} (ht₀ : 0 ≤ t) (ht : t ≤ dist x y) :
     gromovProductAt x y (geodesic_segment_param G x t) = t := by
   have : dist x (geodesic_segment_param G x t) = t := geodesic_segment_param6 h ⟨ht₀, ht⟩
   have :
@@ -211,7 +211,7 @@ is `4 * δ`, independent of the size of the triangle). We prove this basic prope
 (which, in fact, is a characterization of Gromov-hyperbolic spaces: a geodesic space in which
 triangles are thin is hyperbolic). -/
 lemma thin_triangles1 {x y z : X} {G : Set X}
-    (hxy : geodesicSegmentBetween G x y) {H : Set X} (hxz : geodesicSegmentBetween H x z)
+    (hxy : GeodesicSegmentBetween G x y) {H : Set X} (hxz : GeodesicSegmentBetween H x z)
     {t : ℝ} (ht₀ : 0 ≤ t) (ht : t ≤ gromovProductAt x y z) :
     dist (geodesic_segment_param G x t) (geodesic_segment_param H x t) ≤ 4 * δ := by
   have : Inhabited X := ⟨x⟩
@@ -252,9 +252,9 @@ lemma thin_triangles1 {x y z : X} {G : Set X}
   linarith
 
 theorem thin_triangles {x y z w : X}
-    {Gxy : Set X} (hxy : geodesicSegmentBetween Gxy x y)
-    {Gxz : Set X} (hxz : geodesicSegmentBetween Gxz x z)
-    {Gyz : Set X} (hyz : geodesicSegmentBetween Gyz y z)
+    {Gxy : Set X} (hxy : GeodesicSegmentBetween Gxy x y)
+    {Gxz : Set X} (hxz : GeodesicSegmentBetween Gxz x z)
+    {Gyz : Set X} (hyz : GeodesicSegmentBetween Gyz y z)
     (hw : w ∈ Gyz) :
     infDist w (Gxy ∪ Gxz) ≤ 4 * δ := by
   obtain ⟨t, ht0, htw⟩ : ∃ t ∈ Icc 0 (dist y z), w = geodesic_segment_param Gyz y t := by
@@ -298,7 +298,7 @@ theorem thin_triangles {x y z w : X}
 
 /-- The distance of a vertex of a triangle to the opposite side is essentially given by the
 Gromov product, up to `2 * δ`. -/
-lemma dist_triangle_side_middle {x y : X} {G : Set X} (z : X) (hxy : geodesicSegmentBetween G x y) :
+lemma dist_triangle_side_middle {x y : X} {G : Set X} (z : X) (hxy : GeodesicSegmentBetween G x y) :
     dist z (geodesic_segment_param G x (gromovProductAt x z y))
       ≤ gromovProductAt z x y + 2 * δ := by
   let m := geodesic_segment_param G x (gromovProductAt x z y)
@@ -325,7 +325,7 @@ lemma dist_triangle_side_middle {x y : X} {G : Set X} (z : X) (hxy : geodesicSeg
   exact this
 
 -- needed for `dist_along_quasiconvex`
-lemma infDist_triangle_side {x y : X} (z : X) {G : Set X} (hxy : geodesicSegmentBetween G x y) :
+lemma infDist_triangle_side {x y : X} (z : X) {G : Set X} (hxy : GeodesicSegmentBetween G x y) :
     infDist z G ≤ gromovProductAt z x y + 2 * δ := by
   refine le_trans ?_ <| dist_triangle_side_middle z hxy
   apply infDist_le_dist_of_mem
@@ -336,7 +336,7 @@ lemma infDist_triangle_side {x y : X} (z : X) {G : Set X} (hxy : geodesicSegment
 /-- The distance of a point on a side of triangle to the opposite vertex is controlled by
 the length of the opposite sides, up to `δ`. -/
 -- needed for `Morse_Gromov_theorem_aux2`
-lemma dist_le_max_dist_triangle {x y m : X} {G : Set X} (hxy : geodesicSegmentBetween G x y)
+lemma dist_le_max_dist_triangle {x y m : X} {G : Set X} (hxy : GeodesicSegmentBetween G x y)
     (hm : m ∈ G) (z : X) :
     dist m z ≤ max (dist x z) (dist y z) + δ := by
   obtain hmx | hmx := le_or_lt (dist m x) δ
@@ -379,13 +379,13 @@ geodesic, but in fact the statement is true without this assumption, thanks to t
 extension theorem. -/
 -- needed for `quasiconvex_thickening`
 lemma thin_quadrilaterals [GeodesicSpace X] {x y z t w : X}
-    {Gxy : Set X} (hxy : geodesicSegmentBetween Gxy x y)
-    {Gyz : Set X} (hyz : geodesicSegmentBetween Gyz y z)
-    {Gzt : Set X} (hzt : geodesicSegmentBetween Gzt z t)
-    {Gxt : Set X} (hxt : geodesicSegmentBetween Gxt x t)
+    {Gxy : Set X} (hxy : GeodesicSegmentBetween Gxy x y)
+    {Gyz : Set X} (hyz : GeodesicSegmentBetween Gyz y z)
+    {Gzt : Set X} (hzt : GeodesicSegmentBetween Gzt z t)
+    {Gxt : Set X} (hxt : GeodesicSegmentBetween Gxt x t)
     (hw : w ∈ Gxt) :
     infDist w (Gxy ∪ Gyz ∪ Gzt) ≤ 8 * δ := by
-  have hxz : geodesicSegmentBetween {x‒z} x z := (some_geodesic_is_geodesic_segment x z).1
+  have hxz : GeodesicSegmentBetween {x‒z} x z := (some_geodesic_is_geodesic_segment x z).1
   have I : infDist w ({x‒z} ∪ Gzt) ≤ 4 * δ := by
     rw [geodesic_segment_commute] at hxz
     exact thin_triangles hxz hzt hxt hw
