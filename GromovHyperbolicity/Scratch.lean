@@ -393,12 +393,16 @@ lemma Morse_Gromov_theorem_aux2
       · assumption
       · exact h₂
     let H := p '' Icc tm tM
-    have h_H : GeodesicSegmentBetween H (p tm) (p tM) := sorry
-      -- unfolding H_def p_def apply (rule geodesic_segmentI2)
-      -- using assms(3) \<open>tm ∈ {0..t}\<close> \<open>tM ∈ {t..dist (f a) (f b)}\<close> isometry_on_subset
-      -- using assms(3) geodesic_segment_param(4) by (auto) fastforce
-    have : x ∈ H := sorry
-      -- unfolding t(1) H_def using \<open>tm ∈ {0..t}\<close> \<open>tM ∈ {t..dist (f a) (f b)}\<close> by auto
+    have h_H : GeodesicSegmentBetween H (p tm) (p tM) := by
+      dsimp [H]
+      have : tm ≤ tM := htm.1.2.trans htM.1.1
+      rw [← geodesic_subsegment1 hG htm.1.1 this htM.1.2]
+      apply geodesic_subsegment2 hG htm.1.1 this htM.1.2
+    have : x ∈ H := by
+      rw [htp]
+      dsimp [H]
+      apply mem_image_of_mem
+      exact ⟨htm.1.2, htM.1.1⟩
     calc infDist x (f '' (Icc a b)) ≤ dist x y := infDist_le_dist_of_mem hy.1
       _ ≤ max (dist (p tm) y) (dist (p tM) y) + deltaG X :=
           dist_le_max_dist_triangle h_H this y

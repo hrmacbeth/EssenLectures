@@ -359,24 +359,32 @@ lemma dist_along_geodesic_wrt_endpoint {G : Set X} {x y : X}
 --   finally show ?thesis by (simp add: dist_commute)
 -- qed
 
--- text \<open>One often needs to restrict a geodesic segment to a subsegment. We introduce the tools
--- to express this conveniently.\<close>
--- definition geodesic_subsegment::"('a::metric_space) set \<Rightarrow> 'a \<Rightarrow> real \<Rightarrow> real \<Rightarrow> 'a set"
---   where "geodesic_subsegment G x s t = G \<inter> {z. dist x z \<ge> s \<and> dist x z \<le> t}"
+/-- One often needs to restrict a geodesic segment to a subsegment. We introduce the tools
+to express this conveniently. -/
+def geodesic_subsegment (G : Set X) (x : X) (s t : ℝ) : Set X :=
+  G ∩ {z | dist x z ≥ s ∧ dist x z ≤ t}
 
 -- text \<open>A subsegment is always contained in the original segment.\<close>
 -- lemma geodesic_subsegment_subset:
 --   "geodesic_subsegment G x s t \<subseteq> G"
 -- unfolding geodesic_subsegment_def by simp
 
--- text \<open>A subsegment is indeed a geodesic segment, and its endpoints and parametrization can be
--- expressed in terms of the original segment.\<close>
--- lemma geodesic_subsegment:
---   assumes "GeodesicSegmentBetween G x y"
---           "0 \<le> s" "s \<le> t" "t \<le> dist x y"
---   shows "geodesic_subsegment G x s t = (geodesic_segment_param G x)`{s..t}"
---         "GeodesicSegmentBetween (geodesic_subsegment G x s t) (geodesic_segment_param G x s) (geodesic_segment_param G x t)"
---         "\<And>u. s \<le> u \<Longrightarrow> u \<le> t \<Longrightarrow> geodesic_segment_param (geodesic_subsegment G x s t) (geodesic_segment_param G x s) (u - s) = geodesic_segment_param G x u"
+/--  A subsegment is indeed a geodesic segment, and its endpoints and parametrization can be
+expressed in terms of the original segment. -/
+lemma geodesic_subsegment1 {G : Set X} {x y : X} (hG : GeodesicSegmentBetween G x y) {s t : ℝ}
+    (hs : 0 ≤ s) (hst : s ≤ t) (ht : t ≤ dist x y) :
+    geodesic_subsegment G x s t = (geodesic_segment_param G x) '' (Icc s t) :=
+  sorry
+
+lemma geodesic_subsegment2 {G : Set X} {x y : X} (hG : GeodesicSegmentBetween G x y) {s t : ℝ}
+    (hs : 0 ≤ s) (hst : s ≤ t) (ht : t ≤ dist x y) :
+    GeodesicSegmentBetween (geodesic_subsegment G x s t) (geodesic_segment_param G x s) (geodesic_segment_param G x t) :=
+  sorry
+
+lemma geodesic_subsegment3 {G : Set X} {x y : X} (hG : GeodesicSegmentBetween G x y) {s t : ℝ}
+    (hs : 0 ≤ s) (hst : s ≤ t) (ht : t ≤ dist x y) {u : ℝ} (hsu : s ≤ u) (hut : u ≤ t) :
+    geodesic_segment_param (geodesic_subsegment G x s t) (geodesic_segment_param G x s) (u - s) = geodesic_segment_param G x u := by
+  sorry
 -- proof -
 --   show A: "geodesic_subsegment G x s t = (geodesic_segment_param G x)`{s..t}"
 --   proof (auto)
