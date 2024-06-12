@@ -1,6 +1,6 @@
 /-  Author:  Sébastien Gouëzel   sebastien.gouezel@univ-rennes1.fr
     License: BSD -/
-import Mathlib.Topology.MetricSpace.Basic
+import Mathlib.Topology.MetricSpace.Thickening
 import Mathlib.Topology.UniformSpace.Completion
 
 /-! # TODO Missing theory -/
@@ -19,6 +19,11 @@ theorem UniformSpace.Completion.induction_on₄ {α : Type*} {β : Type*} {γ : 
 
 -- `infDist_almost_attained` -- in Mathlib `infDist_lt_iff`
 -- `infDist_proper_attained` -- in Mathlib `IsCompact.exists_infDist_eq_dist`
+
+-- TODO move this
+theorem Metric.mem_cthickening_iff_infDist_le {X : Type*} [MetricSpace X] {δ : ℝ} (hδ : 0 ≤ δ) {E : Set X} {x : X} (h : E.Nonempty) :
+    x ∈ cthickening δ E ↔ infDist x E ≤ δ :=
+  ENNReal.le_ofReal_iff_toReal_le (infEdist_ne_top h) hδ
 
 open Set Topology in
 -- there must be a better way! check the library
