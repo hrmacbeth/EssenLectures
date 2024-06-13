@@ -15,5 +15,7 @@ require mathlib from git
 
 lean_lib Examples
 
-@[default_target]
 lean_lib EssenLectures
+
+@[default_target]
+lean_lib GromovHyperbolicity
