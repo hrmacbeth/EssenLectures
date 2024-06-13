@@ -31,7 +31,7 @@ geodesic segment joining the points $f(a)$ and $f(b)$. -/
 lemma Morse_Gromov_theorem_aux1
     {f : ℝ → X} {a b : ℝ}
     (hf : ContinuousOn f (Icc a b))
-    {Λ C : ℝ} (hf' : quasi_isometry_on Λ C (Icc a b) f)
+    {Λ C : ℝ} (hf' : QuasiIsometryOn Λ C (Icc a b) f)
     (hab : a ≤ b)
     {G : Set X} (hGf : GeodesicSegmentBetween G (f a) (f b))
     {z : ℝ} (hz : z ∈ Icc a b)
@@ -98,7 +98,7 @@ follows that `x` is at distance at most `D + 4 * δ` of `z`, concluding the proo
 lemma Morse_Gromov_theorem_aux2
     {f : ℝ → X} {a b : ℝ}
     (hf : ContinuousOn f (Icc a b))
-    {Λ C : ℝ} (hf' : quasi_isometry_on Λ C (Icc a b) f)
+    {Λ C : ℝ} (hf' : QuasiIsometryOn Λ C (Icc a b) f)
     {G : Set X} (hG : GeodesicSegmentBetween G (f a) (f b)) :
     hausdorffDist (f '' (Icc a b)) G ≤ Λ^2 * (11/2 * C + 96 * deltaG X) := by
   have := hf'.C_nonneg
@@ -250,112 +250,7 @@ This statement follows readily from the previous one and from the fact that quas
 approximated by Lipschitz ones. -/
 theorem Morse_Gromov_theorem
     {f : ℝ → X} {a b : ℝ}
-    {Λ C : ℝ} (hf' : quasi_isometry_on Λ C (Icc a b) f)
+    {Λ C : ℝ} (hf' : QuasiIsometryOn Λ C (Icc a b) f)
     {G : Set X} (hG : GeodesicSegmentBetween G (f a) (f b)) :
     hausdorffDist (f '' (Icc a b)) G ≤ 96 * Λ^2 * (C + deltaG X) := by
   sorry
-#exit
-proof -
-  have C: "C ≥ 0" "lambda ≥ 1" using quasi_isometry_onD[OF assms(1)] by auto
-  consider "dist (f a) (f b) ≥ 2 * C ∧ a ≤ b" | "dist (f a) (f b) ≤ 2 * C ∧ a ≤ b" | "b < a"
-    by linarith
-  then show ?thesis
-  proof (cases)
-    case 1
-    have "\<exists>d. continuous_on Icc a b d ∀  d a = f a ∀  d b = f b
-                ∀  (∀ x∈Icc a b. dist (f x) (d x) ≤ 4 * C)
-                ∀  Λ (4 * C)-quasi_isometry_on Icc a b d
-                ∀  (2 * Λ)-lipschitz_on Icc a b d
-                ∀  hausdorff_distance (f`Icc a b) (d`Icc a b) ≤ 2 * C"
-      apply (rule quasi_geodesic_made_lipschitz[OF assms(1)]) using 1 by auto
-    then obtain d where d: "d a = f a" "d b = f b"
-                        "∀ x. x ∈ Icc a b → dist (f x) (d x) ≤ 4 * C"
-                        "lambda (4 * C)-quasi_isometry_on Icc a b d"
-                        "(2 * Λ)-lipschitz_on Icc a b d"
-                        "hausdorff_distance (f`Icc a b) (d`Icc a b) ≤ 2 * C"
-      by auto
-    have a: "hausdorff_distance (d`Icc a b) G ≤ Λ^2 * ((11/2) * (4 * C) + 92 * deltaG X)"
-      apply (rule Morse_Gromov_theorem_aux2) using d assms lipschitz_on_continuous_on by auto
-
-    have := calc hausdorff_distance (f`Icc a b) G ≤
-          hausdorff_distance (f`Icc a b) (d`Icc a b) + hausdorff_distance (d`Icc a b) G"
-      apply (rule hausdorff_distance_triangle)
-      using 1 apply simp
-      by (rule quasi_isometry_on_bounded[OF d(4)], auto)
-    _ ≤ Λ^2 * ((11/2) * (4 * C) + 92 * deltaG X) + 1 * 2 * C"
-      using a d by auto
-    _ ≤ Λ^2 * ((11/2) * (4 * C) + 92 * deltaG X) + Λ^2 * 2 * C"
-      apply (intro mono_intros) using \<open>Λ ≥ 1\<close> \<open>C ≥ 0\<close> by auto
-    _ = Λ^2 * (24 * C + 92 * deltaG X)"
-      by (simp add: algebra_simps divide_simps)
-    _ ≤ Λ^2 * (92 * C + 92 * deltaG X)"
-      apply (intro mono_intros) using \<open>Λ ≥ 1\<close> \<open>C ≥ 0\<close> by auto
-    finally show ?thesis by (auto simp add: algebra_simps)
-  next
-    case 2
-    have := calc (1/lambda) * dist a b - C ≤ dist (f a) (f b)"
-      apply (rule quasi_isometry_onD[OF assms(1)]) using 2 by auto
-    _ ≤ 2 * C" using 2 by auto
-    finally have "dist a b ≤ 3 * Λ * C"
-      using C by (auto simp add: algebra_simps divide_simps)
-    then have *: "b - a ≤ 3 * Λ * C" using 2 unfolding dist_real_def by auto
-    show ?thesis
-    proof (rule hausdorff_distanceI2)
-      show "0 ≤ 92 * Λ\<^sup>2 * (C + deltaG TYPE('a))" using C by auto
-      fix x assume "x ∈ f`Icc a b"
-      then obtain t where t: "x = f t" "t ∈ Icc a b" by auto
-      have := calc dist x (f a) ≤ Λ * dist t a + C"
-        unfolding t(1) using quasi_isometry_onD(1)[OF assms(1) t(2)] 2 by auto
-      _ ≤ Λ * (b - a) + 1 * 1 * C + 0 * 0 * deltaG X" using t(2) 2 C unfolding dist_real_def by auto
-      _ ≤ Λ * (3 * Λ * C) + Λ^2 * (92-3) * C + Λ^2 * 92 * deltaG X"
-        apply (intro mono_intros *) using C by auto
-      finally have *: "dist x (f a) ≤ 92 * Λ\<^sup>2 * (C + deltaG TYPE('a))"
-        by (simp add: algebra_simps power2_eq_square)
-      show "\<exists>y∈G. dist x y ≤ 92 * Λ\<^sup>2 * (C + deltaG TYPE('a))"
-        apply (rule bexI[of _ "f a"]) using * 2 assms(2) by auto
-    next
-      fix x assume "x ∈ G"
-      then have := calc dist x (f a) ≤ dist (f a) (f b)"
-        by (meson assms geodesic_segment_dist_le geodesic_segment_endpoints(1) local.some_geodesic_is_geodesic_segment(1))
-      _ ≤ 1 * 2 * C + Λ^2 * 0 * deltaG X"
-        using 2 by auto
-      _ ≤ Λ^2 * 92 * C + Λ^2 * 92 * deltaG X"
-        apply (intro mono_intros) using C by auto
-      finally have *: "dist x (f a) ≤ 92 * Λ\<^sup>2 * (C + deltaG TYPE('a))"
-        by (simp add: algebra_simps)
-      show "\<exists>y∈f`Icc a b. dist x y ≤ 92 * Λ\<^sup>2 * (C + deltaG TYPE('a))"
-        apply (rule bexI[of _ "f a"]) using * 2 by auto
-    qed
-  next
-    case 3
-    then have "hausdorff_distance (f ` Icc a b) G = 0"
-      unfolding hausdorff_distance_def by auto
-    then show ?thesis
-      using C by auto
-  qed
-qed
-
-text \<open>This theorem implies the same statement for two quasi-geodesics sharing their endpoints.\<close>
-
-theorem (in Gromov_hyperbolic_space_geodesic) Morse_Gromov_theorem2:
-  fixes c d::"real → 'a"
-  assumes "lambda C-quasi_isometry_on Icc a b c"
-          "lambda C-quasi_isometry_on Icc a b d"
-          "c A = d A" "c B = d B"
-  shows "hausdorff_distance (c`Icc a b) (d`Icc a b) ≤ 184 * Λ^2 * (C + deltaG X)"
-proof (cases "A ≤ B")
-  case False
-  then have "hausdorff_distance (c`Icc a b) (d`Icc a b) = 0" by auto
-  then show ?thesis using quasi_isometry_onD[OF assms(1)] delta_nonneg by auto
-next
-  case True
-  have "hausdorff_distance (c`Icc a b) {c A‒c B} ≤ 92 * Λ^2 * (C + deltaG X)"
-    by (rule Morse_Gromov_theorem[OF assms(1)], auto)
-  moreover have "hausdorff_distance {c A‒c B} (d`Icc a b) ≤ 92 * Λ^2 * (C + deltaG X)"
-    unfolding \<open>c A = d A\<close> \<open>c B = d B\<close> apply (subst hausdorff_distance_sym)
-    by (rule Morse_Gromov_theorem[OF assms(2)], auto)
-  moreover have "hausdorff_distance (c`Icc a b) (d`Icc a b) ≤ hausdorff_distance (c`Icc a b) {c A‒c B} + hausdorff_distance {c A‒c B} (d`Icc a b)"
-    apply (rule hausdorff_distance_triangle)
-    using True compact_imp_bounded[OF some_geodesic_compact] by auto
-  ultimately show ?thesis by auto
-qed

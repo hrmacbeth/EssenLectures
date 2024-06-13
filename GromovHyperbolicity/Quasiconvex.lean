@@ -5,7 +5,7 @@ import Mathlib.Tactic.Peel
 
 /-! # Quasiconvexity -/
 
-open Metric Set
+open Metric Set Classical
 
 variable {M : Type*} [MetricSpace M]
 
@@ -56,69 +56,6 @@ lemma Quasiconvex.cthickening [Inhabited M] (h : Quasiconvex C X) {r : ℝ} (hr 
   exists_nearby_geodesic {y z} (hy hz) := by
     refine ⟨{y‒z}, sorry, ?_⟩
     sorry
--- proof (rule quasiconvexI)
---   show "C + 8 * δ ≥ 0" using quasiconvexC[OF assms(1)] by simp
--- next
---   fix y z assume *: "y∈(\<Union>x ∈ X. cball x r)" "z∈(\<Union>x ∈ X. cball x r)"
---   have A: "infDist w (\<Union>x ∈ X. cball x r) ≤ C + 8 * deltaG TYPE('a)" if "w∈{y--z}" for w
---   proof -
---     obtain py where py: "py∈X" "y∈cball py r"
---       using * by auto
---     obtain pz where pz: "pz∈X" "z∈cball pz r"
---       using * by auto
---     obtain G where G: "GeodesicSegmentBetween G py pz" "(∀ p ∈ G. infDist p X ≤ C)"
---       using quasiconvexD[OF assms(1) \<open>py∈X\<close> \<open>pz∈X\<close>] by auto
---     have A: "infDist w ({y--py} \<union> G \<union> {pz--z}) ≤ 8 * δ"
---       by (rule thin_quadrilaterals[OF _ G(1) _ _ \<open>w∈{y--z}\<close>, where ?x = y and ?t = z], auto)
---     have "∃ u∈{y--py} \<union> G \<union> {pz--z}. infDist w ({y--py} \<union> G \<union> {pz--z}) = dist w u"
---       apply (rule infDist_proper_attained, auto intro!: proper_Un simp add: geodesic_segment_topology(7))
---       by (meson G(1) geodesic_segmentI geodesic_segment_topology(7))
---     then obtain u where u: "u∈{y--py} \<union> G \<union> {pz--z}" "infDist w ({y--py} \<union> G \<union> {pz--z}) = dist w u"
---       by auto
---     then consider "u∈{y--py}" | "u∈G" | "u∈{pz--z}" by auto
---     then have "infDist u (\<Union>x ∈ X. cball x r) ≤ C"
---     proof (cases)
---       case 1
---       then have "dist py u ≤ dist py y"
---         using geodesic_segment_dist_le local.some_geodesic_is_geodesic_segment(1) some_geodesic_commute some_geodesic_endpoints(1) by blast
---       also have "... ≤ r"
---         using py(2) by auto
---       finally have "u∈cball py r"
---         by auto
---       then have "u∈(\<Union>x ∈ X. cball x r)"
---         using py(1) by auto
---       then have "infDist u (\<Union>x ∈ X. cball x r) = 0"
---         by auto
---       then show ?thesis
---         using quasiconvexC[OF assms(1)] by auto
---     next
---       case 3
---       then have "dist pz u ≤ dist pz z"
---         using geodesic_segment_dist_le local.some_geodesic_is_geodesic_segment(1) some_geodesic_commute some_geodesic_endpoints(1) by blast
---       also have "... ≤ r"
---         using pz(2) by auto
---       finally have "u∈cball pz r"
---         by auto
---       then have "u∈(\<Union>x ∈ X. cball x r)"
---         using pz(1) by auto
---       then have "infDist u (\<Union>x ∈ X. cball x r) = 0"
---         by auto
---       then show ?thesis
---         using quasiconvexC[OF assms(1)] by auto
---     next
---       case 2
---       have "infDist u (\<Union>x ∈ X. cball x r) ≤ infDist u X"
---         apply (rule infDist_mono) using assms(2) py(1) by auto
---       then show ?thesis using 2 G(2) by auto
---     qed
---     moreover have "infDist w (\<Union>x ∈ X. cball x r) ≤ infDist u (\<Union>x ∈ X. cball x r) + dist w u"
---       by (intro mono_intros)
---     ultimately show ?thesis
---       using A u(2) by auto
---   qed
---   show "∃ G. GeodesicSegmentBetween G y z ∧ (∀ w ∈ G. infDist w (\<Union>x ∈ X. cball x r) ≤ C + 8 * deltaG TYPE('a))"
---     apply (rule exI[of _ "{y--z}"]) using A by auto
--- qed
 
 /-- If `x` has a projection `p` on a quasi-convex set `G`, then all segments from a point in `G`
 to `x` go close to `p`, i.e., the triangular inequality $d(x,y) ≤ d(x,p) + d(p,y)$ is essentially

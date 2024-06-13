@@ -144,7 +144,7 @@ per se. -/
 lemma Morse_Gromov_theorem_aux0
     {f : ℝ → X} {um uM : ℝ}
     (hf : ContinuousOn f (Icc um uM))
-    {Λ C : ℝ} (hf' : quasi_isometry_on Λ C (Icc um uM) f)
+    {Λ C : ℝ} (hf' : QuasiIsometryOn Λ C (Icc um uM) f)
     (h_um_uM : um ≤ uM)
     {z : ℝ} (hz : z ∈ Icc um uM)
     {δ : ℝ} (hδ : δ > deltaG X) :
