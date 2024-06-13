@@ -143,15 +143,15 @@ lemma Morse_Gromov_theorem_aux2
     calc infDist x (f '' (Icc a b)) ≤ D + 1 * deltaG X := ?_
         _ ≤ D + Λ^2 * deltaG X := by gcongr; nlinarith only [hf'.one_le_lambda]
         _ = _ := by dsimp [D]; ring
-    let p := geodesic_segment_param G (f a)
+    let p := G.param (f a)
     have hpa : p 0 = f a := by
       dsimp [p]
-      rw [geodesic_segment_param1 hG]
+      rw [hG.param1]
     have hpb : p (dist (f a) (f b)) = f b := by
       dsimp [p]
-      rw [geodesic_segment_param2 hG]
+      rw [hG.param2]
     obtain ⟨t, htp, ht⟩ : ∃ t : ℝ, x = p t ∧ t ∈ Icc 0 (dist (f a) (f b)) := by
-      rw [← geodesic_segment_param5 hG] at hx
+      rw [← hG.param5] at hx
       obtain ⟨t, ht₁, ht₂⟩ := hx
       exact ⟨t, ht₂.symm, ht₁⟩
     let Km : Set X := cthickening D (p '' (Icc 0 t))
@@ -159,9 +159,8 @@ lemma Morse_Gromov_theorem_aux2
     have h₁ : f '' (Icc a b) ⊆ Km ∪ KM := by
       rintro _ ⟨s, hs, rfl⟩
       obtain ⟨z, hz, hzx⟩ : ∃ z ∈ G, infDist (f s) G = dist (f s) z :=
-        (geodesic_segment_topology ⟨_, _, hG⟩).1.exists_infDist_eq_dist
-          (geodesic_segment_topology ⟨_, _, hG⟩).2.2.2.2.2 (f s)
-      rw [← geodesic_segment_param5 hG] at hz
+        hG.isCompact.exists_infDist_eq_dist hG.nonempty (f s)
+      rw [← hG.param5] at hz
       change z ∈ p '' _ at hz
       obtain ⟨tz, htz, rfl⟩ := hz
       have := I hs
@@ -203,7 +202,7 @@ lemma Morse_Gromov_theorem_aux2
           apply mem_image_of_mem
           refine ⟨ht.2, ?_⟩
           dsimp [p]
-          rw [geodesic_segment_param2 hG]
+          rw [hG.param2]
     obtain ⟨y, hy⟩ : ∃ y, y ∈ f '' (Icc a b) ∧ y ∈ Km ∧ y ∈ KM := by
       obtain ⟨y, hy⟩ := h₃
       exact ⟨y, hy.1.2, hy.1.1, hy.2.1⟩

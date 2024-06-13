@@ -93,13 +93,13 @@ lemma gromovProductAt_commute (e x y : X) : gromovProductAt e x y = gromovProduc
 lemma gromovProductAt_le_infDist {x y : X} {G : Set X} (h : GeodesicSegmentBetween G x y) {e : X} :
     gromovProductAt e x y ≤ infDist e G := by
   rw [infDist_eq_iInf]
-  have : Nonempty G := ⟨_, (geodesic_segment_endpoints h).1⟩
+  have : Nonempty G := h.nonempty.to_subtype
   apply le_ciInf
   rintro ⟨z, hz⟩
   dsimp [gromovProductAt]
   have := dist_triangle e z x
   have := dist_triangle e z y
-  have := geodesic_segment_dist h hz
+  have := h.dist_eq hz
   simp only [dist_comm] at *
   linarith
 
@@ -110,12 +110,12 @@ lemma gromovProductAt_add (e x y : X) :
 
 lemma gromovProductAt_geodesic_segment {x y : X} {G : Set X}
     (h : GeodesicSegmentBetween G x y) {t : ℝ} (ht₀ : 0 ≤ t) (ht : t ≤ dist x y) :
-    gromovProductAt x y (geodesic_segment_param G x t) = t := by
-  have : dist x (geodesic_segment_param G x t) = t := geodesic_segment_param6 h ⟨ht₀, ht⟩
+    gromovProductAt x y (G.param x t) = t := by
+  have : dist x (G.param x t) = t := h.param6 ⟨ht₀, ht⟩
   have :
-      dist x (geodesic_segment_param G x t) + dist (geodesic_segment_param G x t) y = dist x y := by
-    apply geodesic_segment_dist h
-    exact geodesic_segment_param3 h ⟨ht₀, ht⟩
+      dist x (G.param x t) + dist (G.param x t) y = dist x y := by
+    apply h.dist_eq
+    exact h.param3 ⟨ht₀, ht⟩
   dsimp [gromovProductAt]
   simp only [dist_comm] at *
   linarith
@@ -213,17 +213,17 @@ triangles are thin is hyperbolic). -/
 lemma thin_triangles1 {x y z : X} {G : Set X}
     (hxy : GeodesicSegmentBetween G x y) {H : Set X} (hxz : GeodesicSegmentBetween H x z)
     {t : ℝ} (ht₀ : 0 ≤ t) (ht : t ≤ gromovProductAt x y z) :
-    dist (geodesic_segment_param G x t) (geodesic_segment_param H x t) ≤ 4 * δ := by
+    dist (G.param x t) (H.param x t) ≤ 4 * δ := by
   have : Inhabited X := ⟨x⟩
-  have h1 : gromovProductAt x z (geodesic_segment_param H x t) = t := by
+  have h1 : gromovProductAt x z (H.param x t) = t := by
     apply gromovProductAt_geodesic_segment hxz ht₀
     have := gromovProductAt_le_dist x y z
     linarith
-  have : min (gromovProductAt x y z) (gromovProductAt x z (geodesic_segment_param H x t)) - δ
-      ≤ gromovProductAt x y (geodesic_segment_param H x t) := hyperb_ineq ..
-  have I : t - δ ≤ gromovProductAt x y (geodesic_segment_param H x t) := by
+  have : min (gromovProductAt x y z) (gromovProductAt x z (H.param x t)) - δ
+      ≤ gromovProductAt x y (H.param x t) := hyperb_ineq ..
+  have I : t - δ ≤ gromovProductAt x y (H.param x t) := by
     rwa [h1, min_eq_right ht] at this
-  have h2 : gromovProductAt x (geodesic_segment_param G x t) y = t := by
+  have h2 : gromovProductAt x (G.param x t) y = t := by
     rw [gromovProductAt_commute]
     apply gromovProductAt_geodesic_segment hxy ht₀
     have := gromovProductAt_le_dist x y z
@@ -234,18 +234,18 @@ lemma thin_triangles1 {x y z : X} {G : Set X}
         · ring
         · have : 0 ≤ δ := delta_nonneg X
           linarith
-    _ ≤ min (gromovProductAt x (geodesic_segment_param G x t) y)
-          (gromovProductAt x y (geodesic_segment_param H x t)) - δ := by
+    _ ≤ min (gromovProductAt x (G.param x t) y)
+          (gromovProductAt x y (H.param x t)) - δ := by
         rw [h2]
         gcongr
-    _ ≤ gromovProductAt x (geodesic_segment_param G x t) (geodesic_segment_param H x t) :=
+    _ ≤ gromovProductAt x (G.param x t) (H.param x t) :=
         hyperb_ineq ..
-  have A : dist x (geodesic_segment_param G x t) = t := by
-    refine geodesic_segment_param6 hxy ⟨ht₀, ?_⟩
+  have A : dist x (G.param x t) = t := by
+    refine hxy.param6 ⟨ht₀, ?_⟩
     calc t ≤ _ := ht
       _ ≤ _ := (gromovProductAt_le_dist _ _ _).1
-  have B : dist x (geodesic_segment_param H x t) = t := by
-    refine geodesic_segment_param6 hxz ⟨ht₀, ?_⟩
+  have B : dist x (H.param x t) = t := by
+    refine hxz.param6 ⟨ht₀, ?_⟩
     calc t ≤ _ := ht
       _ ≤ _ := (gromovProductAt_le_dist _ _ _).2
   rw [gromovProductAt] at I
@@ -257,21 +257,19 @@ theorem thin_triangles {x y z w : X}
     {Gyz : Set X} (hyz : GeodesicSegmentBetween Gyz y z)
     (hw : w ∈ Gyz) :
     infDist w (Gxy ∪ Gxz) ≤ 4 * δ := by
-  obtain ⟨t, ht0, htw⟩ : ∃ t ∈ Icc 0 (dist y z), w = geodesic_segment_param Gyz y t := by
-    rw [← geodesic_segment_param5 hyz] at hw
+  obtain ⟨t, ht0, htw⟩ : ∃ t ∈ Icc 0 (dist y z), w = Gyz.param y t := by
+    rw [← hyz.param5] at hw
     obtain ⟨t, ht, htw⟩ := hw
     exact ⟨t, ht, htw.symm⟩
   by_cases ht : t ≤ gromovProductAt y x z
-  · have : dist w (geodesic_segment_param Gxy y t) ≤ 4 * δ := by
+  · have : dist w (Gxy.param y t) ≤ 4 * δ := by
       rw [htw]
-      refine thin_triangles1 hyz (z := x) ?_ ht0.1 ?_
-      · rwa [geodesic_segment_commute]
-      · rwa [gromovProductAt_commute]
+      refine thin_triangles1 hyz (z := x) hxy.symm ht0.1 ?_
+      rwa [gromovProductAt_commute]
     refine le_trans ?_ this
     apply infDist_le_dist_of_mem
     apply mem_union_left
-    rw [geodesic_segment_commute] at hxy
-    refine geodesic_segment_param3 hxy ⟨ht0.1, ?_⟩
+    refine hxy.symm.param3 ⟨ht0.1, ?_⟩
     calc t ≤ _ := ht
       _ ≤ _ := (gromovProductAt_le_dist _ _ _).1
   · let s := dist y z - t
@@ -282,35 +280,33 @@ theorem thin_triangles {x y z w : X}
       have := gromovProductAt_commute y x z
       constructor <;>
       linarith
-    have w2 : w = geodesic_segment_param Gyz z s := by
+    have w2 : w = Gyz.param z s := by
       rw [htw, geodesic_segment_reverse_param hyz ht0]
-    have : dist w (geodesic_segment_param Gxz z s) ≤ 4 * δ := by
+    have : dist w (Gxz.param z s) ≤ 4 * δ := by
       rw [w2]
-      rw [geodesic_segment_commute] at hxz hyz
-      exact thin_triangles1 hyz hxz hs.1 hs.2.le
+      exact thin_triangles1 hyz.symm hxz.symm hs.1 hs.2.le
     refine le_trans ?_ this
     apply infDist_le_dist_of_mem
     apply mem_union_right
-    rw [geodesic_segment_commute] at hxz
-    refine geodesic_segment_param3 hxz ⟨hs.1, ?_⟩
+    refine hxz.symm.param3 ⟨hs.1, ?_⟩
     calc s ≤ _ := hs.2.le
       _ ≤ _ := (gromovProductAt_le_dist _ _ _).2
 
 /-- The distance of a vertex of a triangle to the opposite side is essentially given by the
 Gromov product, up to `2 * δ`. -/
 lemma dist_triangle_side_middle {x y : X} {G : Set X} (z : X) (hxy : GeodesicSegmentBetween G x y) :
-    dist z (geodesic_segment_param G x (gromovProductAt x z y))
+    dist z (G.param x (gromovProductAt x z y))
       ≤ gromovProductAt z x y + 2 * δ := by
-  let m := geodesic_segment_param G x (gromovProductAt x z y)
+  let m := G.param x (gromovProductAt x z y)
   have : m ∈ G := by
-    refine geodesic_segment_param3 hxy ⟨?_, ?_⟩
+    refine hxy.param3 ⟨?_, ?_⟩
     · exact gromovProductAt_nonneg x z y
     · exact (gromovProductAt_le_dist _ _ _).2
   have A : dist x m = gromovProductAt x z y := by
-    refine geodesic_segment_param6 hxy ⟨?_, ?_⟩
+    refine hxy.param6 ⟨?_, ?_⟩
     · exact gromovProductAt_nonneg x z y
     · exact (gromovProductAt_le_dist _ _ _).2
-  have B : dist x m + dist m y = dist x y := geodesic_segment_dist hxy this
+  have B : dist x m + dist m y = dist x y := hxy.dist_eq this
   have hxzym : dist x z + dist y m = gromovProductAt z x y + dist x y := by
     simp only [dist_comm, gromovProductAt] at A B ⊢
     linarith
@@ -329,7 +325,7 @@ lemma infDist_triangle_side {x y : X} (z : X) {G : Set X} (hxy : GeodesicSegment
     infDist z G ≤ gromovProductAt z x y + 2 * δ := by
   refine le_trans ?_ <| dist_triangle_side_middle z hxy
   apply infDist_le_dist_of_mem
-  refine geodesic_segment_param3 hxy ⟨?_, ?_⟩
+  refine hxy.param3 ⟨?_, ?_⟩
   · exact gromovProductAt_nonneg x z y
   · exact (gromovProductAt_le_dist _ _ _).2
 
@@ -357,7 +353,7 @@ lemma dist_le_max_dist_triangle {x y m : X} {G : Set X} (hxy : GeodesicSegmentBe
           min_eq_left hzxmy |>.symm
       _ ≤ gromovProductAt z x y + δ := hyperb_ineq' z x m y
     dsimp [gromovProductAt] at this
-    have : dist x m + dist m y = dist x y := geodesic_segment_dist hxy hm
+    have : dist x m + dist m y = dist x y := hxy.dist_eq hm
     have := le_max_right (dist x z) (dist y z)
     simp only [dist_comm] at *
     linarith
@@ -366,7 +362,7 @@ lemma dist_le_max_dist_triangle {x y m : X} {G : Set X} (hxy : GeodesicSegmentBe
           by simpa [gromovProductAt_commute] using min_eq_right hzxmy.le |>.symm
       _ ≤ gromovProductAt z x y + δ := hyperb_ineq' z x m y
     dsimp [gromovProductAt] at this
-    have : dist x m + dist m y = dist x y := geodesic_segment_dist hxy hm
+    have : dist x m + dist m y = dist x y := hxy.dist_eq hm
     have := le_max_left (dist x z) (dist y z)
     simp only [dist_comm] at *
     linarith
@@ -385,20 +381,12 @@ lemma thin_quadrilaterals [GeodesicSpace X] {x y z t w : X}
     {Gxt : Set X} (hxt : GeodesicSegmentBetween Gxt x t)
     (hw : w ∈ Gxt) :
     infDist w (Gxy ∪ Gyz ∪ Gzt) ≤ 8 * δ := by
-  have hxz : GeodesicSegmentBetween {x‒z} x z := (some_geodesic_is_geodesic_segment x z).1
-  have I : infDist w ({x‒z} ∪ Gzt) ≤ 4 * δ := by
-    rw [geodesic_segment_commute] at hxz
-    exact thin_triangles hxz hzt hxt hw
+  have I : infDist w ({x‒z} ∪ Gzt) ≤ 4 * δ := thin_triangles [x‒z].symm hzt hxt hw
   obtain ⟨u, hu_mem, hu_dist⟩ : ∃ u ∈ {x‒z} ∪ Gzt, infDist w ({x‒z} ∪ Gzt) = dist w u := by
-    apply IsCompact.exists_infDist_eq_dist
-    apply IsCompact.union
-    · refine (geodesic_segment_topology (X := X) ?_).1
-      exact (some_geodesic_is_geodesic_segment x z).2
-    · refine (geodesic_segment_topology (X := X) ?_).1
-      exact ⟨_, _, hzt⟩
-    · use x
-      left
-      exact (geodesic_segment_endpoints hxz).1
+    apply ([x‒z].isCompact.union hzt.isCompact).exists_infDist_eq_dist
+    use x
+    left
+    exact (geodesic_segment_endpoints [x‒z]).1
   have : infDist u (Gxy ∪ Gyz ∪ Gzt) ≤ 4 * δ := by
     by_cases h : u ∈ {x‒z}
     · calc infDist u (Gxy ∪ Gyz ∪ Gzt) ≤ infDist u (Gxy ∪ Gyz) := by
@@ -408,9 +396,7 @@ lemma thin_quadrilaterals [GeodesicSpace X] {x y z t w : X}
               left
               exact (geodesic_segment_endpoints hxy).2.1
             · aesop
-        _ ≤ 4 * δ := by
-            rw [geodesic_segment_commute] at hxy
-            exact thin_triangles hxy hyz hxz h
+        _ ≤ 4 * δ := thin_triangles hxy.symm hyz [x‒z] h
     · have : u ∈ Gzt := by aesop
       calc infDist u (Gxy ∪ Gyz ∪ Gzt) ≤ infDist u Gzt := by
             gcongr

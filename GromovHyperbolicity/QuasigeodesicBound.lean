@@ -188,43 +188,36 @@ lemma Morse_Gromov_theorem_aux0
   `m` (within distance `2 * δ`). We will push the points `f um` and `f uM`
   towards `f z` by considering points whose projection on a geodesic `H` between `m` and
   `z` is roughly at distance `L` of `pi_z`. -/
-  let m := geodesic_segment_param {(f um)‒(f uM)} (f um) (gromovProductAt (f um) (f z) (f uM))
+  let m := {(f um)‒(f uM)}.param (f um) (gromovProductAt (f um) (f z) (f uM))
   have : dist (f z) m ≤ gromovProductAt (f z) (f um) (f uM) + 2 * deltaG X := by
-    apply dist_triangle_side_middle
-    exact (some_geodesic_is_geodesic_segment _ _).1
+    apply dist_triangle_side_middle _ [(f um)‒(f uM)]
   have h_fz_m : dist (f z) m ≤ gromovProductAt (f z) (f um) (f uM) + 2 * δ := by -- `*`
     linarith only [this, hδ]
   have H'' := -- `**`
   calc gromovProductAt (f z) (f um) (f uM) ≤ infDist (f z) {(f um)‒(f uM)} := by
-        apply gromovProductAt_le_infDist
-        exact (some_geodesic_is_geodesic_segment _ _).1
+        apply gromovProductAt_le_infDist [(f um)‒(f uM)]
     _ ≤ dist (f z) m := by
         apply infDist_le_dist_of_mem
-        apply geodesic_segment_param_in_geodesic_spaces3
+        apply [(f um)‒(f uM)].param3
         simp
 
   let H : Set X := {(f z)‒m}
-  let pi_z := geodesic_segment_param H (f z) (gromovProductAt (f z) (f um) (f uM))
+  let pi_z := H.param (f z) (gromovProductAt (f z) (f um) (f uM))
+  have h_H : GeodesicSegmentBetween H (f z) m := [(f z)‒m]
   have h_H' : pi_z ∈ H ∧ m ∈ H ∧ f z ∈ H := by
     simp only [some_geodesic_endpoints, and_self, and_true, pi_z, H]
-    apply geodesic_segment_param_in_segment
-    exact some_geodesic_endpoints.2.2
-  have h_H : GeodesicSegmentBetween H (f z) m := by
-    dsimp [H]
-    exact (some_geodesic_is_geodesic_segment _ _).1
-  have H_closure: closure H = H := by
-      rw [IsClosed.closure_eq]
-      exact (geodesic_segment_topology ⟨_, _, h_H⟩).2.2.2.2.1
+    exact h_H.param_in_segment
+  have H_closure: closure H = H := by rw [h_H.isClosed.closure_eq]
   have Dpi_z : dist (f z) pi_z = gromovProductAt (f z) (f um) (f uM) := by
     dsimp [pi_z, H]
-    apply geodesic_segment_param6 h_H
+    apply h_H.param6
     exact ⟨gromovProductAt_nonneg (f z) (f um) (f uM), H''⟩
-  have : dist (f z) m = dist (f z) pi_z + dist pi_z m := (geodesic_segment_dist h_H h_H'.1).symm
+  have : dist (f z) m = dist (f z) pi_z + dist pi_z m := (h_H.dist_eq h_H'.1).symm
   have h_pi_z_m : dist pi_z m ≤ 2 * δ := by linarith only [this, Dpi_z, h_fz_m]
 
   -- Introduce the notation `p` for some projection on the geodesic `H`.
-  have H_nonempty (r : ℝ) : (proj_set (f r) H).Nonempty := proj_set_nonempty_of_compact
-    (geodesic_segment_topology ⟨_, _, h_H⟩).1 (geodesic_segment_topology ⟨_, _, h_H⟩).2.2.2.2.2 _
+  have H_nonempty (r : ℝ) : (proj_set (f r) H).Nonempty :=
+    proj_set_nonempty_of_compact h_H.isCompact h_H.nonempty _
   choose p hp using H_nonempty
   have pH (r : ℝ) : p r ∈ H := (hp r).1
   have pz : p z = f z := by simpa [distproj_self h_H'.2.2] using hp z
@@ -237,7 +230,7 @@ lemma Morse_Gromov_theorem_aux0
       exact proj_set_dist_le h_H'.2.1 (hp um)
     _ = gromovProductAt (f um) (f z) (f uM) + dist (p um) (f z) := by
       simp [m]
-      apply geodesic_segment_param_in_geodesic_spaces6
+      apply [f um‒f uM].param6
       refine ⟨gromovProductAt_nonneg (f um) (f z) (f uM), ?_⟩ -- TODO positivity extension
       exact (gromovProductAt_le_dist _ _ _).2
   have A : gromovProductAt (f z) (f um) (f uM) ≤ dist (p um) (f z) := by
@@ -250,7 +243,7 @@ lemma Morse_Gromov_theorem_aux0
     · exact dist_triangle ..
     · have :=
       calc dist (p um) pi_z = |dist (p um) (f z) - dist pi_z (f z)| :=
-            dist_along_geodesic_wrt_endpoint h_H (pH _) h_H'.1
+            h_H.dist_along_wrt_endpoint (pH _) h_H'.1
         _ = dist (p um) (f z) - dist pi_z (f z) := by
           simp only [dist_comm] at Dpi_z A ⊢
           rw [Dpi_z, abs_of_nonneg]
@@ -289,11 +282,10 @@ lemma Morse_Gromov_theorem_aux0
   have I : dist (f um) m + dist m (f uM) = dist (f um) (f uM)
             ∧ dist (f um) m = gromovProductAt (f um) (f z) (f uM) := by
     constructor
-    · apply geodesic_segment_dist (some_geodesic_is_geodesic_segment (f um) (f uM)).1
-      apply geodesic_segment_param_in_geodesic_spaces3
+    · apply [(f um)‒(f uM)].dist_eq
+      apply [(f um)‒(f uM)].param3
       simp
-    · apply geodesic_segment_param6
-      refine (some_geodesic_is_geodesic_segment _ _).1
+    · apply [(f um)‒(f uM)].param6
       simp
   have := calc dist (f uM) (f z) ≤ dist (f uM) (p uM) + dist (p uM) (f z) := dist_triangle ..
     _ ≤ dist (f uM) m + dist (p uM) (f z) := by
@@ -315,7 +307,7 @@ lemma Morse_Gromov_theorem_aux0
     · exact dist_triangle ..
     · have :=
       calc dist (p uM) pi_z = |dist (p uM) (f z) - dist pi_z (f z)| :=
-            dist_along_geodesic_wrt_endpoint h_H (pH _) h_H'.1
+          h_H.dist_along_wrt_endpoint (pH _) h_H'.1
         _ = dist (p uM) (f z) - dist pi_z (f z) := by
           simp only [dist_comm] at Dpi_z A ⊢
           rw [Dpi_z, abs_of_nonneg]
@@ -353,14 +345,14 @@ lemma Morse_Gromov_theorem_aux0
   /- Points between `f um` and `f ym`, or between `f yM` and `f uM`, project within
   distance at most `L` of `pi_z` by construction. -/
   have P0 {x : ℝ} (hx : x ∈ Icc um ym ∪ Icc yM uM) : dist m (p x) ≤ dist m pi_z + L := by
-    have h₁ := geodesic_segment_dist h_H h_H'.1
+    have h₁ := h_H.dist_eq h_H'.1
     obtain hx | hx := hx
-    · have h₂ := geodesic_segment_dist h_H (pH um)
+    · have h₂ := h_H.dist_eq (pH um)
       have h₃ := hym.2.2 x hx
       have h₄ := dist_triangle m (p um) (p x)
       simp only [dist_comm] at Dum h₁ h₂ h₃ h₄ ⊢
       linarith only [Dum, h₁, h₂, h₃, h₄]
-    · have h₂ := geodesic_segment_dist h_H (pH uM)
+    · have h₂ := h_H.dist_eq (pH uM)
       have h₃ := hyM.2.2 x hx
       have h₄ := dist_triangle m (p uM) (p x)
       simp only [dist_comm] at DuM h₁ h₂ h₃ h₄ ⊢
@@ -373,9 +365,8 @@ lemma Morse_Gromov_theorem_aux0
       linarith only [h_pi_z_m, h_m_px_pi_z, hδ₀, h₁]
     · have h₁ := P0 hx
       have h₂ :=
-      calc dist pi_z (p x) = |dist pi_z m - dist (p x) m| := by
-            rw [geodesic_segment_commute] at h_H
-            exact dist_along_geodesic_wrt_endpoint h_H h_H'.1 (pH _)
+      calc dist pi_z (p x) = |dist pi_z m - dist (p x) m| :=
+            h_H.symm.dist_along_wrt_endpoint  h_H'.1 (pH _)
         _ = dist (p x) m - dist pi_z m := by
             rw [abs_of_nonpos]
             · ring
@@ -390,9 +381,8 @@ lemma Morse_Gromov_theorem_aux0
   have hD {rm rM} (hrm : rm ∈ Icc um ym) (hrM : rM ∈ Icc yM uM) :
       |rm - rM| ≤ Λ * (infDist (f rm) H + (L + C + 2 * δ) + infDist (f rM) H) := by
     have := -- `*`
-    calc dist (p rm) (p rM) = |dist (p rm) m - dist (p rM) m| := by
-          rw [geodesic_segment_commute] at h_H
-          apply dist_along_geodesic_wrt_endpoint h_H (pH _) (pH _)
+    calc dist (p rm) (p rM) = |dist (p rm) m - dist (p rM) m| :=
+          h_H.symm.dist_along_wrt_endpoint (pH _) (pH _)
       _ ≤ L + dist m pi_z := by
           rw [abs_le]
           have h₁ := P0 (Or.inl hrm)
@@ -440,7 +430,7 @@ lemma Morse_Gromov_theorem_aux0
       by_cases h : dist (f z) (p rm) ≤ dist (f z) (p rM)
       · have h₁ :=
         calc dist (p rm) (p rM) = |dist (f z) (p rm) - dist (f z) (p rM)| := by
-              have := dist_along_geodesic_wrt_endpoint h_H (pH rm) (pH rM)
+              have := h_H.dist_along_wrt_endpoint (pH rm) (pH rM)
               simp only [dist_comm] at this ⊢
               linarith only [this]
           _ = dist (f z) (p rM) - dist (f z) (p rm) := by
@@ -453,7 +443,7 @@ lemma Morse_Gromov_theorem_aux0
         linarith only [h, h₁, h₂, h₃, delta_nonneg X]
       · have h₁ :=
         calc dist (p rm) (p rM) = |dist (f z) (p rm) - dist (f z) (p rM)| := by
-              have := dist_along_geodesic_wrt_endpoint h_H (pH rm) (pH rM)
+              have :=  h_H.dist_along_wrt_endpoint (pH rm) (pH rM)
               simp only [dist_comm] at this ⊢
               linarith only [this]
           _ = dist (f z) (p rm) - dist (f z) (p rM) := by
@@ -575,10 +565,10 @@ lemma Morse_Gromov_theorem_aux0
         linarith only [hδ]
 
     -- Define `q k x` to be the projection of `f x` on `V k`.
-    let q : ℕ → ℝ → X := fun k x ↦ geodesic_segment_param {p x‒f x} (p x) ((2^k - 1) * dm)
+    let q : ℕ → ℝ → X := fun k x ↦ {p x‒f x}.param (p x) ((2^k - 1) * dm)
     have hq0 (x : ℝ) : q 0 x = p x := by
       dsimp [q]
-      convert @geodesic_segment_param_in_geodesic_spaces1 _ _ (p x) (f x)
+      convert [p x‒f x].param1
       simp
 
     -- The inductive argument
@@ -673,9 +663,8 @@ lemma Morse_Gromov_theorem_aux0
 
       have proj_mem {r : ℝ} (hr : r ∈ Icc um x) : q k r ∈ proj_set (f r) (V k) := by
         dsimp [q, V]
-        convert proj_set_thickening' (E := dist (p r) (f r)) (hp _) ?_ ?_ (by rfl)
-            (some_geodesic_is_geodesic_segment _ _).1 using 2
-        · rw [geodesic_segment_param_in_geodesic_spaces2]
+        convert [p r‒f r].proj_set_thickening' (E := dist (p r) (f r)) (hp _) ?_ ?_ (by rfl) using 2
+        · rw [[p r‒f r].param2]
         · positivity
         · rw [dist_comm]
           exact le_trans H₁ (hx₂ _ hr)
@@ -697,10 +686,9 @@ lemma Morse_Gromov_theorem_aux0
         · exact V_quasiconvex _
         · intro w hw
           dsimp [q, V]
-          convert proj_set_thickening' (G := {p w‒f w}) (D := (2 ^ k - 1) * dm)
-            (E := dist (f w) (p w)) (Z := H) (p := p w) (hp w) ?_ ?_ ?_
-            (some_geodesic_is_geodesic_segment _ _).1 using 2
-          · rw [dist_comm, geodesic_segment_param_in_geodesic_spaces2]
+          convert [p w‒f w].proj_set_thickening' (D := (2 ^ k - 1) * dm)
+            (E := dist (f w) (p w)) (Z := H) (p := p w) (hp w) ?_ ?_ ?_ using 2
+          · rw [dist_comm, [p w‒f w].param2]
           · positivity
           · exact H₁.trans (hx₂ _ hw)
           · rw [dist_comm]
@@ -728,13 +716,13 @@ lemma Morse_Gromov_theorem_aux0
           have hr : r ∈ Icc um x := ⟨hv₁.1.trans hr.1, hr.2⟩
           have h₁ :=
           calc infDist (f r) (V k)
-              = dist (geodesic_segment_param {p r‒f r} (p r) (dist (p r) (f r)))
-                  (geodesic_segment_param {p r‒f r} (p r) ((2 ^ k - 1) * dm)) := by
+              = dist ({p r‒f r}.param (p r) (dist (p r) (f r)))
+                  ({p r‒f r}.param (p r) ((2 ^ k - 1) * dm)) := by
                   rw [← (proj_mem hr).2]
                   dsimp [q]
-                  rw [geodesic_segment_param_in_geodesic_spaces2]
+                  rw [[p r‒f r].param2]
               _ = |dist (p r) (f r) - (2 ^ k - 1) * dm| := by
-                  apply geodesic_segment_param_in_geodesic_spaces7
+                  apply [p r‒f r].param7
                   · simpa using dist_nonneg
                   refine ⟨by positivity, ?_⟩
                   rw [dist_comm]
@@ -1006,7 +994,7 @@ lemma Morse_Gromov_theorem_aux0
         refine ⟨w, ⟨hw₁.1, hw₁.2.trans hx₁.2⟩, fun x hx ↦ (h x hx).le, ?_⟩
         have h₁ : dist (q k um) (q (k+1) um) = 2^k * dm := by
           dsimp [q]
-          rw [geodesic_segment_param_in_geodesic_spaces7]
+          rw [[p um‒f um].param7]
           · rw [abs_of_nonpos]
             · ring
             · ring_nf
@@ -1021,7 +1009,7 @@ lemma Morse_Gromov_theorem_aux0
             linarith only [hdm_mul]
         have h₂ : dist (q k w) (q (k+1) w) = 2^k * dm := by
           dsimp [q]
-          rw [geodesic_segment_param_in_geodesic_spaces7]
+          rw [[p w‒f w].param7]
           · rw [abs_of_nonpos]
             · ring
             · ring_nf
@@ -1035,7 +1023,7 @@ lemma Morse_Gromov_theorem_aux0
             ring_nf
             linarith only [hdm_mul]
         have i : q k um ∈ proj_set (q (k+1) um) (V k) := by
-          refine proj_set_thickening' (hp _) ?_ H₁ ?_ (some_geodesic_is_geodesic_segment _ _).1
+          refine [p um‒f um].proj_set_thickening' (hp _) ?_ H₁ ?_
           · positivity
           · rw [dist_comm]
             refine le_trans ?_ (h _ ⟨by rfl, hw₁.1⟩).le
@@ -1043,7 +1031,7 @@ lemma Morse_Gromov_theorem_aux0
             ring_nf
             positivity
         have j : q k w ∈ proj_set (q (k+1) w) (V k) := by
-          refine proj_set_thickening' (hp _) ?_ H₁ ?_ (some_geodesic_is_geodesic_segment _ _).1
+          refine [p w‒f w].proj_set_thickening' (hp _) ?_ H₁ ?_
           · positivity
           · rw [dist_comm]
             refine le_trans ?_ (h _ ⟨hw₁.1, by rfl⟩).le
@@ -1122,10 +1110,10 @@ lemma Morse_Gromov_theorem_aux0
     have : 0 < dM := by dsimp [D] at I₁; linarith only [I₁, hC, hδ₀]
 
     -- Define `q k x` to be the projection of `f x` on `V k`.
-    let q : ℕ → ℝ → X := fun k x ↦ geodesic_segment_param {p x‒f x} (p x) ((2^k - 1) * dM)
+    let q : ℕ → ℝ → X := fun k x ↦ {p x‒f x}.param (p x) ((2^k - 1) * dM)
     have hq0 (x : ℝ) : q 0 x = p x := by
       dsimp [q]
-      convert @geodesic_segment_param_in_geodesic_spaces1 _ _ (p x) (f x)
+      convert [p x‒f x].param1
       simp
 
     -- The inductive argument
@@ -1220,9 +1208,8 @@ lemma Morse_Gromov_theorem_aux0
 
       have proj_mem {r : ℝ} (hr : r ∈ Icc x uM) : q k r ∈ proj_set (f r) (V k) := by
         dsimp [q, V]
-        convert proj_set_thickening' (E := dist (p r) (f r)) (hp _) ?_ ?_ (by rfl)
-            (some_geodesic_is_geodesic_segment _ _).1 using 2
-        · rw [geodesic_segment_param_in_geodesic_spaces2]
+        convert [p r‒f r].proj_set_thickening' (E := dist (p r) (f r)) (hp _) ?_ ?_ (by rfl) using 2
+        · rw [[p r‒f r].param2]
         · positivity
         · rw [dist_comm]
           exact le_trans H₁ (hx₂ _ hr)
@@ -1244,10 +1231,9 @@ lemma Morse_Gromov_theorem_aux0
         · exact V_quasiconvex _
         · intro w hw
           dsimp [q, V]
-          convert proj_set_thickening' (G := {p w‒f w}) (D := (2 ^ k - 1) * dM)
-            (E := dist (f w) (p w)) (Z := H) (p := p w) (hp w) ?_ ?_ ?_
-            (some_geodesic_is_geodesic_segment _ _).1 using 2
-          · rw [dist_comm, geodesic_segment_param_in_geodesic_spaces2]
+          convert [p w‒f w].proj_set_thickening' (D := (2 ^ k - 1) * dM)
+            (E := dist (f w) (p w)) (Z := H) (p := p w) (hp w) ?_ ?_ ?_ using 2
+          · rw [dist_comm, [p w‒f w].param2]
           · positivity
           · exact H₁.trans (hx₂ _ hw)
           · rw [dist_comm]
@@ -1276,13 +1262,13 @@ lemma Morse_Gromov_theorem_aux0
           have hr : r ∈ Icc x uM := ⟨hr.1, hr.2.trans hv₁.2⟩
           have h₁ :=
           calc infDist (f r) (V k)
-              = dist (geodesic_segment_param {p r‒f r} (p r) (dist (p r) (f r)))
-                  (geodesic_segment_param {p r‒f r} (p r) ((2 ^ k - 1) * dM)) := by
+              = dist ({p r‒f r}.param (p r) (dist (p r) (f r)))
+                  ({p r‒f r}.param (p r) ((2 ^ k - 1) * dM)) := by
                   rw [← (proj_mem hr).2]
                   dsimp [q]
-                  rw [geodesic_segment_param_in_geodesic_spaces2]
+                  rw [[p r‒f r].param2]
               _ = |dist (p r) (f r) - (2 ^ k - 1) * dM| := by
-                  apply geodesic_segment_param_in_geodesic_spaces7
+                  apply [p r‒f r].param7
                   · simpa using dist_nonneg
                   refine ⟨by positivity, ?_⟩
                   rw [dist_comm]
@@ -1556,7 +1542,7 @@ lemma Morse_Gromov_theorem_aux0
         refine ⟨w, ⟨hx₁.1.trans hw₁.1, hw₁.2⟩, fun x hx ↦ (h x hx).le, ?_⟩
         have h₁ : dist (q k uM) (q (k+1) uM) = 2^k * dM := by
           dsimp [q]
-          rw [geodesic_segment_param_in_geodesic_spaces7]
+          rw [[p uM‒f uM].param7]
           · rw [abs_of_nonpos]
             · ring
             · ring_nf
@@ -1571,7 +1557,7 @@ lemma Morse_Gromov_theorem_aux0
             linarith only [hdM_mul]
         have h₂ : dist (q k w) (q (k+1) w) = 2^k * dM := by
           dsimp [q]
-          rw [geodesic_segment_param_in_geodesic_spaces7]
+          rw [[p w‒f w].param7]
           · rw [abs_of_nonpos]
             · ring
             · ring_nf
@@ -1585,7 +1571,7 @@ lemma Morse_Gromov_theorem_aux0
             ring_nf
             linarith only [hdM_mul]
         have i : q k uM ∈ proj_set (q (k+1) uM) (V k) := by
-          refine proj_set_thickening' (hp _) ?_ H₁ ?_ (some_geodesic_is_geodesic_segment _ _).1
+          refine [p uM‒f uM].proj_set_thickening' (hp _) ?_ H₁ ?_
           · positivity
           · rw [dist_comm]
             refine le_trans ?_ (h _ ⟨hw₁.2, by rfl⟩).le
@@ -1593,7 +1579,7 @@ lemma Morse_Gromov_theorem_aux0
             ring_nf
             positivity
         have j : q k w ∈ proj_set (q (k+1) w) (V k) := by
-          refine proj_set_thickening' (hp _) ?_ H₁ ?_ (some_geodesic_is_geodesic_segment _ _).1
+          refine [p w‒f w].proj_set_thickening' (hp _) ?_ H₁ ?_
           · positivity
           · rw [dist_comm]
             refine le_trans ?_ (h _ ⟨by rfl, hw₁.2⟩).le

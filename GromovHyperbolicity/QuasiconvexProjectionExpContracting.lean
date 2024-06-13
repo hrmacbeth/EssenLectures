@@ -31,7 +31,7 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
     (hδ : δ ≥ deltaG X) {M : ℝ} (hxy : dist x y ≤ 10 * δ + C)
     (hM : M ≥ 15/2 * δ) (hpx : M + 5 * δ + C/2 ≤ dist px x) (hpy : M + 5 * δ + C/2 ≤ dist py y)
     (hC : C ≥ 0) :
-    dist (geodesic_segment_param {px‒x} px M) (geodesic_segment_param {py‒y} py M) ≤ 5 * δ := by
+    dist ({px‒x}.param px M) ({py‒y}.param py M) ≤ 5 * δ := by
   have hpxpyx : dist px x ≤ dist py x := by
     simpa only [dist_comm] using proj_set_dist_le hpyG.1 hpxG
   have hpypxy : dist py y ≤ dist px y := by
@@ -42,8 +42,8 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
   have hM' : 0 ≤ M ∧ M ≤ dist px x ∧ M ≤ dist px y ∧ M ≤ dist py x ∧ M ≤ dist py y := by
     refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;> linarith
   have : px ∈ G ∧ py ∈ G := ⟨hpxG.1, hpyG.1⟩
-  set x' := geodesic_segment_param {px‒x} px M
-  set y' := geodesic_segment_param {py‒y} py M
+  set x' := {px‒x}.param px M
+  set y' := {py‒y}.param py M
   /- First step: the distance between `px` and `py` is at most `5 * δ`. -/
   have hpxpyδ :=
   calc dist px py
@@ -57,33 +57,23 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
         gcongr
   /- Second step: show that all the interesting Gromov products at bounded below by `M`. -/
   have hx'_mem : x' ∈ {px‒x} := geodesic_segment_param_in_segment (some_geodesic_endpoints).2.2
-  have : px ∈ proj_set x' G := by
-    refine proj_set_geodesic_same_basepoint hpxG (G := {px‒x}) ?_ hx'_mem
-    exact (some_geodesic_is_geodesic_segment _ _).1
-  have hpxx'M : dist px x' = M := by
-    apply geodesic_segment_param_in_geodesic_spaces6
-    exact ⟨hM'.1, hM'.2.1⟩
+  have : px ∈ proj_set x' G := [px‒x].proj_set_same_basepoint hpxG hx'_mem
+  have hpxx'M : dist px x' = M := [px‒x].param6 ⟨hM'.1, hM'.2.1⟩
   have hpxpyx' : dist px x' ≤ dist py x' := by
     simpa only [dist_comm] using proj_set_dist_le hpyG.1 this
-  have : dist px x = dist px x' + dist x' x := by
-    rw [← geodesic_segment_dist (some_geodesic_is_geodesic_segment px x).1 hx'_mem]
+  have : dist px x = dist px x' + dist x' x := by rw [← [px‒x].dist_eq hx'_mem]
   have Ixx : gromovProductAt px x' x = M := by
     dsimp only [gromovProductAt]
     linarith only [this, hpxx'M]
   have Iyx : gromovProductAt py x x' ≥ M := by
     simp only [gromovProductAt, dist_comm] at Ixx hpxpyx hpxpyx' ⊢
     linarith only [Ixx, hpxpyx, hpxpyx']
-  have hy'_mem : y' ∈ {py‒y} := geodesic_segment_param_in_segment (some_geodesic_endpoints).2.2
-  have : py ∈ proj_set y' G := by
-    refine proj_set_geodesic_same_basepoint hpyG (G := {py‒y}) ?_ hy'_mem
-    exact (some_geodesic_is_geodesic_segment _ _).1
-  have hpyy'M : dist py y' = M := by
-    apply geodesic_segment_param_in_geodesic_spaces6
-    exact ⟨hM'.1, hM'.2.2.2.2⟩
+  have hy'_mem : y' ∈ {py‒y} := [py‒y].param_in_segment
+  have : py ∈ proj_set y' G := [py‒y].proj_set_same_basepoint hpyG hy'_mem
+  have hpyy'M : dist py y' = M := [py‒y].param6 ⟨hM'.1, hM'.2.2.2.2⟩
   have hpypyy' : dist py y' ≤ dist px y' := by
     simpa only [dist_comm] using proj_set_dist_le hpxG.1 this
-  have : dist py y = dist py y' + dist y' y := by
-    rw [← geodesic_segment_dist (some_geodesic_is_geodesic_segment py y).1 hy'_mem]
+  have : dist py y = dist py y' + dist y' y := by rw [← [py‒y].dist_eq hy'_mem]
   have Iyy : gromovProductAt py y' y = M := by
     dsimp only [gromovProductAt]
     linarith only [this, hpyy'M]
@@ -190,7 +180,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
         _ = 5 * deltaG X := by simp
     intro c g p hp hpg hg hc
     have : 5 * δ * (k + 1) + 5 * δ = 5 * δ * (k + 2) := by ring
-    let h : ℕ → X := fun i ↦ geodesic_segment_param {(p i)‒(g i)} (p i) (5 * δ * k + 15/2 * δ)
+    let h : ℕ → X := fun i ↦ {(p i)‒(g i)}.param (p i) (5 * δ * k + 15/2 * δ)
     have hi' {i : ℕ} : i ≤ (2 ^ k) → 2 * i ≤ (2 ^ (k + 1)) := by
       intro h
       ring_nf
@@ -218,13 +208,11 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
     refine IH 0 g' p' ?_ ?_ ?_ (by rfl)
     · intro i hi
       dsimp [p', g', h]
-      apply proj_set_geodesic_same_basepoint (hp _ (hi' hi)) (G := {p (2 * i)‒g (2 * i)})
-      · exact (some_geodesic_is_geodesic_segment _ _).1
-      · apply geodesic_segment_param_in_segment
-        exact some_geodesic_endpoints.2.2
+      apply [p (2 * i)‒g (2 * i)].proj_set_same_basepoint (hp _ (hi' hi))
+      apply [p (2 * i)‒g (2 * i)].param_in_segment
     · intro i hi
       dsimp [p', g', h]
-      rw [geodesic_segment_param_in_geodesic_spaces6]
+      rw [[p (2 * i)‒g (2 * i)].param6]
       · linarith only []
       refine ⟨by positivity, ?_⟩-- rfl
       calc 5 * δ * k + 15/2 * δ
@@ -537,17 +525,13 @@ lemma quasiconvex_projection_exp_contracting {K : ℝ}
           ((4 * exp (1/2 * log 2)) * Λ * (b-a) * exp (-(D - K - C/2) * log 2 / (5 * δ))) := by
   obtain ⟨H, hH₁, hH₂⟩ : ∃ H, GeodesicSegmentBetween H pa pb ∧ ∀ q, q ∈ H → infDist q G ≤ K :=
     hKG.2 hpaG.1 hpbG.1
-  obtain ⟨qa, hqa⟩ : ∃ qa, qa ∈ proj_set (f a) H := by
-    apply proj_set_nonempty_of_compact
-    · apply (geodesic_segment_topology ⟨_, _, hH₁⟩).1
-    · apply (geodesic_segment_topology ⟨_, _, hH₁⟩).2.2.2.2.2
-  obtain ⟨qb, hqb⟩ : ∃ qb, qb ∈ proj_set (f b) H := by
-    apply proj_set_nonempty_of_compact
-    · apply (geodesic_segment_topology ⟨_, _, hH₁⟩).1
-    · apply (geodesic_segment_topology ⟨_, _, hH₁⟩).2.2.2.2.2
+  obtain ⟨qa, hqa⟩ : ∃ qa, qa ∈ proj_set (f a) H :=
+    proj_set_nonempty_of_compact hH₁.isCompact hH₁.nonempty _
+  obtain ⟨qb, hqb⟩ : ∃ qb, qb ∈ proj_set (f b) H :=
+    proj_set_nonempty_of_compact hH₁.isCompact hH₁.nonempty _
   have hG_nonempty : G.Nonempty := ⟨_, hpaG.1⟩
   have I (t : ℝ) (ht : t ∈ Icc a b) : infDist (f t) H ≥ D - K := by
-    have : Nonempty H := by simpa only [nonempty_subtype] using (geodesic_segment_endpoints hH₁).2.2
+    have : Nonempty H := hH₁.nonempty.to_subtype
     rw [infDist_eq_iInf, ge_iff_le, le_ciInf_iff]
     · rintro ⟨h, h_mem_H⟩
       dsimp
