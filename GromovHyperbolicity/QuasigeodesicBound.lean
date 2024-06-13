@@ -166,7 +166,7 @@ lemma Morse_Gromov_theorem_aux0
 
   have : 0 < K := by ring_nf; positivity
   have : 1 ≤ Λ ^ 2 := by nlinarith only [hf'.one_le_lambda]
-  have : Kmult > 0 := by ring_nf; positivity --" unfolding Kmult_def using Laux \<open>δ > 0\<close> \<open>K > 0\<close> \<open>Λ ≥ 1\<close> by (auto simp add: divide_simps)
+  have : Kmult > 0 := by ring_nf; positivity
 
   have : 0 ≤ uM - um := by linarith only [h_um_uM]
   by_cases hz_um_uM_L : gromovProductAt (f z) (f um) (f uM) ≤ L
@@ -189,17 +189,6 @@ lemma Morse_Gromov_theorem_aux0
   towards `f z` by considering points whose projection on a geodesic `H` between `m` and
   `z` is roughly at distance `L` of `pi_z`. -/
   let m := {(f um)‒(f uM)}.param (f um) (gromovProductAt (f um) (f z) (f uM))
-  have : dist (f z) m ≤ gromovProductAt (f z) (f um) (f uM) + 2 * deltaG X := by
-    apply dist_triangle_side_middle _ [(f um)‒(f uM)]
-  have h_fz_m : dist (f z) m ≤ gromovProductAt (f z) (f um) (f uM) + 2 * δ := by -- `*`
-    linarith only [this, hδ]
-  have H'' := -- `**`
-  calc gromovProductAt (f z) (f um) (f uM) ≤ infDist (f z) {(f um)‒(f uM)} := by
-        apply gromovProductAt_le_infDist [(f um)‒(f uM)]
-    _ ≤ dist (f z) m := by
-        apply infDist_le_dist_of_mem
-        apply [(f um)‒(f uM)].param3
-        simp
 
   let H : Set X := {(f z)‒m}
   let pi_z := H.param (f z) (gromovProductAt (f z) (f um) (f uM))
@@ -210,9 +199,18 @@ lemma Morse_Gromov_theorem_aux0
   have Dpi_z : dist (f z) pi_z = gromovProductAt (f z) (f um) (f uM) := by
     dsimp [pi_z, H]
     apply h_H.param6
-    exact ⟨gromovProductAt_nonneg (f z) (f um) (f uM), H''⟩
-  have : dist (f z) m = dist (f z) pi_z + dist pi_z m := (h_H.dist_eq h_H'.1).symm
-  have h_pi_z_m : dist pi_z m ≤ 2 * δ := by linarith only [this, Dpi_z, h_fz_m]
+    refine ⟨gromovProductAt_nonneg (f z) (f um) (f uM), ?_⟩
+    calc gromovProductAt (f z) (f um) (f uM) ≤ infDist (f z) {(f um)‒(f uM)} := by
+          apply gromovProductAt_le_infDist [(f um)‒(f uM)]
+      _ ≤ dist (f z) m := by
+          apply infDist_le_dist_of_mem
+          apply [(f um)‒(f uM)].param3
+          simp
+
+  have h_pi_z_m : dist pi_z m ≤ 2 * δ := by
+    have : dist (f z) m ≤ gromovProductAt (f z) (f um) (f uM) + 2 * deltaG X :=
+      dist_triangle_side_middle _ [(f um)‒(f uM)]
+    linarith only [h_H.dist_eq h_H'.1, Dpi_z, this, hδ]
 
   -- Introduce the notation `p` for some projection on the geodesic `H`.
   have H_nonempty (r : ℝ) : (projSet (f r) H).Nonempty :=
@@ -223,21 +221,21 @@ lemma Morse_Gromov_theorem_aux0
 
   /- The projection of `f um` on `H` is close to `pi_z` (but it does not have to be exactly
   `pi_z`). It is between `pi_z` and `m`. -/
-  have := calc dist (f um) (f z) ≤ dist (f um) (p um) + dist (p um) (f z) := dist_triangle ..
-    _ ≤ dist (f um) m + dist (p um) (f z) := by
-      gcongr
-      exact projSet_dist_le h_H'.2.1 (hp um)
-    _ = gromovProductAt (f um) (f z) (f uM) + dist (p um) (f z) := by
-      simp [m]
-      apply [f um‒f uM].param6
-      refine ⟨gromovProductAt_nonneg (f um) (f z) (f uM), ?_⟩ -- TODO positivity extension
-      exact (gromovProductAt_le_dist _ _ _).2
-  have A : gromovProductAt (f z) (f um) (f uM) ≤ dist (p um) (f z) := by
-    dsimp [gromovProductAt] at this ⊢
-    simp only [dist_comm] at this ⊢
-    linarith only [this]
   -- On `H`, the point `pi_z` lies between `p um` and `f z`
   have Dum : dist (p um) (f z) = dist (p um) pi_z + dist pi_z (f z) := by
+    have := calc dist (f um) (f z) ≤ dist (f um) (p um) + dist (p um) (f z) := dist_triangle ..
+      _ ≤ dist (f um) m + dist (p um) (f z) := by
+        gcongr
+        exact projSet_dist_le h_H'.2.1 (hp um)
+      _ = gromovProductAt (f um) (f z) (f uM) + dist (p um) (f z) := by
+        simp [m]
+        apply [f um‒f uM].param6
+        refine ⟨gromovProductAt_nonneg (f um) (f z) (f uM), ?_⟩ -- TODO positivity extension
+        exact (gromovProductAt_le_dist _ _ _).2
+    have A : gromovProductAt (f z) (f um) (f uM) ≤ dist (p um) (f z) := by
+      dsimp [gromovProductAt] at this ⊢
+      simp only [dist_comm] at this ⊢
+      linarith only [this]
     apply le_antisymm
     · exact dist_triangle ..
     · have :=
@@ -262,13 +260,13 @@ lemma Morse_Gromov_theorem_aux0
       · simp only [dist_comm, pz] at Dum Dpi_z hz_um_uM_L ⊢
         linarith only [Dum, hz_um_uM_L, Dpi_z]
   have h_um_ym_subset : Icc um ym ⊆ Icc um uM := Icc_subset_Icc (by rfl) (hym.1.2.trans hz.2)
-  have : ContinuousOn (fun r ↦ infDist (f r) H) (Icc um ym) :=
-    continuous_infDist_pt H |>.comp_continuousOn (hf.mono h_um_ym_subset)
 
   /- Choose a point `cm` between `f um` and `f ym` realizing the minimal distance to `H`.
   Call this distance `dm`. -/
   obtain ⟨closestm, hclosestm⟩ :
       ∃ closestm ∈ Icc um ym, ∀ v ∈ Icc um ym, infDist (f closestm) H ≤ infDist (f v) H := by
+    have : ContinuousOn (fun r ↦ infDist (f r) H) (Icc um ym) :=
+      continuous_infDist_pt H |>.comp_continuousOn (hf.mono h_um_ym_subset)
     refine IsCompact.exists_isMinOn ?_ ?_ this
     · exact isCompact_Icc
     · rw [nonempty_Icc]
@@ -285,22 +283,22 @@ lemma Morse_Gromov_theorem_aux0
       simp
     · apply [(f um)‒(f uM)].param6
       simp
-  have := calc dist (f uM) (f z) ≤ dist (f uM) (p uM) + dist (p uM) (f z) := dist_triangle ..
-    _ ≤ dist (f uM) m + dist (p uM) (f z) := by
-      gcongr
-      exact projSet_dist_le h_H'.2.1 (hp uM)
-    _ = gromovProductAt (f uM) (f z) (f um) + dist (p uM) (f z) := by
-      have h₁ := gromovProductAt_add (f um) (f uM) (f z)
-      have h₂ := I.1
-      have h₃ := I.2
-      simp only [dist_comm, gromovProductAt_commute] at h₁ h₂ h₃ ⊢
-      linarith only [h₁, h₂, h₃]
-  have A : gromovProductAt (f z) (f um) (f uM) ≤ dist (p uM) (f z) := by
-    dsimp [gromovProductAt] at this ⊢
-    simp only [dist_comm] at this ⊢
-    linarith only [this]
   -- On `H`, the point `pi_z` lies between `p uM` and `f z`
   have DuM : dist (p uM) (f z) = dist (p uM) pi_z + dist pi_z (f z) := by
+    have := calc dist (f uM) (f z) ≤ dist (f uM) (p uM) + dist (p uM) (f z) := dist_triangle ..
+      _ ≤ dist (f uM) m + dist (p uM) (f z) := by
+        gcongr
+        exact projSet_dist_le h_H'.2.1 (hp uM)
+      _ = gromovProductAt (f uM) (f z) (f um) + dist (p uM) (f z) := by
+        have h₁ := gromovProductAt_add (f um) (f uM) (f z)
+        have h₂ := I.1
+        have h₃ := I.2
+        simp only [dist_comm, gromovProductAt_commute] at h₁ h₂ h₃ ⊢
+        linarith only [h₁, h₂, h₃]
+    have A : gromovProductAt (f z) (f um) (f uM) ≤ dist (p uM) (f z) := by
+      dsimp [gromovProductAt] at this ⊢
+      simp only [dist_comm] at this ⊢
+      linarith only [this]
     apply le_antisymm
     · exact dist_triangle ..
     · have :=
@@ -338,6 +336,8 @@ lemma Morse_Gromov_theorem_aux0
       exact hyM.1.2
   let dM : ℝ := infDist (f closestM) H
   have : 0 ≤ dM := infDist_nonneg
+
+  clear_value m
 
   /- Points between `f um` and `f ym`, or between `f yM` and `f uM`, project within
   distance at most `L` of `pi_z` by construction. -/
@@ -402,6 +402,8 @@ lemma Morse_Gromov_theorem_aux0
     calc |rm - rM| = Λ * ((1/Λ) * |rm - rM| - C) + Λ * C := by field_simp
       _ ≤ Λ * (infDist (f rm) H + (L + 2 * δ) + infDist (f rM) H) + Λ * C := by gcongr
       _ = _ := by ring
+
+  clear h_pi_z_m
 
   /- Auxiliary fact for later use in the inductive argument:
   the distance from `f z` to `pi_z` is controlled by the distance from `f z` to any
