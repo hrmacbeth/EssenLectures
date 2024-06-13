@@ -204,9 +204,8 @@ lemma Morse_Gromov_theorem_aux0
   let H : Set X := {(f z)‒m}
   let pi_z := H.param (f z) (gromovProductAt (f z) (f um) (f uM))
   have h_H : GeodesicSegmentBetween H (f z) m := [(f z)‒m]
-  have h_H' : pi_z ∈ H ∧ m ∈ H ∧ f z ∈ H := by
-    simp only [some_geodesic_endpoints, and_self, and_true, pi_z, H]
-    exact h_H.param_in_segment
+  have h_H'' : GeodesicSegment H := ⟨_, _, h_H⟩
+  have h_H' : pi_z ∈ H ∧ m ∈ H ∧ f z ∈ H := ⟨h_H.param_in_segment, h_H.right_mem, h_H.left_mem⟩
   have H_closure: closure H = H := by rw [h_H.isClosed.closure_eq]
   have Dpi_z : dist (f z) pi_z = gromovProductAt (f z) (f um) (f uM) := by
     dsimp [pi_z, H]
@@ -216,8 +215,8 @@ lemma Morse_Gromov_theorem_aux0
   have h_pi_z_m : dist pi_z m ≤ 2 * δ := by linarith only [this, Dpi_z, h_fz_m]
 
   -- Introduce the notation `p` for some projection on the geodesic `H`.
-  have H_nonempty (r : ℝ) : (proj_set (f r) H).Nonempty :=
-    proj_set_nonempty_of_compact h_H.isCompact h_H.nonempty _
+  have H_nonempty (r : ℝ) : (projSet (f r) H).Nonempty :=
+    projSet_nonempty_of_compact h_H.isCompact h_H.nonempty _
   choose p hp using H_nonempty
   have pH (r : ℝ) : p r ∈ H := (hp r).1
   have pz : p z = f z := by simpa [distproj_self h_H'.2.2] using hp z
@@ -227,7 +226,7 @@ lemma Morse_Gromov_theorem_aux0
   have := calc dist (f um) (f z) ≤ dist (f um) (p um) + dist (p um) (f z) := dist_triangle ..
     _ ≤ dist (f um) m + dist (p um) (f z) := by
       gcongr
-      exact proj_set_dist_le h_H'.2.1 (hp um)
+      exact projSet_dist_le h_H'.2.1 (hp um)
     _ = gromovProductAt (f um) (f z) (f uM) + dist (p um) (f z) := by
       simp [m]
       apply [f um‒f uM].param6
@@ -256,8 +255,7 @@ lemma Morse_Gromov_theorem_aux0
                     ∧ (∀ r ∈ Icc um ym, dist (p um) (p r) ≤ L + dist pi_z (p um)) := by
     refine quasi_convex_projection_small_gaps (f := f) (G := H) ?_ hz.1 ?_ (fun t _ ↦ hp t) hδ ?_
     · exact hf.mono (Icc_subset_Icc (by rfl) hz.2)
-    · apply quasiconvex_of_geodesic
-      exact ⟨_, _, h_H⟩
+    · exact h_H''.quasiconvex
     · refine ⟨?_, ?_⟩
       · dsimp [L]
         linarith only [hδ₀, @dist_nonneg _ _ pi_z (p um)]
@@ -290,7 +288,7 @@ lemma Morse_Gromov_theorem_aux0
   have := calc dist (f uM) (f z) ≤ dist (f uM) (p uM) + dist (p uM) (f z) := dist_triangle ..
     _ ≤ dist (f uM) m + dist (p uM) (f z) := by
       gcongr
-      exact proj_set_dist_le h_H'.2.1 (hp uM)
+      exact projSet_dist_le h_H'.2.1 (hp uM)
     _ = gromovProductAt (f uM) (f z) (f um) + dist (p uM) (f z) := by
       have h₁ := gromovProductAt_add (f um) (f uM) (f z)
       have h₂ := I.1
@@ -320,8 +318,7 @@ lemma Morse_Gromov_theorem_aux0
                     ∧ (∀ r ∈ Icc yM uM, dist (p uM) (p r) ≤ L + dist pi_z (p uM)) := by
     refine quasi_convex_projection_small_gaps' (f := f) (G := H) ?_ hz.2 ?_ (fun t _ ↦ hp t) hδ ?_
     · exact hf.mono (Icc_subset_Icc hz.1 (le_refl _))
-    · apply quasiconvex_of_geodesic
-      exact ⟨_, _, h_H⟩
+    · exact h_H''.quasiconvex
     · refine ⟨?_, ?_⟩
       · dsimp [L]
         linarith only [hδ₀, @dist_nonneg _ _ pi_z (p uM)]
@@ -414,14 +411,14 @@ lemma Morse_Gromov_theorem_aux0
       gromovProductAt (f z) (f um) (f uM) ≤ gromovProductAt (f z) (f rm) (f rM) + (L + 4 * δ) := by
     have A : dist (f z) pi_z - L - 2 * deltaG X ≤ gromovProductAt (f z) (f rm) (p rm) := by
       have h₁ : dist (f rm) (p rm) + dist (p rm) (f z) ≤ dist (f rm) (f z) + 4 * deltaG X :=
-        dist_along_geodesic ⟨_, _, h_H⟩ (hp _) h_H'.2.2
+        dist_along_geodesic h_H'' (hp _) h_H'.2.2
       have h₂ : dist (f z) pi_z ≤ dist (f z) (p rm) + dist (p rm) pi_z := dist_triangle ..
       have h₃ := P (Or.inl hrm)
       simp only [gromovProductAt, dist_comm] at h₁ h₂ h₃ ⊢
       linarith only [h₁, h₂, h₃]
     have B : dist (f z) pi_z - L - 2 * deltaG X ≤ gromovProductAt (f z) (p rM) (f rM) := by
       have h₁ : dist (f rM) (p rM) + dist (p rM) (f z) ≤ dist (f rM) (f z) + 4 * deltaG X :=
-        dist_along_geodesic ⟨_, _, h_H⟩ (hp _) h_H'.2.2
+        dist_along_geodesic h_H'' (hp _) h_H'.2.2
       have h₂ : dist (f z) pi_z ≤ dist (f z) (p rM) + dist (p rM) pi_z := dist_triangle ..
       have h₃ := P (Or.inr hrM)
       simp only [gromovProductAt, dist_comm] at h₁ h₂ h₃ ⊢
@@ -549,19 +546,18 @@ lemma Morse_Gromov_theorem_aux0
 
     have : 0 < dm := by dsimp [D] at I₁; linarith only [I₁, hC, hδ₀]
     let V : ℕ → Set X := fun k ↦ cthickening ((2^k - 1) * dm) H
-    have Q (k : ℕ) : quasiconvex (0 + 8 * deltaG X) (V k) := by
-      apply quasiconvex_thickening
-      · apply quasiconvex_of_geodesic ⟨_, _, h_H⟩
-      · have : 1 ≤ (2:ℝ) ^ k := one_le_pow_of_one_le (by norm_num) k
-        have : 0 ≤ (2:ℝ) ^ k - 1 := by linarith only [this]
-        positivity
-    have V_quasiconvex (k : ℕ) : quasiconvex (QC k) (V k) := by
+    have Q (k : ℕ) : Quasiconvex (0 + 8 * deltaG X) (V k) := by
+      apply h_H''.quasiconvex.cthickening
+      have : 1 ≤ (2:ℝ) ^ k := one_le_pow_of_one_le (by norm_num) k
+      have : 0 ≤ (2:ℝ) ^ k - 1 := by linarith only [this]
+      positivity
+    have V_quasiconvex (k : ℕ) : Quasiconvex (QC k) (V k) := by
       dsimp [QC]
       split_ifs with h
       · simp only [h, pow_zero, sub_self, zero_mul, V, cthickening_zero]
         rw [H_closure]
-        apply quasiconvex_of_geodesic ⟨_, _, h_H⟩
-      · refine quasiconvex_mono ?_ (Q k)
+        apply h_H''.quasiconvex
+      · refine (Q k).mono ?_
         linarith only [hδ]
 
     -- Define `q k x` to be the projection of `f x` on `V k`.
@@ -661,9 +657,9 @@ lemma Morse_Gromov_theorem_aux0
                 positivity
         linarith only [this]
 
-      have proj_mem {r : ℝ} (hr : r ∈ Icc um x) : q k r ∈ proj_set (f r) (V k) := by
+      have proj_mem {r : ℝ} (hr : r ∈ Icc um x) : q k r ∈ projSet (f r) (V k) := by
         dsimp [q, V]
-        convert [p r‒f r].proj_set_thickening' (E := dist (p r) (f r)) (hp _) ?_ ?_ (by rfl) using 2
+        convert [p r‒f r].projSet_thickening' (E := dist (p r) (f r)) (hp _) ?_ ?_ (by rfl) using 2
         · rw [[p r‒f r].param2]
         · positivity
         · rw [dist_comm]
@@ -686,7 +682,7 @@ lemma Morse_Gromov_theorem_aux0
         · exact V_quasiconvex _
         · intro w hw
           dsimp [q, V]
-          convert [p w‒f w].proj_set_thickening' (D := (2 ^ k - 1) * dm)
+          convert [p w‒f w].projSet_thickening' (D := (2 ^ k - 1) * dm)
             (E := dist (f w) (p w)) (Z := H) (p := p w) (hp w) ?_ ?_ ?_ using 2
           · rw [dist_comm, [p w‒f w].param2]
           · positivity
@@ -837,7 +833,7 @@ lemma Morse_Gromov_theorem_aux0
                   · exact hδ
                   · exact hC
                   · positivity
-                  · simpa [V, H_closure] using (⟨_, _, h_H⟩ : geodesic_segment H)
+                  · simpa [V, H_closure] using h_H''
                 simpa [hq0, QC] using this
               · have : dist (q k v) (q k x)
                     ≤ 2 * QC k + 8 * δ + max (5 * deltaG X)
@@ -1022,16 +1018,16 @@ lemma Morse_Gromov_theorem_aux0
             refine le_trans ?_ (hx₂ _ hw₁)
             ring_nf
             linarith only [hdm_mul]
-        have i : q k um ∈ proj_set (q (k+1) um) (V k) := by
-          refine [p um‒f um].proj_set_thickening' (hp _) ?_ H₁ ?_
+        have i : q k um ∈ projSet (q (k+1) um) (V k) := by
+          refine [p um‒f um].projSet_thickening' (hp _) ?_ H₁ ?_
           · positivity
           · rw [dist_comm]
             refine le_trans ?_ (h _ ⟨by rfl, hw₁.1⟩).le
             rw [← sub_nonneg]
             ring_nf
             positivity
-        have j : q k w ∈ proj_set (q (k+1) w) (V k) := by
-          refine [p w‒f w].proj_set_thickening' (hp _) ?_ H₁ ?_
+        have j : q k w ∈ projSet (q (k+1) w) (V k) := by
+          refine [p w‒f w].projSet_thickening' (hp _) ?_ H₁ ?_
           · positivity
           · rw [dist_comm]
             refine le_trans ?_ (h _ ⟨hw₁.1, by rfl⟩).le
@@ -1093,19 +1089,18 @@ lemma Morse_Gromov_theorem_aux0
       push_neg at h
       obtain I₁ | I₁ := h <;> linarith only [I₁, I₂]
     let V : ℕ → Set X := fun k ↦ cthickening ((2^k - 1) * dM) H
-    have Q (k : ℕ) : quasiconvex (0 + 8 * deltaG X) (V k) := by
-      apply quasiconvex_thickening
-      · apply quasiconvex_of_geodesic ⟨_, _, h_H⟩
-      · have : 1 ≤ (2:ℝ) ^ k := one_le_pow_of_one_le (by norm_num) k
-        have : 0 ≤ (2:ℝ) ^ k - 1 := by linarith only [this]
-        positivity
-    have V_quasiconvex (k : ℕ) : quasiconvex (QC k) (V k) := by
+    have Q (k : ℕ) : Quasiconvex (0 + 8 * deltaG X) (V k) := by
+      apply h_H''.quasiconvex.cthickening
+      have : 1 ≤ (2:ℝ) ^ k := one_le_pow_of_one_le (by norm_num) k
+      have : 0 ≤ (2:ℝ) ^ k - 1 := by linarith only [this]
+      positivity
+    have V_quasiconvex (k : ℕ) : Quasiconvex (QC k) (V k) := by
       dsimp [QC]
       split_ifs with h
       · simp only [h, pow_zero, sub_self, zero_mul, V, cthickening_zero]
         rw [H_closure]
-        apply quasiconvex_of_geodesic ⟨_, _, h_H⟩
-      · refine quasiconvex_mono ?_ (Q k)
+        exact h_H''.quasiconvex
+      · refine (Q k).mono ?_
         linarith only [hδ]
     have : 0 < dM := by dsimp [D] at I₁; linarith only [I₁, hC, hδ₀]
 
@@ -1206,9 +1201,9 @@ lemma Morse_Gromov_theorem_aux0
                 positivity
         linarith only [this]
 
-      have proj_mem {r : ℝ} (hr : r ∈ Icc x uM) : q k r ∈ proj_set (f r) (V k) := by
+      have proj_mem {r : ℝ} (hr : r ∈ Icc x uM) : q k r ∈ projSet (f r) (V k) := by
         dsimp [q, V]
-        convert [p r‒f r].proj_set_thickening' (E := dist (p r) (f r)) (hp _) ?_ ?_ (by rfl) using 2
+        convert [p r‒f r].projSet_thickening' (E := dist (p r) (f r)) (hp _) ?_ ?_ (by rfl) using 2
         · rw [[p r‒f r].param2]
         · positivity
         · rw [dist_comm]
@@ -1231,7 +1226,7 @@ lemma Morse_Gromov_theorem_aux0
         · exact V_quasiconvex _
         · intro w hw
           dsimp [q, V]
-          convert [p w‒f w].proj_set_thickening' (D := (2 ^ k - 1) * dM)
+          convert [p w‒f w].projSet_thickening' (D := (2 ^ k - 1) * dM)
             (E := dist (f w) (p w)) (Z := H) (p := p w) (hp w) ?_ ?_ ?_ using 2
           · rw [dist_comm, [p w‒f w].param2]
           · positivity
@@ -1383,7 +1378,7 @@ lemma Morse_Gromov_theorem_aux0
                   · exact hδ
                   · exact hC
                   · positivity
-                  · simpa [V, H_closure] using (⟨_, _, h_H⟩ : geodesic_segment H)
+                  · simpa [V, H_closure] using h_H''
                 simpa [hq0, QC, dist_comm] using this
               · have : dist (q k x) (q k v)
                     ≤ 2 * QC k + 8 * δ + max (5 * deltaG X)
@@ -1570,16 +1565,16 @@ lemma Morse_Gromov_theorem_aux0
             refine le_trans ?_ (hx₂ _ hw₁)
             ring_nf
             linarith only [hdM_mul]
-        have i : q k uM ∈ proj_set (q (k+1) uM) (V k) := by
-          refine [p uM‒f uM].proj_set_thickening' (hp _) ?_ H₁ ?_
+        have i : q k uM ∈ projSet (q (k+1) uM) (V k) := by
+          refine [p uM‒f uM].projSet_thickening' (hp _) ?_ H₁ ?_
           · positivity
           · rw [dist_comm]
             refine le_trans ?_ (h _ ⟨hw₁.2, by rfl⟩).le
             rw [← sub_nonneg]
             ring_nf
             positivity
-        have j : q k w ∈ proj_set (q (k+1) w) (V k) := by
-          refine [p w‒f w].proj_set_thickening' (hp _) ?_ H₁ ?_
+        have j : q k w ∈ projSet (q (k+1) w) (V k) := by
+          refine [p w‒f w].projSet_thickening' (hp _) ?_ H₁ ?_
           · positivity
           · rw [dist_comm]
             refine le_trans ?_ (h _ ⟨by rfl, hw₁.2⟩).le

@@ -26,16 +26,16 @@ so to avoid problems in the case `δ = 0` we formulate it not using the hyperbol
 the given type, but any constant which is at least the hyperbolicity constant (this is to work
 around the fact that one can not say or use easily in Isabelle that a type with hyperbolicity
 `δ` is also hyperbolic for any larger constant `δ'`. -/
-lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px py : X}
-    (hpxG : px ∈ proj_set x G) (hpyG : py ∈ proj_set y G) {δ C : ℝ}
+lemma geodesic_projection_exp_contracting_aux (hG : GeodesicSegment G) {x y px py : X}
+    (hpxG : px ∈ projSet x G) (hpyG : py ∈ projSet y G) {δ C : ℝ}
     (hδ : δ ≥ deltaG X) {M : ℝ} (hxy : dist x y ≤ 10 * δ + C)
     (hM : M ≥ 15/2 * δ) (hpx : M + 5 * δ + C/2 ≤ dist px x) (hpy : M + 5 * δ + C/2 ≤ dist py y)
     (hC : C ≥ 0) :
     dist ({px‒x}.param px M) ({py‒y}.param py M) ≤ 5 * δ := by
   have hpxpyx : dist px x ≤ dist py x := by
-    simpa only [dist_comm] using proj_set_dist_le hpyG.1 hpxG
+    simpa only [dist_comm] using projSet_dist_le hpyG.1 hpxG
   have hpypxy : dist py y ≤ dist px y := by
-    simpa only [dist_comm] using proj_set_dist_le hpxG.1 hpyG
+    simpa only [dist_comm] using projSet_dist_le hpxG.1 hpyG
   have hδ₀ : 0 ≤ δ := by
     have : Inhabited X := ⟨x⟩
     linarith only [hδ, delta_nonneg X]
@@ -56,11 +56,11 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
         rw [max_self]
         gcongr
   /- Second step: show that all the interesting Gromov products at bounded below by `M`. -/
-  have hx'_mem : x' ∈ {px‒x} := geodesic_segment_param_in_segment (some_geodesic_endpoints).2.2
-  have : px ∈ proj_set x' G := [px‒x].proj_set_same_basepoint hpxG hx'_mem
+  have hx'_mem : x' ∈ {px‒x} := [px‒x].param_in_segment
+  have : px ∈ projSet x' G := [px‒x].projSet_same_basepoint hpxG hx'_mem
   have hpxx'M : dist px x' = M := [px‒x].param6 ⟨hM'.1, hM'.2.1⟩
   have hpxpyx' : dist px x' ≤ dist py x' := by
-    simpa only [dist_comm] using proj_set_dist_le hpyG.1 this
+    simpa only [dist_comm] using projSet_dist_le hpyG.1 this
   have : dist px x = dist px x' + dist x' x := by rw [← [px‒x].dist_eq hx'_mem]
   have Ixx : gromovProductAt px x' x = M := by
     dsimp only [gromovProductAt]
@@ -69,10 +69,10 @@ lemma geodesic_projection_exp_contracting_aux (hG : geodesic_segment G) {x y px 
     simp only [gromovProductAt, dist_comm] at Ixx hpxpyx hpxpyx' ⊢
     linarith only [Ixx, hpxpyx, hpxpyx']
   have hy'_mem : y' ∈ {py‒y} := [py‒y].param_in_segment
-  have : py ∈ proj_set y' G := [py‒y].proj_set_same_basepoint hpyG hy'_mem
+  have : py ∈ projSet y' G := [py‒y].projSet_same_basepoint hpyG hy'_mem
   have hpyy'M : dist py y' = M := [py‒y].param6 ⟨hM'.1, hM'.2.2.2.2⟩
   have hpypyy' : dist py y' ≤ dist px y' := by
-    simpa only [dist_comm] using proj_set_dist_le hpxG.1 this
+    simpa only [dist_comm] using projSet_dist_le hpxG.1 this
   have : dist py y = dist py y' + dist y' y := by rw [← [py‒y].dist_eq hy'_mem]
   have Iyy : gromovProductAt py y' y = M := by
     dsimp only [gromovProductAt]
@@ -123,9 +123,9 @@ This statement follows from the previous lemma: if one moves towards `G` by `10 
 the distance between points is divided by `2`. Then one iterates this statement as many times
 as possible, gaining a factor `2` each time and therefore an exponential factor in the end. -/
 -- TODO don't know if notation is Ioo or Icc
-lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ → X} {a b Λ C : ℝ}
+lemma geodesic_projection_exp_contracting (hG : GeodesicSegment G) {f : ℝ → X} {a b Λ C : ℝ}
     (h : ∀ x y, x ∈ Icc a b → y ∈ Icc a b → dist (f x) (f y) ≤ Λ * |x - y| + C) -- NB changed from `dist x y` in original
-    (hab : a ≤ b) {pa : X} (hpa : pa ∈ proj_set (f a) G) {pb : X} (hpb : pb ∈ proj_set (f b) G)
+    (hab : a ≤ b) {pa : X} (hpa : pa ∈ projSet (f a) G) {pb : X} (hpb : pb ∈ projSet (f b) G)
     {D : ℝ} (hG' : ∀ t, t ∈ Icc a b → infDist (f t) G ≥ D) {δ : ℝ} (hD : D ≥ 15/2 * δ + C/2)
     (hδ : δ > deltaG X) (hC : C ≥ 0) (hΛ : Λ ≥ 0) :
     dist pa pb ≤ max (5 * deltaG X)
@@ -147,14 +147,14 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
   in the case where the process can be iterated long enough that, at the end, the projections on `G`
   are very close together. This is a simple induction, based on the previous lemma. -/
   have Main (k : ℕ) : ∀ c (g : ℕ → X) (p : ℕ → X),
-              (∀ i ≤ (2^k), p i ∈ proj_set (g i) G)
+              (∀ i ≤ (2^k), p i ∈ projSet (g i) G)
             → (∀ i ≤ (2^k), 5 * δ * k + 15/2 * δ + c/2 ≤ dist (p i) (g i))
             → (∀ i < (2^k), dist (g i) (g (i + 1)) ≤ 10 * δ + c)
             → c ≥ 0
             → dist (p 0) (p (2^k)) ≤ 5 * deltaG X := by
     induction' k with k IH
     · intro c g p hp hpg hg _
-      have H : p 0 ∈ proj_set (g 0) G ∧ p 1 ∈ proj_set (g 1) G ∧ dist (g 0) (g 1) ≤ 10 * δ + c
+      have H : p 0 ∈ projSet (g 0) G ∧ p 1 ∈ projSet (g 1) G ∧ dist (g 0) (g 1) ≤ 10 * δ + c
           ∧ 15/2 * δ + c/2 ≤ dist (p 0) (g 0) ∧ 15/2 * δ + c/2 ≤ dist (p 1) (g 1) := by
         refine ⟨hp _ ?_, hp _ ?_, hg _ ?_, ?_, ?_⟩
         · simp
@@ -208,7 +208,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
     refine IH 0 g' p' ?_ ?_ ?_ (by rfl)
     · intro i hi
       dsimp [p', g', h]
-      apply [p (2 * i)‒g (2 * i)].proj_set_same_basepoint (hp _ (hi' hi))
+      apply [p (2 * i)‒g (2 * i)].projSet_same_basepoint (hp _ (hi' hi))
       apply [p (2 * i)‒g (2 * i)].param_in_segment
     · intro i hi
       dsimp [p', g', h]
@@ -282,10 +282,9 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
       linarith only [this]
     · calc a + (b - a) * i / 2 ^ k ≤ a + (b - a) * 2 ^ k / 2 ^ k := by gcongr; exact_mod_cast hi
         _ = b := by field_simp
-  have hG_nonempty (x : X) : (proj_set x G).Nonempty := by
-    apply proj_set_nonempty_of_compact
-    · apply (geodesic_segment_topology hG).1
-    · apply (geodesic_segment_topology hG).2.2.2.2.2
+  have hG_nonempty (x : X) : (projSet x G).Nonempty := by
+    obtain ⟨x, y, hG⟩ := hG
+    exact projSet_nonempty_of_compact hG.isCompact hG.nonempty _
   by_cases h_split : Λ * (b-a) ≤ 10 * δ * 2^k
   · /- First, treat the case where the path is rather short. -/
     let g : ℕ → X := fun i ↦ f (a + (b-a) * i/2^k)
@@ -312,7 +311,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
             rwa [div_le_iff]
             positivity
     let p := fun i ↦ if i = 0 then pa else if i = 2^k then pb else (hG_nonempty (g i)).choose
-    have B (i : ℕ) (_ : i ≤ (2 ^ k)) : p i ∈ proj_set (g i) G := by
+    have B (i : ℕ) (_ : i ≤ (2 ^ k)) : p i ∈ projSet (g i) G := by
       dsimp only [p]
       split_ifs with hi' hi'
       · rw [hi', hg_endpoints.1]
@@ -413,7 +412,7 @@ lemma geodesic_projection_exp_contracting (hG : geodesic_segment G) {f : ℝ →
                 positivity
       _ ≤ 10 * δ + C := by gcongr; exact hN.2.1.le
   let p : ℕ → X := fun i ↦ if i = 0 then pa else if i = 2^N then pb else (hG_nonempty (g i)).choose
-  have B (i : ℕ) (_ : i ≤ (2 ^ N)) : p i ∈ proj_set (g i) G := by
+  have B (i : ℕ) (_ : i ≤ (2 ^ N)) : p i ∈ projSet (g i) G := by
     dsimp only [p]
     split_ifs with hi' hi'
     · rw [hi', hg_endpoints.1]
@@ -514,9 +513,9 @@ original quasiconvex set or the geodesic do not have to coincide, but they are w
 most `C + 8 * δ`. -/
 -- **Lemma 2.5**
 lemma quasiconvex_projection_exp_contracting {K : ℝ}
-    (hKG : quasiconvex K G) {f : ℝ → X} {a b Λ C : ℝ}
+    (hKG : Quasiconvex K G) {f : ℝ → X} {a b Λ C : ℝ}
     (h : ∀ x y, x ∈ Icc a b → y ∈ Icc a b → dist (f x) (f y) ≤ Λ * |x - y| + C) -- NB changed from `dist x y` in original
-    (hab : a ≤ b) {pa : X} (hpaG : pa ∈ proj_set (f a) G) {pb : X} (hpbG : pb ∈ proj_set (f b) G)
+    (hab : a ≤ b) {pa : X} (hpaG : pa ∈ projSet (f a) G) {pb : X} (hpbG : pb ∈ projSet (f b) G)
     {D : ℝ} (hG : ∀ t, t ∈ Icc a b → infDist (f t) G ≥ D)
     {δ : ℝ} (hD : D ≥ 15/2 * δ + K + C/2)
     (hδ : δ > deltaG X) (hC : C ≥ 0) (hΛ : Λ ≥ 0) :
@@ -525,10 +524,10 @@ lemma quasiconvex_projection_exp_contracting {K : ℝ}
           ((4 * exp (1/2 * log 2)) * Λ * (b-a) * exp (-(D - K - C/2) * log 2 / (5 * δ))) := by
   obtain ⟨H, hH₁, hH₂⟩ : ∃ H, GeodesicSegmentBetween H pa pb ∧ ∀ q, q ∈ H → infDist q G ≤ K :=
     hKG.2 hpaG.1 hpbG.1
-  obtain ⟨qa, hqa⟩ : ∃ qa, qa ∈ proj_set (f a) H :=
-    proj_set_nonempty_of_compact hH₁.isCompact hH₁.nonempty _
-  obtain ⟨qb, hqb⟩ : ∃ qb, qb ∈ proj_set (f b) H :=
-    proj_set_nonempty_of_compact hH₁.isCompact hH₁.nonempty _
+  obtain ⟨qa, hqa⟩ : ∃ qa, qa ∈ projSet (f a) H :=
+    projSet_nonempty_of_compact hH₁.isCompact hH₁.nonempty _
+  obtain ⟨qb, hqb⟩ : ∃ qb, qb ∈ projSet (f b) H :=
+    projSet_nonempty_of_compact hH₁.isCompact hH₁.nonempty _
   have hG_nonempty : G.Nonempty := ⟨_, hpaG.1⟩
   have I (t : ℝ) (ht : t ∈ Icc a b) : infDist (f t) H ≥ D - K := by
     have : Nonempty H := hH₁.nonempty.to_subtype
@@ -566,9 +565,9 @@ lemma quasiconvex_projection_exp_contracting {K : ℝ}
       have := hH₂ qa hqa.1 |>.trans_lt hx
       rwa [← infDist_lt_iff hG_nonempty]
     have h₁ :=
-    calc dist (f a) pa ≤ dist (f a) g := proj_set_dist_le hgG hpaG
+    calc dist (f a) pa ≤ dist (f a) g := projSet_dist_le hgG hpaG
       _ ≤ dist (f a) qa + dist qa g := dist_triangle ..
-    have h₂ := dist_along_geodesic ⟨_, _, hH₁⟩ hqa (geodesic_segment_endpoints hH₁).1
+    have h₂ := dist_along_geodesic ⟨_, _, hH₁⟩ hqa hH₁.left_mem
     rw [dist_comm pa]
     linarith only [h₁, h₂, hgha, hδ]
 
@@ -580,9 +579,9 @@ lemma quasiconvex_projection_exp_contracting {K : ℝ}
       have := hH₂ qb hqb.1 |>.trans_lt hx
       rwa [← infDist_lt_iff hG_nonempty]
     have h₁ :=
-    calc dist (f b) pb ≤ dist (f b) g := proj_set_dist_le hgG hpbG
+    calc dist (f b) pb ≤ dist (f b) g := projSet_dist_le hgG hpbG
       _ ≤ dist (f b) qb + dist qb g := dist_triangle ..
-    have h₂ := dist_along_geodesic ⟨_, _, hH₁⟩ hqb (geodesic_segment_endpoints hH₁).2.1
+    have h₂ := dist_along_geodesic ⟨_, _, hH₁⟩ hqb hH₁.right_mem
     linarith only [h₁, h₂, hghb, hδ]
 
   have : dist pa pb ≤ dist pa qa + dist qa qb + dist qb pb := dist_triangle4 ..

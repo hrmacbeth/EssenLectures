@@ -26,7 +26,7 @@ def GeodesicSegmentBetween (G : Set X) (x y : X) : Prop :=
   ∃ g : ℝ → X, g 0 = x ∧ g (dist x y) = y ∧ Isometry (g ∘ Subtype.val : Icc 0 (dist x y) → _)
     ∧ G = g '' Icc 0 (dist x y)
 
-def geodesic_segment (G : Set X) : Prop := ∃ x y, GeodesicSegmentBetween G x y
+def GeodesicSegment (G : Set X) : Prop := ∃ x y, GeodesicSegmentBetween G x y
 
 /-! We also introduce the parametrization of a geodesic segment. It is convenient to use the
 following definition, which guarantees that the point is on `G` even without checking that `G`
@@ -88,18 +88,27 @@ noncomputable def Set.param (G : Set X) (x : X) (t : ℝ) : X :=
 --   ultimately show ?thesis by auto
 -- qed
 
-@[simp] lemma geodesic_segment_endpoints {G : Set X} {x y : X}
-    (hxy : GeodesicSegmentBetween G x y) : x ∈ G ∧ y ∈ G ∧ G.Nonempty := by
+lemma GeodesicSegmentBetween.left_mem {G : Set X} {x y : X}
+    (hxy : GeodesicSegmentBetween G x y) : x ∈ G := by
+  sorry
+
+lemma GeodesicSegmentBetween.right_mem {G : Set X} {x y : X}
+    (hxy : GeodesicSegmentBetween G x y) : y ∈ G := by
   sorry
 -- using assms unfolding geodesicSegmentBetween_def
 --   by (auto, metis atLeastAtMost_iff image_eqI less_eq_real_def zero_le_dist)
+
+/- Just like an interval, a geodesic segment is nonempty. -/
+lemma GeodesicSegmentBetween.nonempty {G : Set X} {x y : X} (h : GeodesicSegmentBetween G x y) :
+    G.Nonempty := by
+  sorry
 
 lemma GeodesicSegmentBetween.symm {G : Set X} {x y : X} (hG : GeodesicSegmentBetween G x y) :
     GeodesicSegmentBetween G y x := sorry
 
 -- guessed statement
-lemma geodesic_segment_commute {X : Type*} [MetricSpace X] (s : Set X) (x y : X) :
-    GeodesicSegmentBetween s x y ↔ GeodesicSegmentBetween s y x := sorry
+-- lemma geodesic_segment_commute {X : Type*} [MetricSpace X] (s : Set X) (x y : X) :
+--     GeodesicSegmentBetween s x y ↔ GeodesicSegmentBetween s y x := sorry
 -- lemma geodesic_segment_commute:
 --   assumes "geodesicSegmentBetween G x y"
 --   shows "geodesicSegmentBetween G y x"
@@ -329,7 +338,7 @@ lemma geodesic_segment_param_in_segment {G : Set X} (hG : G.Nonempty) {x : X} {t
 lemma GeodesicSegmentBetween.param_in_segment {G : Set X} {x y : X}
     (h : GeodesicSegmentBetween G x y) {t : ℝ} :
     G.param x t ∈ G :=
-  geodesic_segment_param_in_segment (geodesic_segment_endpoints h).2.2
+  geodesic_segment_param_in_segment h.nonempty
 
 lemma geodesic_segment_reverse_param {G : Set X} {x y : X}
     (hxy : GeodesicSegmentBetween G x y) {t : ℝ} (ht : t ∈ Icc 0 (dist x y)) :
@@ -447,7 +456,7 @@ lemma geodesic_subsegment3 {G : Set X} {x y : X} (hG : GeodesicSegmentBetween G 
 -- qed
 
 /-- A segment contains a subsegment between any of its points. -/
-lemma geodesic_subsegment_exists {G : Set X} (hG : geodesic_segment G) {x y : X} (hx : x ∈ G) (hy : y ∈ G) :
+lemma geodesic_subsegment_exists {G : Set X} (hG : GeodesicSegment G) {x y : X} (hx : x ∈ G) (hy : y ∈ G) :
     ∃ H : Set X, H ⊆ G ∧ GeodesicSegmentBetween H x y := by
   sorry
 -- proof -
@@ -516,17 +525,12 @@ lemma GeodesicSegmentBetween.isClosed {G : Set X} {x y : X} (h : GeodesicSegment
     IsClosed G := by
   sorry
 
-/- Just like an interval, a geodesic segment is nonempty. -/
-lemma GeodesicSegmentBetween.nonempty {G : Set X} {x y : X} (h : GeodesicSegmentBetween G x y) :
-    G.Nonempty := by
-  sorry
-
-/- Just like an interval, a geodesic segment is compact, connected, path connected, bounded,
-closed, nonempty, and proper. -/
-lemma geodesic_segment_topology {G : Set X} (h : geodesic_segment G) :
-    IsCompact G ∧ IsConnected G ∧ IsPathConnected G ∧ Bornology.IsBounded G ∧ IsClosed G
-      ∧ G.Nonempty := by -- original also had "proper G"
-  sorry
+-- /- Just like an interval, a geodesic segment is compact, connected, path connected, bounded,
+-- closed, nonempty, and proper. -/
+-- lemma geodesic_segment_topology {G : Set X} (h : GeodesicSegment G) :
+--     IsCompact G ∧ IsConnected G ∧ IsPathConnected G ∧ Bornology.IsBounded G ∧ IsClosed G
+--       ∧ G.Nonempty := by -- original also had "proper G"
+--   sorry
 -- proof -
 --   show "compact G"
 --     using assms geodesic_segment_homeo_interval homeomorphic_compactness
@@ -658,19 +662,19 @@ lemma geodesic_segment_topology {G : Set X} (h : geodesic_segment G) :
 /-- If a point `y` is on a geodesic segment between `x` and its closest projection `p` on a set `A`,
 then `p` is also a closest projection of `y`, and the closest projection set of `y` is contained in
 that of `x`. -/
-lemma GeodesicSegmentBetween.proj_set_same_basepoint {x y p : X} {A : Set X} (hp : p ∈ proj_set x A) {G : Set X}
+lemma GeodesicSegmentBetween.projSet_same_basepoint {x y p : X} {A : Set X} (hp : p ∈ projSet x A) {G : Set X}
     (hG : GeodesicSegmentBetween G p x) (hy : y ∈ G) :
-    p ∈ proj_set y A := by
+    p ∈ projSet y A := by
   sorry
--- proof (rule proj_setI)
+-- proof (rule projSetI)
 --   show "p \<in> A"
---     using assms proj_setD by auto
+--     using assms projSetD by auto
 --   have *: "dist y p \<le> dist y q" if "q \<in> A" for q
 --   proof -
 --     have "dist p y + dist y x = dist p x"
 --       using assms geodesic_segment_dist by blast
 --     also have "... \<le> dist q x"
---       using proj_set_dist_le[OF \<open>q \<in> A\<close> assms(1)] by (simp add: dist_commute)
+--       using projSet_dist_le[OF \<open>q \<in> A\<close> assms(1)] by (simp add: dist_commute)
 --     also have "... \<le> dist q y + dist y x"
 --       by (intro mono_intros)
 --     finally show ?thesis
@@ -682,43 +686,43 @@ lemma GeodesicSegmentBetween.proj_set_same_basepoint {x y p : X} {A : Set X} (hp
 --     unfolding infdist_def using \<open>p \<in> A\<close> by auto
 -- qed
 
--- lemma proj_set_subset:
---   assumes "p \<in> proj_set x A" "GeodesicSegmentBetween G p x" "y \<in> G"
---   shows "proj_set y A \<subseteq> proj_set x A"
+-- lemma projSet_subset:
+--   assumes "p \<in> projSet x A" "GeodesicSegmentBetween G p x" "y \<in> G"
+--   shows "projSet y A \<subseteq> projSet x A"
 -- proof -
---   have "z \<in> proj_set x A" if "z \<in> proj_set y A" for z
---   proof (rule proj_setI)
---     show "z \<in> A" using that proj_setD by auto
+--   have "z \<in> projSet x A" if "z \<in> projSet y A" for z
+--   proof (rule projSetI)
+--     show "z \<in> A" using that projSetD by auto
 --     have "dist x z \<le> dist x y + dist y z"
 --       by (intro mono_intros)
 --     also have "... \<le> dist x y + dist y p"
---       using proj_set_dist_le[OF proj_setD(1)[OF \<open>p \<in> proj_set x A\<close>] that] by auto
+--       using projSet_dist_le[OF projSetD(1)[OF \<open>p \<in> projSet x A\<close>] that] by auto
 --     also have "... = dist x p"
 --       using assms geodesic_segment_commute geodesic_segment_dist by blast
 --     also have "... = infdist x A"
---       using proj_setD(2)[OF assms(1)] by simp
+--       using projSetD(2)[OF assms(1)] by simp
 --     finally show "dist x z \<le> infdist x A"
 --       by simp
 --   qed
 --   then show ?thesis by auto
 -- qed
 
-lemma GeodesicSegmentBetween.proj_set_thickening {p x : X} {Z : Set X} (hp : p ∈ proj_set x Z) {D : ℝ} (hD : 0 ≤ D)
+lemma GeodesicSegmentBetween.projSet_thickening {p x : X} {Z : Set X} (hp : p ∈ projSet x Z) {D : ℝ} (hD : 0 ≤ D)
     (hD' : D ≤ dist p x) {G : Set X} (hG : GeodesicSegmentBetween G p x) :
-    G.param p D ∈ proj_set (G.param p D) (Metric.cthickening D Z) := by
+    G.param p D ∈ projSet (G.param p D) (Metric.cthickening D Z) := by
   sorry
--- lemma proj_set_thickening:
---   assumes "p \<in> proj_set x Z"
+-- lemma projSet_thickening:
+--   assumes "p \<in> projSet x Z"
 --           "0 \<le> D"
 --           "D \<le> dist p x"
 --           "GeodesicSegmentBetween G p x"
---   shows "G.param p D \<in> proj_set x (\<Union>z\<in>Z. cball z D)"
--- proof (rule proj_setI')
+--   shows "G.param p D \<in> projSet x (\<Union>z\<in>Z. cball z D)"
+-- proof (rule projSetI')
 --   have "dist p (G.param p D) = D"
 --     using geodesic_segment_param(7)[OF assms(4), of 0 D]
 --     unfolding geodesic_segment_param(1)[OF assms(4)] using assms by simp
 --   then show "G.param p D \<in> (\<Union>z\<in>Z. cball z D)"
---     using proj_setD(1)[OF \<open>p \<in> proj_set x Z\<close>] by force
+--     using projSetD(1)[OF \<open>p \<in> projSet x Z\<close>] by force
 --   show "dist x (G.param p D) \<le> dist x y" if "y \<in> (\<Union>z\<in>Z. cball z D)" for y
 --   proof -
 --     obtain z where y: "y \<in> cball z D" "z \<in> Z" using \<open>y \<in> (\<Union>z\<in>Z. cball z D)\<close> by auto
@@ -726,7 +730,7 @@ lemma GeodesicSegmentBetween.proj_set_thickening {p x : X} {Z : Set X} (hp : p �
 --       using geodesic_segment_param(7)[OF assms(4), of D "dist p x"]
 --       unfolding geodesic_segment_param(2)[OF assms(4)] using assms by simp
 --     also have "... \<le> dist z x"
---       using proj_setD(2)[OF \<open>p \<in> proj_set x Z\<close>] infdist_le[OF \<open>z \<in> Z\<close>, of x] by (simp add: dist_commute)
+--       using projSetD(2)[OF \<open>p \<in> projSet x Z\<close>] infdist_le[OF \<open>z \<in> Z\<close>, of x] by (simp add: dist_commute)
 --     also have "... \<le> dist z y + dist y x"
 --       by (intro mono_intros)
 --     also have "... \<le> D + dist y x"
@@ -735,9 +739,9 @@ lemma GeodesicSegmentBetween.proj_set_thickening {p x : X} {Z : Set X} (hp : p �
 --   qed
 -- qed
 
-lemma GeodesicSegmentBetween.proj_set_thickening' {p x : X} {Z : Set X} (hp : p ∈ proj_set x Z) {D : ℝ} (hD : 0 ≤ D)
+lemma GeodesicSegmentBetween.projSet_thickening' {p x : X} {Z : Set X} (hp : p ∈ projSet x Z) {D : ℝ} (hD : 0 ≤ D)
     {E : ℝ} (hDE : D ≤ E) (hE : E ≤ dist p x) {G : Set X} (hG : GeodesicSegmentBetween G p x) :
-    G.param p D ∈ proj_set (G.param p E) (Metric.cthickening D Z) := by
+    G.param p D ∈ projSet (G.param p E) (Metric.cthickening D Z) := by
   sorry
 -- proof -
 --   define H where "H = geodesic_subsegment G p D (dist p x)"
@@ -746,10 +750,10 @@ lemma GeodesicSegmentBetween.proj_set_thickening' {p x : X} {Z : Set X} (hp : p 
 --     unfolding H_def apply (rule geodesic_subsegment(2)) using assms by auto
 --   have H2: "G.param p E \<in> H"
 --     unfolding H_def using assms geodesic_subsegment(1) by force
---   have "G.param p D \<in> proj_set x (\<Union>z\<in>Z. cball z D)"
---     apply (rule proj_set_thickening) using assms by auto
+--   have "G.param p D \<in> projSet x (\<Union>z\<in>Z. cball z D)"
+--     apply (rule projSet_thickening) using assms by auto
 --   then show ?thesis
---     by (rule proj_set_geodesic_same_basepoint[OF _ H1 H2])
+--     by (rule projSet_geodesic_same_basepoint[OF _ H1 H2])
 -- qed
 
 -- text \<open>It is often convenient to use \emph{one} geodesic between $x$ and $y$, even if it is not unique.
@@ -855,8 +859,8 @@ notation "{" x "‒" y "}" => some_geodesicSegmentBetween_UNIV x y
 --   "bounded {x--S--y}"
 -- by (rule compact_imp_bounded[OF some_geodesic_compact[of x S y]])
 
-@[simp] lemma some_geodesic_endpoints {x y : X} : x ∈ {x‒y} ∧ y ∈ {x‒y} ∧ {x‒y}.Nonempty :=
-  sorry
+-- @[simp] lemma some_geodesic_endpoints {x y : X} : x ∈ {x‒y} ∧ y ∈ {x‒y} ∧ {x‒y}.Nonempty :=
+--   sorry
 -- apply (cases "\<exists>G. geodesicSegmentBetween G x y \<and> G \<subseteq> S") using some_geodesic_segment_description[of x y S] apply auto
 -- apply (cases "\<exists>G. geodesicSegmentBetween G x y \<and> G \<subseteq> S") using some_geodesic_segment_description[of x y S] apply auto
 -- apply (cases "\<exists>G. geodesicSegmentBetween G x y \<and> G \<subseteq> S") using geodesic_segment_endpoints(3) by (auto, blast)
@@ -1005,9 +1009,9 @@ notation "[" x "‒" y "]" => some_geodesic_is_geodesic_segment1 x y
 
 #exit
 
-@[simp] lemma some_geodesic_is_geodesic_segment (x y : X) :
-    GeodesicSegmentBetween {x‒y} x y ∧ geodesic_segment {x‒y} := by
-  sorry
+-- @[simp] lemma some_geodesic_is_geodesic_segment (x y : X) :
+--     GeodesicSegmentBetween {x‒y} x y ∧ geodesic_segment {x‒y} := by
+--   sorry
 -- using some_geodesic_segment_description(1)[of x y] geodesic_subsetD[OF geodesic] by (auto, blast)
 
 -- lemma (in geodesic_space) some_geodesic_connected [simp]:

@@ -386,7 +386,7 @@ lemma thin_quadrilaterals [GeodesicSpace X] {x y z t w : X}
     apply ([x‒z].isCompact.union hzt.isCompact).exists_infDist_eq_dist
     use x
     left
-    exact (geodesic_segment_endpoints [x‒z]).1
+    exact [x‒z].left_mem
   have : infDist u (Gxy ∪ Gyz ∪ Gzt) ≤ 4 * δ := by
     by_cases h : u ∈ {x‒z}
     · calc infDist u (Gxy ∪ Gyz ∪ Gzt) ≤ infDist u (Gxy ∪ Gyz) := by
@@ -394,7 +394,7 @@ lemma thin_quadrilaterals [GeodesicSpace X] {x y z t w : X}
             gcongr
             · refine ⟨y, ?_⟩
               left
-              exact (geodesic_segment_endpoints hxy).2.1
+              exact hxy.right_mem
             · aesop
         _ ≤ 4 * δ := thin_triangles hxy.symm hyz [x‒z] h
     · have : u ∈ Gzt := by aesop
