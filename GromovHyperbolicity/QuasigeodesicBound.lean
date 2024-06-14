@@ -694,13 +694,7 @@ lemma Morse_Gromov_theorem_aux0
       · exact hx₁.1
       · exact V_quasiconvex _
       · intro w hw
-        dsimp [q, V]
-        convert [p w‒f w].projSet_thickening' (D := (2 ^ k - 1) * dm)
-          (E := dist (f w) (p w)) (Z := H) (p := p w) (hp w) ?_ ?_ ?_ using 2
-        · rw [dist_comm, [p w‒f w].param2]
-        · positivity
-        · exact H₁.trans (hx₂ _ hw)
-        · rw [dist_comm]
+        apply proj_mem hw
       · exact hδ
       · have := QC_nonneg k
         refine ⟨?_, le_trans ?_ hx₃⟩
@@ -1213,13 +1207,7 @@ lemma Morse_Gromov_theorem_aux0
         · exact hx₁.2
         · exact V_quasiconvex _
         · intro w hw
-          dsimp [q, V]
-          convert [p w‒f w].projSet_thickening' (D := (2 ^ k - 1) * dM)
-            (E := dist (f w) (p w)) (Z := H) (p := p w) (hp w) ?_ ?_ ?_ using 2
-          · rw [dist_comm, [p w‒f w].param2]
-          · positivity
-          · exact H₁.trans (hx₂ _ hw)
-          · rw [dist_comm]
+          apply proj_mem hw
         · exact hδ
         · have := QC_nonneg k
           rw [dist_comm]
