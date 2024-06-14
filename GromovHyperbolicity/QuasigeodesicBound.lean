@@ -1066,6 +1066,7 @@ lemma Morse_Gromov_theorem_aux0
           dsimp [K]
           ring
   -- end of the case where `D + 4 * C ≤ dm` and `dM ≤ dm`.
+
   /- This is the exact copy of the previous case, except that the roles of the points before
   and after `z` are exchanged. In a perfect world, one would use a lemma subsuming both cases,
   but in practice copy-paste seems to work better here as there are too many details to be
