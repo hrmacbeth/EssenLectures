@@ -259,6 +259,9 @@ lemma Morse_Gromov_theorem_aux0
         linarith only [hδ₀, @dist_nonneg _ _ pi_z (p um)]
       · simp only [dist_comm, pz] at Dum Dpi_z hz_um_uM_L ⊢
         linarith only [Dum, hz_um_uM_L, Dpi_z]
+  have hym_dist : L - 4 * δ ≤ dist (p um) (p ym) := by
+    have : 0 ≤ dist pi_z (p um) := dist_nonneg
+    linarith only [hym.2.1.1, this]
   have h_um_ym_subset : Icc um ym ⊆ Icc um uM := Icc_subset_Icc (by rfl) (hym.1.2.trans hz.2)
 
   /- Choose a point `cm` between `f um` and `f ym` realizing the minimal distance to `H`.
@@ -323,6 +326,9 @@ lemma Morse_Gromov_theorem_aux0
       · simp only [dist_comm, pz] at DuM Dpi_z hz_um_uM_L ⊢
         linarith only [DuM, hz_um_uM_L, Dpi_z]
   have h_yM_uM_subset : Icc yM uM ⊆ Icc um uM := Icc_subset_Icc (hz.1.trans hyM.1.1) (le_refl _)
+  have hyM_dist : L - 4 * δ ≤ dist (p uM) (p yM) := by
+    have : 0 ≤ dist pi_z (p uM) := dist_nonneg
+    linarith only [hyM.2.1.1, this]
   have : ContinuousOn (fun r ↦ infDist (f r) H) (Icc yM uM) :=
     continuous_infDist_pt H |>.comp_continuousOn (hf.mono h_yM_uM_subset)
 
@@ -463,7 +469,10 @@ lemma Morse_Gromov_theorem_aux0
             hyperb_ineq_4_points' (f z) (f rm) (p rm) (p rM) (f rM)
     linarith only [this, hδ]
 
-  clear P
+  clear P Dpi_z Dum DuM I h_H'
+  replace hym := hym.1
+  replace hyM := hyM.1
+  clear_value pi_z
 
   /- We have proved the basic facts we will need in the main argument. This argument starts
   here. It is divided in several cases. -/
@@ -484,8 +493,8 @@ lemma Morse_Gromov_theorem_aux0
           _ = Λ * |closestm - closestM| + 1 * 2 * C := by
               have h₁ := hclosestm.1.2
               have h₂ := hclosestM.1.1
-              have h₃ := hym.1.2
-              have h₄ := hyM.1.1
+              have h₃ := hym.2
+              have h₄ := hyM.1
               rw [abs_of_nonpos, abs_of_nonpos, abs_of_nonpos] <;> linarith only [h₁, h₂, h₃, h₄]
       by_cases h_closest : dist (f closestm) (f closestM) ≤ 12 * δ
       · have :=
@@ -580,12 +589,9 @@ lemma Morse_Gromov_theorem_aux0
     is just the right endpoint `ym`, by construction. -/
     have hP₀ : P 0 := by
       refine ⟨ym, ?_, ?_, ?_⟩
-      · simp [hym.1.1]
+      · simp [hym.1]
       · simp only [hq0, QC, reduceIte]
-        have h₁ := hym.2.1.1
-        have h₂ := @dist_nonneg _ _ pi_z (p um)
-        simp only [dist_comm] at h₁ h₂ ⊢
-        linarith only [h₁, h₂]
+        linarith only [hym_dist]
       · intro w hw
         calc _ = _ := by ring
           _ ≤ _ := hclosestm.2 w hw
@@ -682,7 +688,7 @@ lemma Morse_Gromov_theorem_aux0
       rw [Icc_subset_Icc_iff] at h_um_ym_subset ⊢
       · exact ⟨h_um_ym_subset.1, hx₁.2.trans h_um_ym_subset.2⟩
       · exact hx₁.1
-      · exact hym.1.1
+      · exact hym.1
     /- Construct a point `w` such that its projection on `V k` is O(δ)-close to that of `um`
     and therefore far away from that of `x`. This is just the intermediate value theorem
     (with some care as the closest point projection is not continuous). -/
@@ -844,7 +850,7 @@ lemma Morse_Gromov_theorem_aux0
           congr
           rw [abs_of_nonpos]
           · ring
-          linarith only [hv₁.2, hw₁.2, hx₁.2, hym.1.2, hyM.1.1, hclosestM.1.1]
+          linarith only [hv₁.2, hw₁.2, hx₁.2, hym.2, hyM.1, hclosestM.1.1]
     have : 0 ≤ x - v := by linarith only [hv₁.2, hw₁.2]
     -- Plug in `x-v` to get the final form of this inequality.
     have :=
@@ -897,9 +903,9 @@ lemma Morse_Gromov_theorem_aux0
               · intro x1 x2 hx1 hx2
                 apply hf'.upper_bound
                 · exact ⟨by linarith only [hv₁.1, hx1.1],
-                    by linarith only [hx1.2, hx₁.2, hym.1.2, hz.2]⟩
+                    by linarith only [hx1.2, hx₁.2, hym.2, hz.2]⟩
                 · exact ⟨by linarith only [hv₁.1, hx2.1],
-                    by linarith only [hx2.2, hx₁.2, hym.1.2, hz.2]⟩
+                    by linarith only [hx2.2, hx₁.2, hym.2, hz.2]⟩
               · exact hv₁.2.trans hw₁.2
               · simpa [hq0, V, H_closure] using hp v
               · simpa [hq0, V, H_closure] using hp x
@@ -920,9 +926,9 @@ lemma Morse_Gromov_theorem_aux0
               · intro x1 x2 hx1 hx2
                 apply hf'.upper_bound
                 · exact ⟨by linarith only [hv₁.1, hx1.1],
-                    by linarith only [hx1.2, hx₁.2, hym.1.2, hz.2]⟩
+                    by linarith only [hx1.2, hx₁.2, hym.2, hz.2]⟩
                 · exact ⟨by linarith only [hv₁.1, hx2.1],
-                    by linarith only [hx2.2, hx₁.2, hym.1.2, hz.2]⟩
+                    by linarith only [hx2.2, hx₁.2, hym.2, hz.2]⟩
               · exact hv₁.2.trans hw₁.2
               · apply proj_mem
                 exact ⟨hv₁.1, hv₁.2.trans hw₁.2⟩
@@ -1007,7 +1013,7 @@ lemma Morse_Gromov_theorem_aux0
       _ ≤ uM - um + x - closestM := by linarith only [hclosestM.1.2, hv₁.1]
     -- start to set up for the well-founded induction
     have h₂ : z ∈ Icc x closestM :=
-      ⟨by linarith only [hx₁.2, hym.1.2], by linarith only [hyM.1.1, hclosestM.1.1]⟩
+      ⟨by linarith only [hx₁.2, hym.2], by linarith only [hyM.1, hclosestM.1.1]⟩
     have h₁ : x ≤ closestM := h₂.1.trans h₂.2
     have : Nat.floor (4 * Λ * |closestM - x| / δ) < Nat.floor (4 * Λ * |uM - um| / δ) := by
       calc Nat.floor (4 * Λ * |closestM - x| / δ) < Nat.floor (4 * Λ * |closestM - x| / δ + 1) := by
@@ -1104,16 +1110,13 @@ lemma Morse_Gromov_theorem_aux0
       by construction. -/
       · right
         refine ⟨yM, ?_, ?_, ?_⟩
-        · simp [hyM.1.2]
+        · simp [hyM.2]
         · intro w hw
           calc _ = _ := by ring
             _ ≤ _ := hclosestM.2 w hw
             _ ≤ _ := infDist_le_dist_of_mem (pH _)
         · simp only [hq0, QC, reduceIte]
-          have h₁ := hyM.2.1.1
-          have h₂ := @dist_nonneg _ _ pi_z (p uM)
-          simp only [dist_comm] at h₁ h₂ ⊢
-          linarith only [h₁, h₂]
+          linarith only [hyM_dist]
 
       /- The induction. The inductive assumption claims that, either the desired inequality
       holds, or one can construct a point with good properties. If the desired inequality holds,
@@ -1195,7 +1198,7 @@ lemma Morse_Gromov_theorem_aux0
         rw [Icc_subset_Icc_iff] at h_yM_uM_subset ⊢
         · exact ⟨h_yM_uM_subset.1.trans hx₁.1, h_yM_uM_subset.2⟩
         · exact hx₁.2
-        · exact hyM.1.2
+        · exact hyM.2
       /- Construct a point `w` such that its projection on `V k` is close to that of `uM`
       and therefore far away from that of `x`. This is just the intermediate value theorem
       (with some care as the closest point projection is not continuous). -/
@@ -1287,7 +1290,7 @@ lemma Morse_Gromov_theorem_aux0
           _ = exp (-K * (v - closestm)) := by
               congr
               rw [abs_of_nonneg]
-              linarith only [hv₁.1, hw₁.1, hx₁.1, hyM.1.1, hym.1.2, hclosestm.1.2]
+              linarith only [hv₁.1, hw₁.1, hx₁.1, hyM.1, hym.2, hclosestm.1.2]
         have : 0 ≤ v - x := by linarith only [hv₁.1, hw₁.1]
         -- Plug in `v-x` to get the final form of this inequality.
         have :=
@@ -1339,9 +1342,9 @@ lemma Morse_Gromov_theorem_aux0
                   apply geodesic_projection_exp_contracting (G := V 0) (f := f)
                   · intro x1 x2 hx1 hx2
                     apply hf'.upper_bound
-                    · exact ⟨by linarith only [hx1.1, hx₁.1, hyM.1.1, hz.1],
+                    · exact ⟨by linarith only [hx1.1, hx₁.1, hyM.1, hz.1],
                         by linarith only [hv₁.2, hx1.2]⟩
-                    · exact ⟨by linarith only [hx2.1, hx₁.1, hyM.1.1, hz.1],
+                    · exact ⟨by linarith only [hx2.1, hx₁.1, hyM.1, hz.1],
                         by linarith only [hv₁.2, hx2.2]⟩
                   · exact hw₁.1.trans hv₁.1
                   · simpa [hq0, V, H_closure] using hp x
@@ -1362,9 +1365,9 @@ lemma Morse_Gromov_theorem_aux0
                   apply quasiconvex_projection_exp_contracting (G := V k) (f := f)
                   · intro x1 x2 hx1 hx2
                     apply hf'.upper_bound
-                    · exact ⟨by linarith only [hx1.1, hx₁.1, hyM.1.1, hz.1],
+                    · exact ⟨by linarith only [hx1.1, hx₁.1, hyM.1, hz.1],
                         by linarith only [hv₁.2, hx1.2]⟩
-                    · exact ⟨by linarith only [hx2.1, hx₁.1, hyM.1.1, hz.1],
+                    · exact ⟨by linarith only [hx2.1, hx₁.1, hyM.1, hz.1],
                         by linarith only [hv₁.2, hx2.2]⟩
                   · exact hw₁.1.trans hv₁.1
                   · apply proj_mem
@@ -1452,7 +1455,7 @@ lemma Morse_Gromov_theorem_aux0
 
         -- start to set up for the well-founded induction
         have h₂ : z ∈ Icc closestm x :=
-          ⟨by linarith only [hym.1.2, hclosestm.1.2], by linarith only [hx₁.1, hyM.1.1]⟩
+          ⟨by linarith only [hym.2, hclosestm.1.2], by linarith only [hx₁.1, hyM.1]⟩
         have h₁ : closestm ≤ x := h₂.1.trans h₂.2
         have : Nat.floor (4 * Λ * |x - closestm| / δ) < Nat.floor (4 * Λ * |uM - um| / δ) := by
           calc Nat.floor (4 * Λ * |x - closestm| / δ) < Nat.floor (4 * Λ * |x - closestm| / δ + 1) := by
