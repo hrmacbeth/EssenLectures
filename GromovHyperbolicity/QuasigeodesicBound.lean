@@ -183,81 +183,77 @@ lemma Morse_Gromov_theorem_aux0
 
   /- We come to the interesting case where `f z` is far away from a geodesic between
   `f um` and `f uM`. Let `m` be close to a projection of `f z` on such a geodesic (we use
-  the opposite point of `f z` on the corresponding tripod). On a geodesic between `f z` and `m`,
-  consider the point `pi_z` at distance $(f(um), f(uM))_{f(z)}$ of `f z`. It is very close to
-  `m` (within distance `2 * δ`). We will push the points `f um` and `f uM`
-  towards `f z` by considering points whose projection on a geodesic `H` between `m` and
-  `z` is roughly at distance `L` of `pi_z`. -/
+  the opposite point of `f z` on the corresponding tripod).
+  We will push the points `f um` and `f uM` towards `f z` by considering points whose projection on
+  a geodesic `H` between `m` and `z` is roughly at distance
+  `gromovProductAt (f z) (f um) (f uM) - L` of `f z`. -/
   let m := {(f um)‒(f uM)}.param (f um) (gromovProductAt (f um) (f z) (f uM))
 
   let H : Set X := {(f z)‒m}
-  let pi_z := H.param (f z) (gromovProductAt (f z) (f um) (f uM))
   have h_H : GeodesicSegmentBetween H (f z) m := [(f z)‒m]
   have h_H'' : GeodesicSegment H := ⟨_, _, h_H⟩
-  have h_H' : pi_z ∈ H ∧ m ∈ H ∧ f z ∈ H := ⟨h_H.param_in_segment, h_H.right_mem, h_H.left_mem⟩
+  have h_H' : m ∈ H ∧ f z ∈ H := ⟨h_H.right_mem, h_H.left_mem⟩
   have H_closure: closure H = H := by rw [h_H.isClosed.closure_eq]
-  have Dpi_z : dist (f z) pi_z = gromovProductAt (f z) (f um) (f uM) := by
-    dsimp [pi_z, H]
-    apply h_H.param6
-    refine ⟨gromovProductAt_nonneg (f z) (f um) (f uM), ?_⟩
-    calc gromovProductAt (f z) (f um) (f uM) ≤ infDist (f z) {(f um)‒(f uM)} := by
-          apply gromovProductAt_le_infDist [(f um)‒(f uM)]
-      _ ≤ dist (f z) m := by
-          apply infDist_le_dist_of_mem
-          apply [(f um)‒(f uM)].param3
-          simp
 
   -- Introduce the notation `p` for some projection on the geodesic `H`.
   have H_nonempty (r : ℝ) : (projSet (f r) H).Nonempty :=
     projSet_nonempty_of_compact h_H.isCompact h_H.nonempty _
   choose p hp using H_nonempty
   have pH (r : ℝ) : p r ∈ H := (hp r).1
-  have pz : p z = f z := by simpa [distproj_self h_H'.2.2] using hp z
+  have pz : p z = f z := by simpa [distproj_self h_H'.2] using hp z
 
-  /- The projection of `f um` on `H` is close to `pi_z` (but it does not have to be exactly
-  `pi_z`). It is between `pi_z` and `m`. -/
-  -- On `H`, the point `pi_z` lies between `p um` and `f z`
-  have Dum : dist (p um) (f z) = dist (p um) pi_z + dist pi_z (f z) := by
-    have := calc dist (f um) (f z) ≤ dist (f um) (p um) + dist (p um) (f z) := dist_triangle ..
+  have I : dist (f um) m + dist m (f uM) = dist (f um) (f uM)
+            ∧ dist (f um) m = gromovProductAt (f um) (f z) (f uM) := by
+    constructor
+    · apply [(f um)‒(f uM)].dist_eq
+      apply [(f um)‒(f uM)].param3
+      simp
+    · apply [(f um)‒(f uM)].param6
+      simp
+
+  set G := gromovProductAt (f z) (f um) (f uM)
+  have h_fz_m_G : dist (f z) m ≤ G + 2 * δ :=
+    calc _ ≤ G + 2 * deltaG X := dist_triangle_side_middle _ [(f um)‒(f uM)]
+      _ ≤ G + 2 * δ := by rel [hδ]
+  clear_value m
+
+  -- The point `p um` lies at nearly at the `m`- end of the geodesic `H` (at least a distance `G`
+  -- from `f z`)
+  have h_fz_pum_G : G ≤ dist (f z) (p um) := by
+    have :=
+    calc dist (f um) (f z) ≤ dist (f um) (p um) + dist (p um) (f z) := dist_triangle ..
       _ ≤ dist (f um) m + dist (p um) (f z) := by
         gcongr
-        exact projSet_dist_le h_H'.2.1 (hp um)
-      _ = gromovProductAt (f um) (f z) (f uM) + dist (p um) (f z) := by
-        simp [m]
-        apply [f um‒f uM].param6
-        refine ⟨gromovProductAt_nonneg (f um) (f z) (f uM), ?_⟩ -- TODO positivity extension
-        exact (gromovProductAt_le_dist _ _ _).2
-    have A : gromovProductAt (f z) (f um) (f uM) ≤ dist (p um) (f z) := by
-      dsimp [gromovProductAt] at this ⊢
-      simp only [dist_comm] at this ⊢
-      linarith only [this]
-    apply le_antisymm
-    · exact dist_triangle ..
-    · have :=
-      calc dist (p um) pi_z = |dist (p um) (f z) - dist pi_z (f z)| :=
-            h_H.dist_along_wrt_endpoint (pH _) h_H'.1
-        _ = dist (p um) (f z) - dist pi_z (f z) := by
-          simp only [dist_comm] at Dpi_z A ⊢
-          rw [Dpi_z, abs_of_nonneg]
-          linarith only [A]
-      linarith only [this]
+        exact projSet_dist_le h_H'.1 (hp um)
+    simp only [G, gromovProductAt, dist_comm] at this I ⊢
+    linarith only [this, I.2]
 
-  -- Choose a point `f ym` whose projection on `H` is roughly at distance `L` of `pi_z`.
-  obtain ⟨ym, hym⟩ : ∃ ym ∈ Icc um z,
-      (dist (p um) (p ym) ∈ Icc ((L + dist pi_z (p um)) - 4 * δ - 2 * 0) (L + dist pi_z (p um)))
-                    ∧ (∀ r ∈ Icc um ym, dist (p um) (p r) ≤ L + dist pi_z (p um)) := by
-    refine quasi_convex_projection_small_gaps (f := f) (G := H) ?_ hz.1 ?_ (fun t _ ↦ hp t) hδ ?_
-    · exact hf.mono (Icc_subset_Icc (by rfl) hz.2)
-    · exact h_H''.quasiconvex
-    · refine ⟨?_, ?_⟩
-      · dsimp [L]
-        linarith only [hδ₀, @dist_nonneg _ _ pi_z (p um)]
-      · simp only [dist_comm, pz] at Dum Dpi_z hz_um_uM_L ⊢
-        linarith only [Dum, hz_um_uM_L, Dpi_z]
-  have hym_dist : L - 4 * δ ≤ dist (p um) (p ym) := by
-    have : 0 ≤ dist pi_z (p um) := dist_nonneg
-    linarith only [hym.2.1.1, this]
-  have h_um_ym_subset : Icc um ym ⊆ Icc um uM := Icc_subset_Icc (by rfl) (hym.1.2.trans hz.2)
+  -- Choose a point `f ym` to the left of `z` whose projection on `H` is roughly at distance `G - L`
+  -- of `f z`.
+  obtain ⟨ym, hym, hym_dist, hym₂⟩ : ∃ ym ∈ Icc um z,
+      L - 4 * δ ≤ dist (p um) (p ym) ∧ ∀ x ∈ Icc um ym, G ≤ dist (f z) (p x) + L := by
+    obtain ⟨ym, hym⟩ : ∃ ym ∈ Icc um z,
+        (dist (p um) (p ym)
+          ∈ Icc ((L + dist (f z) (p um) - G) - 4 * δ - 2 * 0) (L + dist (f z) (p um) - G))
+        ∧ (∀ r ∈ Icc um ym, dist (p um) (p r) ≤ L + dist (f z) (p um) - G) := by
+      refine quasi_convex_projection_small_gaps (f := f) (G := H) ?_ hz.1 ?_ (fun t _ ↦ hp t) hδ ?_
+      · exact hf.mono (Icc_subset_Icc (by rfl) hz.2)
+      · exact h_H''.quasiconvex
+      · refine ⟨?_, ?_⟩
+        · dsimp [L]
+          linarith only [hδ₀, h_fz_pum_G]
+        · simp only [dist_comm, pz] at hz_um_uM_L ⊢
+          linarith only [hz_um_uM_L]
+    refine ⟨ym, hym.1, ?_, ?_⟩
+    · linarith only [hym.2.1.1, h_fz_pum_G]
+    · intro x hx
+      have h₁ := h_H.dist_eq (pH x)
+      have h₂ := h_H.dist_eq (pH um)
+      have h₃ := hym.2.2 x hx
+      have h₄ := dist_triangle m (p um) (p x)
+      simp only [dist_comm] at h₁ h₂ h₃ h₄ ⊢
+      linarith only [h₁, h₂, h₃, h₄]
+  have h_um_ym_subset : Icc um ym ⊆ Icc um uM := Icc_subset_Icc (by rfl) (hym.2.trans hz.2)
 
   /- Choose a point `cm` between `f um` and `f ym` realizing the minimal distance to `H`.
   Call this distance `dm`. -/
@@ -268,101 +264,62 @@ lemma Morse_Gromov_theorem_aux0
     refine IsCompact.exists_isMinOn ?_ ?_ this
     · exact isCompact_Icc
     · rw [nonempty_Icc]
-      exact hym.1.1
+      exact hym.1
   let dm : ℝ := infDist (f closestm) H
   have dm_nonneg : 0 ≤ dm := infDist_nonneg
 
   -- Same things but in the interval $[z, uM]$.
-  have I : dist (f um) m + dist m (f uM) = dist (f um) (f uM)
-            ∧ dist (f um) m = gromovProductAt (f um) (f z) (f uM) := by
-    constructor
-    · apply [(f um)‒(f uM)].dist_eq
-      apply [(f um)‒(f uM)].param3
-      simp
-    · apply [(f um)‒(f uM)].param6
-      simp
-  -- On `H`, the point `pi_z` lies between `p uM` and `f z`
-  have DuM : dist (p uM) (f z) = dist (p uM) pi_z + dist pi_z (f z) := by
-    have := calc dist (f uM) (f z) ≤ dist (f uM) (p uM) + dist (p uM) (f z) := dist_triangle ..
+
+  -- The point `p uM` lies at nearly at the `m`- end of the geodesic `H` (at least a distance `G`
+  -- from `f z`)
+  have h_fz_puM_G : G ≤ dist (f z) (p uM) := by
+    have :=
+    calc dist (f uM) (f z) ≤ dist (f uM) (p uM) + dist (p uM) (f z) := dist_triangle ..
       _ ≤ dist (f uM) m + dist (p uM) (f z) := by
         gcongr
-        exact projSet_dist_le h_H'.2.1 (hp uM)
-      _ = gromovProductAt (f uM) (f z) (f um) + dist (p uM) (f z) := by
-        have h₁ := gromovProductAt_add (f um) (f uM) (f z)
-        have h₂ := I.1
-        have h₃ := I.2
-        simp only [dist_comm, gromovProductAt_commute] at h₁ h₂ h₃ ⊢
-        linarith only [h₁, h₂, h₃]
-    have A : gromovProductAt (f z) (f um) (f uM) ≤ dist (p uM) (f z) := by
-      dsimp [gromovProductAt] at this ⊢
-      simp only [dist_comm] at this ⊢
-      linarith only [this]
-    apply le_antisymm
-    · exact dist_triangle ..
-    · have :=
-      calc dist (p uM) pi_z = |dist (p uM) (f z) - dist pi_z (f z)| :=
-          h_H.dist_along_wrt_endpoint (pH _) h_H'.1
-        _ = dist (p uM) (f z) - dist pi_z (f z) := by
-          simp only [dist_comm] at Dpi_z A ⊢
-          rw [Dpi_z, abs_of_nonneg]
-          linarith only [A]
-      linarith only [this]
+        exact projSet_dist_le h_H'.1 (hp uM)
+    simp only [G, gromovProductAt, dist_comm] at I this ⊢
+    linarith only [I.1, I.2, this]
 
-  -- Choose a point `f yM` whose projection on `H` is roughly at distance `L` of `pi_z`.
-  obtain ⟨yM, hyM⟩ : ∃ yM ∈ Icc z uM,
-      (dist (p uM) (p yM) ∈ Icc ((L + dist pi_z (p uM)) - 4 * δ - 2 * 0) (L + dist pi_z (p uM)))
-                    ∧ (∀ r ∈ Icc yM uM, dist (p uM) (p r) ≤ L + dist pi_z (p uM)) := by
-    refine quasi_convex_projection_small_gaps' (f := f) (G := H) ?_ hz.2 ?_ (fun t _ ↦ hp t) hδ ?_
-    · exact hf.mono (Icc_subset_Icc hz.1 (le_refl _))
-    · exact h_H''.quasiconvex
-    · refine ⟨?_, ?_⟩
-      · dsimp [L]
-        linarith only [hδ₀, @dist_nonneg _ _ pi_z (p uM)]
-      · simp only [dist_comm, pz] at DuM Dpi_z hz_um_uM_L ⊢
-        linarith only [DuM, hz_um_uM_L, Dpi_z]
-  have h_yM_uM_subset : Icc yM uM ⊆ Icc um uM := Icc_subset_Icc (hz.1.trans hyM.1.1) (le_refl _)
-  have hyM_dist : L - 4 * δ ≤ dist (p uM) (p yM) := by
-    have : 0 ≤ dist pi_z (p uM) := dist_nonneg
-    linarith only [hyM.2.1.1, this]
-  have : ContinuousOn (fun r ↦ infDist (f r) H) (Icc yM uM) :=
-    continuous_infDist_pt H |>.comp_continuousOn (hf.mono h_yM_uM_subset)
+  -- Choose a point `f yM` to the right of `f z` whose projection on `H` is roughly at distance
+  -- `G - L` of `f z`.
+  obtain ⟨yM, hyM, hyM_dist, hyM₂⟩ : ∃ yM ∈ Icc z uM,
+      L - 4 * δ ≤ dist (p uM) (p yM) ∧ ∀ x ∈ Icc yM uM, G ≤ dist (f z) (p x) + L := by
+    obtain ⟨yM, hyM⟩ : ∃ yM ∈ Icc z uM,
+        (dist (p uM) (p yM)
+          ∈ Icc ((L + dist (f z) (p uM) - G) - 4 * δ - 2 * 0) (L + dist (f z) (p uM) - G))
+        ∧ (∀ r ∈ Icc yM uM, dist (p uM) (p r) ≤ L + dist (f z) (p uM) - G) := by
+      refine quasi_convex_projection_small_gaps' (f := f) (G := H) ?_ hz.2 ?_ (fun t _ ↦ hp t) hδ ?_
+      · exact hf.mono (Icc_subset_Icc hz.1 (le_refl _))
+      · exact h_H''.quasiconvex
+      · refine ⟨?_, ?_⟩
+        · dsimp [L]
+          linarith only [hδ₀, h_fz_puM_G]
+        · simp only [pz] at hz_um_uM_L ⊢
+          linarith only [hz_um_uM_L]
+    refine ⟨yM, hyM.1, ?_, ?_⟩
+    · linarith only [hyM.2.1.1, h_fz_puM_G]
+    · intro x hx
+      have h₁ := h_H.dist_eq (pH x)
+      have h₂ := h_H.dist_eq (pH uM)
+      have h₃ := hyM.2.2 x hx
+      have h₄ := dist_triangle m (p uM) (p x)
+      simp only [dist_comm] at h₁ h₂ h₃ h₄ ⊢
+      linarith only [h₁, h₂, h₃, h₄]
+
+  have h_yM_uM_subset : Icc yM uM ⊆ Icc um uM := Icc_subset_Icc (hz.1.trans hyM.1) (le_refl _)
 
   /- Choose a point `cM` between `f uM` and `f yM` realizing the minimal distance to `H`.
   Call this distance `dm`. -/
   obtain ⟨closestM, hclosestM⟩ :
       ∃ closestM ∈ Icc yM uM, ∀ v ∈ Icc yM uM, infDist (f closestM) H ≤ infDist (f v) H := by
-    refine IsCompact.exists_isMinOn ?_ ?_ this
-    · exact isCompact_Icc
-    · rw [nonempty_Icc]
-      exact hyM.1.2
+    have : ContinuousOn (fun r ↦ infDist (f r) H) (Icc yM uM) :=
+      continuous_infDist_pt H |>.comp_continuousOn (hf.mono h_yM_uM_subset)
+    refine isCompact_Icc.exists_isMinOn ?_ this
+    rw [nonempty_Icc]
+    exact hyM.2
   let dM : ℝ := infDist (f closestM) H
   have : 0 ≤ dM := infDist_nonneg
-
-  set G := gromovProductAt (f z) (f um) (f uM)
-  have h_fz_m_G : dist (f z) m ≤ G + 2 * δ := by
-    calc _ ≤ G + 2 * deltaG X := dist_triangle_side_middle _ [(f um)‒(f uM)]
-      _ ≤ G + 2 * δ := by rel [hδ]
-  clear_value m
-
-  /- Points between `f um` and `f ym`, or between `f yM` and `f uM`, project onto `H` within `L` of
-  (or beyond) the Gromov product `G` from `f z`, by construction. -/
-  have P {x : ℝ} (hx : x ∈ Icc um ym ∪ Icc yM uM) : G ≤ dist (f z) (p x) + L  := by
-    have h₁ := h_H.dist_eq (pH x)
-    obtain hx | hx := hx
-    · have h₂ := h_H.dist_eq (pH um)
-      have h₃ := hym.2.2 x hx
-      have h₄ := dist_triangle m (p um) (p x)
-      simp only [dist_comm] at Dum h₁ h₂ h₃ h₄ Dpi_z ⊢
-      linarith only [Dum, h₁, h₂, h₃, h₄, Dpi_z]
-    · have h₂ := h_H.dist_eq (pH uM)
-      have h₃ := hyM.2.2 x hx
-      have h₄ := dist_triangle m (p uM) (p x)
-      simp only [dist_comm] at DuM h₁ h₂ h₃ h₄ Dpi_z ⊢
-      linarith only [DuM, h₁, h₂, h₃, h₄, Dpi_z]
-  replace hym := hym.1
-  replace hyM := hyM.1
-  clear_value pi_z
-  clear Dum DuM Dpi_z I
 
   /- Auxiliary fact for later use:
   The distance between two points in $[um, ym]$ and $[yM, uM]$ can be controlled using
@@ -374,8 +331,8 @@ lemma Morse_Gromov_theorem_aux0
           h_H.dist_along_wrt_endpoint (pH _) (pH _)
       _ ≤ L + (dist (f z) m  - G) := by
           rw [abs_le]
-          have h₁ := P (Or.inl hrm)
-          have h₂ := P (Or.inr hrM)
+          have h₁ := hym₂ _ hrm
+          have h₂ := hyM₂ _ hrM
           have h₄ : dist (f z) (p rm) ≤ dist (f z) m := h_H.dist_le (pH _)
           have h₃ : dist (f z) (p rM) ≤ dist (f z) m := h_H.dist_le (pH _)
           simp only [dist_comm] at h₁ h₂ h₃ h₄ ⊢
@@ -403,16 +360,16 @@ lemma Morse_Gromov_theorem_aux0
   essentially given by `L`. This is a variation around Lemma 5 in~\<^cite>\<open>"shchur"\<close>. -/
   have Rec {rm rM} (hrm : rm ∈ Icc um ym) (hrM : rM ∈ Icc yM uM) :
       gromovProductAt (f z) (f um) (f uM) ≤ gromovProductAt (f z) (f rm) (f rM) + (L + 4 * δ) := by
-    have h₃m := P (Or.inl hrm)
-    have h₃M := P (Or.inr hrM)
+    have h₃m := hym₂ _ hrm
+    have h₃M := hyM₂ _ hrM
     have A : G - L - 2 * deltaG X ≤ gromovProductAt (f z) (f rm) (p rm) := by
       have h₁ : dist (f rm) (p rm) + dist (p rm) (f z) ≤ dist (f rm) (f z) + 4 * deltaG X :=
-        dist_along_geodesic h_H'' (hp _) h_H'.2.2
+        dist_along_geodesic h_H'' (hp _) h_H'.2
       simp only [gromovProductAt, dist_comm] at h₁ h₃m ⊢
       linarith only [h₁, h₃m]
     have B : G - L - 2 * deltaG X ≤ gromovProductAt (f z) (p rM) (f rM) := by
       have h₁ : dist (f rM) (p rM) + dist (p rM) (f z) ≤ dist (f rM) (f z) + 4 * deltaG X :=
-        dist_along_geodesic h_H'' (hp _) h_H'.2.2
+        dist_along_geodesic h_H'' (hp _) h_H'.2
       simp only [gromovProductAt, dist_comm] at h₁ h₃M ⊢
       linarith only [h₁, h₃M]
     have C : G - L - 2 * deltaG X ≤ gromovProductAt (f z) (p rm) (p rM) := by
@@ -448,7 +405,7 @@ lemma Morse_Gromov_theorem_aux0
       _ ≤ gromovProductAt (f z) (f rm) (f rM) + 2 * deltaG X :=
             hyperb_ineq_4_points' (f z) (f rm) (p rm) (p rM) (f rM)
     linarith only [this, hδ]
-  clear P h_H'
+  clear hym₂ hyM₂ h_H'
 
   /- We have proved the basic facts we will need in the main argument. This argument starts
   here. It is divided in several cases. -/
