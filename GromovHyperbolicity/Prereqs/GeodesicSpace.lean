@@ -62,6 +62,13 @@ lemma GeodesicSegmentBetween.dist_eq {G : Set X} {x y : X} (hGxy : GeodesicSegme
     dist x a + dist a y = dist x y := by
   sorry
 
+lemma GeodesicSegmentBetween.dist_le {G : Set X} {x y : X} (hGxy : GeodesicSegmentBetween G x y)
+    {a : X} (haG : a ∈ G) :
+    dist x a ≤ dist x y := by
+  have : 0 ≤ dist a y := dist_nonneg
+  have := hGxy.dist_eq haG
+  linarith
+
 lemma GeodesicSegmentBetween.param1 {G : Set X} {x y : X} (h : GeodesicSegmentBetween G x y) :
     G.param x 0 = x := by
   sorry
