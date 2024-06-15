@@ -191,8 +191,7 @@ lemma Morse_Gromov_theorem_aux0
 
   let H : Set X := {(f z)‒m}
   have h_H : GeodesicSegmentBetween H (f z) m := [(f z)‒m]
-  have h_H'' : GeodesicSegment H := ⟨_, _, h_H⟩
-  have h_H' : m ∈ H ∧ f z ∈ H := ⟨h_H.right_mem, h_H.left_mem⟩
+  have h_H' : GeodesicSegment H := ⟨_, _, h_H⟩
   have H_closure: closure H = H := by rw [h_H.isClosed.closure_eq]
 
   -- Introduce the notation `p` for some projection on the geodesic `H`.
@@ -200,7 +199,7 @@ lemma Morse_Gromov_theorem_aux0
     projSet_nonempty_of_compact h_H.isCompact h_H.nonempty _
   choose p hp using H_nonempty
   have pH (r : ℝ) : p r ∈ H := (hp r).1
-  have pz : p z = f z := by simpa [distproj_self h_H'.2] using hp z
+  have pz : p z = f z := by simpa [distproj_self h_H.left_mem] using hp z
 
   have I : dist (f um) m + dist m (f uM) = dist (f um) (f uM)
             ∧ dist (f um) m = gromovProductAt (f um) (f z) (f uM) := by
@@ -224,7 +223,7 @@ lemma Morse_Gromov_theorem_aux0
     calc dist (f um) (f z) ≤ dist (f um) (p um) + dist (p um) (f z) := dist_triangle ..
       _ ≤ dist (f um) m + dist (p um) (f z) := by
         gcongr
-        exact projSet_dist_le h_H'.1 (hp um)
+        exact projSet_dist_le h_H.right_mem (hp um)
     simp only [G, gromovProductAt, dist_comm] at this I ⊢
     linarith only [this, I.2]
 
@@ -238,7 +237,7 @@ lemma Morse_Gromov_theorem_aux0
         ∧ (∀ r ∈ Icc um ym, dist (p um) (p r) ≤ L + dist (f z) (p um) - G) := by
       refine quasi_convex_projection_small_gaps (f := f) (G := H) ?_ hz.1 ?_ (fun t _ ↦ hp t) hδ ?_
       · exact hf.mono (Icc_subset_Icc (by rfl) hz.2)
-      · exact h_H''.quasiconvex
+      · exact h_H'.quasiconvex
       · refine ⟨?_, ?_⟩
         · dsimp [L]
           linarith only [hδ₀, h_fz_pum_G]
@@ -277,7 +276,7 @@ lemma Morse_Gromov_theorem_aux0
     calc dist (f uM) (f z) ≤ dist (f uM) (p uM) + dist (p uM) (f z) := dist_triangle ..
       _ ≤ dist (f uM) m + dist (p uM) (f z) := by
         gcongr
-        exact projSet_dist_le h_H'.1 (hp uM)
+        exact projSet_dist_le h_H.right_mem (hp uM)
     simp only [G, gromovProductAt, dist_comm] at I this ⊢
     linarith only [I.1, I.2, this]
 
@@ -291,7 +290,7 @@ lemma Morse_Gromov_theorem_aux0
         ∧ (∀ r ∈ Icc yM uM, dist (p uM) (p r) ≤ L + dist (f z) (p uM) - G) := by
       refine quasi_convex_projection_small_gaps' (f := f) (G := H) ?_ hz.2 ?_ (fun t _ ↦ hp t) hδ ?_
       · exact hf.mono (Icc_subset_Icc hz.1 (le_refl _))
-      · exact h_H''.quasiconvex
+      · exact h_H'.quasiconvex
       · refine ⟨?_, ?_⟩
         · dsimp [L]
           linarith only [hδ₀, h_fz_puM_G]
@@ -364,12 +363,12 @@ lemma Morse_Gromov_theorem_aux0
     have h₃M := hyM₂ _ hrM
     have A : G - L - 2 * deltaG X ≤ gromovProductAt (f z) (f rm) (p rm) := by
       have h₁ : dist (f rm) (p rm) + dist (p rm) (f z) ≤ dist (f rm) (f z) + 4 * deltaG X :=
-        dist_along_geodesic h_H'' (hp _) h_H'.2
+        dist_along_geodesic h_H' (hp _) h_H.left_mem
       simp only [gromovProductAt, dist_comm] at h₁ h₃m ⊢
       linarith only [h₁, h₃m]
     have B : G - L - 2 * deltaG X ≤ gromovProductAt (f z) (p rM) (f rM) := by
       have h₁ : dist (f rM) (p rM) + dist (p rM) (f z) ≤ dist (f rM) (f z) + 4 * deltaG X :=
-        dist_along_geodesic h_H'' (hp _) h_H'.2
+        dist_along_geodesic h_H' (hp _) h_H.left_mem
       simp only [gromovProductAt, dist_comm] at h₁ h₃M ⊢
       linarith only [h₁, h₃M]
     have C : G - L - 2 * deltaG X ≤ gromovProductAt (f z) (p rm) (p rM) := by
@@ -405,7 +404,7 @@ lemma Morse_Gromov_theorem_aux0
       _ ≤ gromovProductAt (f z) (f rm) (f rM) + 2 * deltaG X :=
             hyperb_ineq_4_points' (f z) (f rm) (p rm) (p rM) (f rM)
     linarith only [this, hδ]
-  clear hym₂ hyM₂ h_H'
+  clear hym₂ hyM₂
 
   /- We have proved the basic facts we will need in the main argument. This argument starts
   here. It is divided in several cases. -/
@@ -493,7 +492,7 @@ lemma Morse_Gromov_theorem_aux0
     have : 0 < dm := by dsimp [D] at I₁; linarith only [I₁, hC, hδ₀]
     let V : ℕ → Set X := fun k ↦ cthickening ((2^k - 1) * dm) H
     have Q (k : ℕ) : Quasiconvex (0 + 8 * deltaG X) (V k) := by
-      apply h_H''.quasiconvex.cthickening
+      apply h_H'.quasiconvex.cthickening
       have : 1 ≤ (2:ℝ) ^ k := one_le_pow_of_one_le (by norm_num) k
       have : 0 ≤ (2:ℝ) ^ k - 1 := by linarith only [this]
       positivity
@@ -502,7 +501,7 @@ lemma Morse_Gromov_theorem_aux0
       split_ifs with h
       · simp only [h, pow_zero, sub_self, zero_mul, V, cthickening_zero]
         rw [H_closure]
-        apply h_H''.quasiconvex
+        apply h_H'.quasiconvex
       · refine (Q k).mono ?_
         linarith only [hδ]
 
@@ -850,7 +849,7 @@ lemma Morse_Gromov_theorem_aux0
               · exact hδ
               · exact hC
               · positivity
-              · simpa [V, H_closure] using h_H''
+              · simpa [V, H_closure] using h_H'
             simpa [hq0, QC] using this
           · have : dist (q k v) (q k x)
                 ≤ 2 * QC k + 8 * δ + max (5 * deltaG X)
@@ -1011,7 +1010,7 @@ lemma Morse_Gromov_theorem_aux0
       obtain I₁ | I₁ := h <;> linarith only [I₁, I₂]
     let V : ℕ → Set X := fun k ↦ cthickening ((2^k - 1) * dM) H
     have Q (k : ℕ) : Quasiconvex (0 + 8 * deltaG X) (V k) := by
-      apply h_H''.quasiconvex.cthickening
+      apply h_H'.quasiconvex.cthickening
       have : 1 ≤ (2:ℝ) ^ k := one_le_pow_of_one_le (by norm_num) k
       have : 0 ≤ (2:ℝ) ^ k - 1 := by linarith only [this]
       positivity
@@ -1020,7 +1019,7 @@ lemma Morse_Gromov_theorem_aux0
       split_ifs with h
       · simp only [h, pow_zero, sub_self, zero_mul, V, cthickening_zero]
         rw [H_closure]
-        exact h_H''.quasiconvex
+        exact h_H'.quasiconvex
       · refine (Q k).mono ?_
         linarith only [hδ]
     have : 0 < dM := by dsimp [D] at I₁; linarith only [I₁, hC, hδ₀]
@@ -1290,7 +1289,7 @@ lemma Morse_Gromov_theorem_aux0
                   · exact hδ
                   · exact hC
                   · positivity
-                  · simpa [V, H_closure] using h_H''
+                  · simpa [V, H_closure] using h_H'
                 simpa [hq0, QC, dist_comm] using this
               · have : dist (q k x) (q k v)
                     ≤ 2 * QC k + 8 * δ + max (5 * deltaG X)
