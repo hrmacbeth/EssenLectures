@@ -141,6 +141,7 @@ Given that `f` is everywhere at least a certain distance from `H`, and given tha
 of the endpoints onto `H` are at least a certain distance apart, there exists `v` in $[u, y]$
 such that `y - v` is bounded below by a quantity which is exponential in `v`'s
 distance from `H`. -/
+-- **Lemma 2.3**
 theorem Morse_Gromov_theorem_aux_m {f : ℝ → X}
     {u y : ℝ} (hf : ContinuousOn f (Icc u y)) {Λ C : ℝ} (hC : 0 ≤ C) (hΛ : 0 ≤ Λ)
     (hf' : ∀ s t, s ∈ Icc u y → t ∈ Icc u y → dist (f s) (f t) ≤ Λ * |s - t| + C)
