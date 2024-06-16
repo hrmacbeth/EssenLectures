@@ -145,11 +145,10 @@ theorem Morse_Gromov_theorem_aux_m {f : ℝ → X}
     let D := 55 * δ;
     D + 4 * C ≤ d →
     L - 4 * δ ≤ dist (p u) (p y) →
-    ∃ v ∈ Icc u y, ∃ k : ℕ,
-      dist (f v) (p v) < (2^(k+2)-1) * d
-      ∧ L - 13 * δ
-          ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((y - v)
-            * exp (-(α * (2^k * d) * log 2 / (5 * δ)))) := by
+    ∃ v ∈ Icc u y,
+      L - 13 * δ
+        ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((y - v)
+          * exp (-(α * max d ((dist (f v) (p v) + d) / 4) * log 2 / (5 * δ)))) := by
   intro α L D I₁ I₂
   have : Inhabited X := ⟨f u⟩
   have hδ₀ : 0 < δ := by linarith only [hδ, delta_nonneg X]
@@ -380,6 +379,7 @@ theorem Morse_Gromov_theorem_aux_m {f : ℝ → X}
     push_neg at hk₂
     obtain ⟨v, hv₁, hv₂⟩ : ∃ v ∈ Icc u w, dist (f v) (p v) < (2^(k+2)-1) * d :=
       hk₂ w ⟨hw₁.1, hw₁.2.trans hx₁.2⟩ this
+    have : 0 ≤ y - v := by linarith only [hv₁.2, hw₁.2, hx₁.2]
 
     -- Auxiliary basic fact to be used later on.
     have aux4 {r : ℝ} (hr : r ∈ Icc v x) : d * 2 ^ k ≤ infDist (f r) (V k) := by
@@ -404,7 +404,7 @@ theorem Morse_Gromov_theorem_aux_m {f : ℝ → X}
       ring_nf at h₂
       linarith only [h₁, h₂]
 
-    refine ⟨v, ⟨hv₁.1, (hv₁.2.trans hw₁.2).trans hx₁.2⟩, k, hv₂, ?_⟩
+    refine ⟨v, ⟨hv₁.1, (hv₁.2.trans hw₁.2).trans hx₁.2⟩, ?_⟩
 
     /- Substep 2: The projections of `f v` and `f x` on the cylinder `V k` are well separated,
     by construction. This implies that `v` and `x` themselves are well separated, thanks
@@ -508,6 +508,14 @@ theorem Morse_Gromov_theorem_aux_m {f : ℝ → X}
       _ = (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((y - v)
           * exp (-(α * (2^k * d) * log 2 / (5 * δ)))) := by
           ring_nf
+      _ ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((y - v)
+          * exp (-(α * max d ((dist (f v) (p v) + d) / 4) * log 2 / (5 * δ)))) := by
+          gcongr
+          apply max_le
+          · calc _ = 1 * d := by ring
+              _ ≤ 2 ^ k * d := by gcongr
+          · ring_nf at hv₂
+            linarith only [hv₂]
     -- This is the end of the second substep.
 
 theorem Morse_Gromov_theorem_aux_M {f : ℝ → X}
@@ -521,20 +529,19 @@ theorem Morse_Gromov_theorem_aux_M {f : ℝ → X}
     let D := 55 * δ;
     D + 4 * C ≤ d →
     L - 4 * δ ≤ dist (p u) (p y) →
-    ∃ v ∈ Icc y u, ∃ k : ℕ,
-      dist (f v) (p v) < (2^(k+2)-1) * d
-      ∧ L - 13 * δ
-          ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((v - y)
-            * exp (-(α * (2^k * d) * log 2 / (5 * δ)))) := by
+    ∃ v ∈ Icc y u,
+      L - 13 * δ
+        ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((v - y)
+          * exp (-(α * max d ((dist (f v) (p v) + d) / 4) * log 2 / (5 * δ)))) := by
   intro α L D I₁ I₂
   have key := Morse_Gromov_theorem_aux_m (Λ := Λ) (C := C) (f := f ∘ Neg.neg) (u := -u)
     (y := - y) (H := H) (d := d) (p := p ∘ Neg.neg) ?_ ⟨hf'.1, hf'.2, ?_, ?_⟩ ?_ h_H' hδ ?_ ?_
     I₁ ?_
-  obtain ⟨v', hv', k, h₁, h₂⟩ := key
-  refine ⟨-v', ?_, k, h₁, ?_⟩
+  obtain ⟨v', hv', h₁⟩ := key
+  refine ⟨-v', ?_, ?_⟩
   · rw [neg_mem_Icc_iff]
     simpa using hv'
-  · convert h₂ using 3
+  · convert h₁ using 3
     ring
   · refine hf.comp (s := Icc (-u) (-y)) continuousOn_neg ?_
     intro x hx
@@ -693,7 +700,6 @@ lemma Morse_Gromov_theorem_aux0
     · rw [nonempty_Icc]
       exact hym.1
   let dm : ℝ := infDist (f closestm) H
-  have dm_nonneg : 0 ≤ dm := infDist_nonneg
 
   -- Same things but in the interval $[z, uM]$.
 
@@ -914,18 +920,23 @@ lemma Morse_Gromov_theorem_aux0
       push_neg at h
       obtain I₁ | I₁ := h <;> linarith only [I₁, I₂]
 
-    obtain ⟨v, hv₁, k, hv₂, A⟩ : ∃ v ∈ Icc um ym, ∃ k,
-        dist (f v) (p v) < (2^(k+2)-1) * dm
-        ∧ L - 13 * δ
-            ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((ym - v)
-              * exp (-(α * (2^k * dm) * log 2 / (5 * δ)))) := by
+    have : 0 < dm := by
+      dsimp [D] at I₁
+      linarith only [I₁, hC, hδ₀]
+    obtain ⟨v, hv₁, A⟩ : ∃ v ∈ Icc um ym,
+      L - 13 * δ
+        ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((ym - v)
+            * exp (-(α * max dm ((dist (f v) (p v) + dm) / 4) * log 2 / (5 * δ)))) := by
       refine Morse_Gromov_theorem_aux_m (hf.mono ?_) (hf'.mono ?_) hym.1 h_H' hδ hp dm ?_ I₁
         hym_dist
       · exact h_um_ym_subset
       · exact h_um_ym_subset
       · exact hclosestm.2
 
-    have h_pow : (1:ℝ) ≤ 2 ^ k := one_le_pow_of_one_le (by norm_num) k
+    set M : ℝ := max dm ((dist (f v) (p v) + dm) / 4)
+    have : _ ≤ M := le_max_left ..
+    have : _ ≤ M := le_max_right ..
+
     have aux2 : L + C + 2 * δ ≤ ((L + 2 * δ)/D) * dm := by
       have h₁ :=
       calc L + C = (L/D) * (D + (D/L) * C) := by field_simp; ring
@@ -951,15 +962,15 @@ lemma Morse_Gromov_theorem_aux0
     have :=
     calc |v - closestM| ≤ Λ * (infDist (f v) H + (L + C + 2 * δ) + infDist (f closestM) H) :=
           hD hv₁ hclosestM.1
-      _ ≤ Λ * ((2^(k+2)-1) * dm + (L + C + 2 * δ) + dM) := by
+      _ ≤ Λ * (dist (f v) (p v) + (L + C + 2 * δ) + dM) := by
           gcongr
           rw [← (hp v).2]
-          exact hv₂.le
-      _ = Λ * ((2^(k+2)-1) * dm + 1 * (L + C + 2 * δ) + dM) := by ring
-      _ ≤ Λ * ((2^(k+2)-1) * dm + 2^k * (((L + 2 * δ)/D) * dm) + dm) := by
-          gcongr
-      _ = Λ * 2^k * (4 + (L + 2 * δ)/D) * dm := by ring
-    have : |v - closestM| / (Λ * (4 + (L + 2 * δ)/D)) ≤ 2^k * dm := by
+      _ = Λ * (dist (f v) (p v) + dM + (L + C + 2 * δ)) := by ring
+      _ ≤ Λ * (dist (f v) (p v) + dm + ((L + 2 * δ)/D) * dm) := by gcongr
+      _ = Λ * ((dist (f v) (p v) + dm) / 4 * 4 + ((L + 2 * δ)/D) * dm) := by ring
+      _ ≤ Λ * (M * 4 + ((L + 2 * δ)/D) * M) := by gcongr
+      _ = Λ * (4 + ((L + 2 * δ)/D)) * M := by ring
+    have : |v - closestM| / (Λ * (4 + (L + 2 * δ)/D)) ≤ M := by
       rw [div_le_iff]
       convert this using 1
       · ring
@@ -967,7 +978,7 @@ lemma Morse_Gromov_theorem_aux0
     /- We reformulate this control inside of an exponential, as this is the form we
     will use later on. -/
     have :=
-    calc exp (- (α * (2^k * dm) * log 2 / (5 * δ)))
+    calc exp (- (α * M * log 2 / (5 * δ)))
         ≤ exp (-(α * (|v - closestM| / (Λ * (4 + (L + 2 * δ)/D))) * log 2 / (5 * δ))) := by
           gcongr
       _ = exp (-K * |v - closestM|) := by
@@ -983,7 +994,7 @@ lemma Morse_Gromov_theorem_aux0
     have : 0 ≤ ym - v := by linarith only [hv₁.2]
     -- Plug in `ym-v` to get the final form of this inequality.
     have :=
-    calc K * (ym - v) * exp (- (α * (2^k * dm) * log 2 / (5 * δ)))
+    calc K * (ym - v) * exp (- (α * M * log 2 / (5 * δ)))
         ≤ K * (ym - v) * exp (-K * (closestM - v)) := by gcongr
       _ = ((K * (ym - v) + 1) - 1) * exp (- K * (closestM - v)) := by ring
       _ ≤ (exp (K * (ym - v)) - 1) * exp (-K * (closestM - v)) := by gcongr; apply add_one_le_exp
@@ -996,7 +1007,7 @@ lemma Morse_Gromov_theorem_aux0
           · linarith only [hv₁.1, hclosestM.1.2]
           rw [Left.neg_nonpos_iff]
           positivity
-    have B : (ym - v) * exp (- (α * (2^k * dm) * log 2 / (5 * δ)))
+    have B : (ym - v) * exp (- (α * M * log 2 / (5 * δ)))
         ≤ (exp (-K * (closestM - ym)) - exp (-K * (uM-um)))/K := by
       rw [le_div_iff]
       · convert this using 1
@@ -1010,7 +1021,7 @@ lemma Morse_Gromov_theorem_aux0
     will be able to use the inductive assumption over this new geodesic. -/
     have :=
     calc L - 13 * δ
-        ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((ym - v) * exp (-(α * (2^k * dm) * log 2 / (5 * δ)))) := A  --
+        ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((ym - v) * exp (-(α * M * log 2 / (5 * δ)))) := A
       _ ≤ (4 * exp (1/2 * log 2)) * Λ * exp 0 * ((ym - v) * exp 0) := by
           gcongr
           · rw [Left.neg_nonpos_iff]
@@ -1072,7 +1083,7 @@ lemma Morse_Gromov_theorem_aux0
     calc L + 4 * δ = ((L + 4 * δ)/(L - 13 * δ)) * (L - 13 * δ) := by field_simp
       _ ≤ ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp (1/2 * log 2)) * Λ
           * exp (- ((1 - α) * D * log 2 / (5 * δ))) * ((ym - v)
-          * exp (- (α * (2 ^ k * dm) * log 2 / (5 * δ))))) := by rel [A]
+          * exp (- (α * M * log 2 / (5 * δ))))) := by rel [A]
       _ ≤ ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp (1/2 * log 2)) * Λ
           * exp (- ((1 - α) * D * log 2 / (5 * δ)))
           * ((exp (-K * (closestM - ym)) - exp (-K * (uM - um)))/K)) := by rel [B]
@@ -1108,18 +1119,20 @@ lemma Morse_Gromov_theorem_aux0
       push_neg at h
       obtain I₁ | I₁ := h <;> linarith only [I₁, I₂]
 
-    obtain ⟨v, hv₁, k, hv₂, A⟩ : ∃ v ∈ Icc yM uM, ∃ k,
-        dist (f v) (p v) < (2^(k+2)-1) * dM
-        ∧ L - 13 * δ
-            ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((v - yM)
-              * exp (-(α * (2^k * dM) * log 2 / (5 * δ)))) := by
+    obtain ⟨v, hv₁, A⟩ : ∃ v ∈ Icc yM uM,
+        L - 13 * δ
+        ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((v - yM)
+          * exp (-(α * max dM ((dist (f v) (p v) + dM) / 4) * log 2 / (5 * δ)))) := by
       refine Morse_Gromov_theorem_aux_M (hf.mono ?_) (hf'.mono ?_) hyM.2 h_H' hδ hp dM ?_ I₁
         hyM_dist
       · exact h_yM_uM_subset
       · exact h_yM_uM_subset
       · exact hclosestM.2
 
-    have h_pow : (1:ℝ) ≤ 2 ^ k := one_le_pow_of_one_le (by norm_num) k
+    set M : ℝ := max dM ((dist (f v) (p v) + dM) / 4)
+    have : _ ≤ M := le_max_left ..
+    have : _ ≤ M := le_max_right ..
+
     have aux2 : L + C + 2 * δ ≤ ((L + 2 * δ)/D) * dM := by
       have h₁ :=
       calc L + C = (L/D) * (D + (D/L) * C) := by field_simp; ring
@@ -1145,15 +1158,15 @@ lemma Morse_Gromov_theorem_aux0
     have :=
     calc |closestm - v| ≤ Λ * (infDist (f closestm) H + (L + C + 2 * δ) + infDist (f v) H) :=
           hD hclosestm.1 hv₁
-      _ ≤ Λ * (dm + (L + C + 2 * δ) + (2^(k+2)-1) * dM) := by
+      _ ≤ Λ * (dm + (L + C + 2 * δ) + dist (f v) (p v)) := by
           gcongr
           rw [← (hp v).2]
-          exact hv₂.le
-      _ = Λ * (dm + 1 * (L + C + 2 * δ) + (2^(k+2)-1) * dM) := by ring
-      _ ≤ Λ * (dM + 2^k * (((L + 2 * δ)/D) * dM) + (2^(k+2)-1) * dM) := by
-          gcongr
-      _ = Λ * 2^k * (4 + (L + 2 * δ)/D) * dM := by ring
-    have : |v - closestm| / (Λ * (4 + (L + 2 * δ)/D)) ≤ 2^k * dM := by
+      _ = Λ * ((L + C + 2 * δ) + dist (f v) (p v) + dm) := by ring
+      _ ≤ Λ * ((((L + 2 * δ)/D) * dM) + dist (f v) (p v) + dM) := by gcongr
+      _ = Λ * ((((L + 2 * δ)/D) * dM) + (dist (f v) (p v) + dM) / 4 * 4) := by ring
+      _ ≤ Λ * ((((L + 2 * δ)/D) * M) + M * 4) := by gcongr
+      _ = Λ * (4 + (L + 2 * δ)/D) * M := by ring
+    have : |v - closestm| / (Λ * (4 + (L + 2 * δ)/D)) ≤ M := by
       rw [div_le_iff]
       convert this using 1
       · rw [abs_sub_comm]
@@ -1162,7 +1175,7 @@ lemma Morse_Gromov_theorem_aux0
     /- We reformulate this control inside of an exponential, as this is the form we
     will use later on. -/
     have :=
-    calc exp (- (α * (2^k * dM) * log 2 / (5 * δ)))
+    calc exp (- (α * M * log 2 / (5 * δ)))
         ≤ exp (-(α * (|v - closestm| / (Λ * (4 + (L + 2 * δ)/D))) * log 2 / (5 * δ))) := by
           gcongr
       _ = exp (-K * |v - closestm|) := by
@@ -1177,7 +1190,7 @@ lemma Morse_Gromov_theorem_aux0
     have : 0 ≤ v - yM := by linarith only [hv₁.1]
     -- Plug in `v - yM` to get the final form of this inequality.
     have :=
-    calc K * (v - yM) * exp (- (α * (2^k * dM) * log 2 / (5 * δ)))
+    calc K * (v - yM) * exp (- (α * M * log 2 / (5 * δ)))
         ≤ K * (v - yM) * exp (-K * (v - closestm)) := by gcongr
       _ = ((K * (v - yM) + 1) - 1) * exp (- K * (v - closestm)) := by ring
       _ ≤ (exp (K * (v - yM)) - 1) * exp (-K * (v - closestm)) := by gcongr; apply add_one_le_exp
@@ -1190,7 +1203,7 @@ lemma Morse_Gromov_theorem_aux0
           · linarith only [hv₁.2, hclosestm.1.1]
           rw [Left.neg_nonpos_iff]
           positivity
-    have B : (v - yM) * exp (- (α * (2^k * dM) * log 2 / (5 * δ)))
+    have B : (v - yM) * exp (- (α * M * log 2 / (5 * δ)))
         ≤ (exp (-K * (yM - closestm)) - exp (-K * (uM-um)))/K := by
       rw [le_div_iff]
       · convert this using 1
@@ -1204,7 +1217,7 @@ lemma Morse_Gromov_theorem_aux0
     will be able to use the inductive assumption over this new geodesic. -/
     have :=
     calc L - 13 * δ
-        ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((v - yM) * exp (-(α * (2^k * dM) * log 2 / (5 * δ)))) := A  --
+        ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((v - yM) * exp (-(α * M * log 2 / (5 * δ)))) := A  --
       _ ≤ (4 * exp (1/2 * log 2)) * Λ * exp 0 * ((v - yM) * exp 0) := by
           gcongr
           · rw [Left.neg_nonpos_iff]
@@ -1267,7 +1280,7 @@ lemma Morse_Gromov_theorem_aux0
     calc L + 4 * δ = ((L + 4 * δ)/(L - 13 * δ)) * (L - 13 * δ) := by field_simp
       _ ≤ ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp (1/2 * log 2)) * Λ
           * exp (- ((1 - α) * D * log 2 / (5 * δ))) * ((v - yM)
-          * exp (- (α * (2 ^ k * dM) * log 2 / (5 * δ))))) := by gcongr
+          * exp (- (α * M * log 2 / (5 * δ))))) := by gcongr
       _ ≤ ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp (1/2 * log 2)) * Λ
           * exp (- ((1 - α) * D * log 2 / (5 * δ)))
           * ((exp (-K * (yM - closestm)) - exp (-K * (uM - um)))/K)) := by gcongr
