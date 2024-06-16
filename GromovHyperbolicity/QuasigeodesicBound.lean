@@ -142,8 +142,9 @@ of the endpoints onto `H` are at least a certain distance apart, there exists `v
 such that `y - v` is bounded below by a quantity which is exponential in `v`'s
 distance from `H`. -/
 theorem Morse_Gromov_theorem_aux_m {f : ℝ → X}
-    {u y : ℝ} (hf : ContinuousOn f (Icc u y)) {Λ C : ℝ}
-    (hf' : QuasiIsometryOn Λ C (Icc u y) f) (h_u_y : u ≤ y)
+    {u y : ℝ} (hf : ContinuousOn f (Icc u y)) {Λ C : ℝ} (hC : 0 ≤ C) (hΛ : 0 ≤ Λ)
+    (hf' : ∀ s t, s ∈ Icc u y → t ∈ Icc u y → dist (f s) (f t) ≤ Λ * |s - t| + C)
+    (h_u_y : u ≤ y)
     {H : Set X} (h_H' : GeodesicSegment H)  (hδ : δ > deltaG X) {p : ℝ → X}
     (hp : ∀ t, p t ∈ projSet (f t) H)
     (d : ℝ) (hclosest : ∀ v ∈ Icc u y, d ≤ infDist (f v) H)
@@ -154,8 +155,6 @@ theorem Morse_Gromov_theorem_aux_m {f : ℝ → X}
           * exp (-(α * max d ((dist (f v) (p v) + d) / 4) * log 2 / (5 * δ)))) := by
   have : Inhabited X := ⟨f u⟩
   have hδ₀ : 0 < δ := by linarith only [hδ, delta_nonneg X]
-  have hC := hf'.C_nonneg
-  have := hf'.one_le_lambda
   have H_closure : closure H = H := by
     obtain ⟨_, _, h_H⟩ := h_H'
     exact h_H.isClosed.closure_eq
@@ -428,7 +427,7 @@ theorem Morse_Gromov_theorem_aux_m {f : ℝ → X}
                   * exp (-(d * 2^0 - C/2) * log 2 / (5 * δ))) := by
               apply geodesic_projection_exp_contracting (G := V 0) (f := f)
               · intro x1 x2 hx1 hx2
-                apply hf'.upper_bound
+                apply hf'
                 · exact ⟨by linarith only [hv₁.1, hx1.1],
                     by linarith only [hx1.2, hx₁.2]⟩
                 · exact ⟨by linarith only [hv₁.1, hx2.1],
@@ -450,7 +449,7 @@ theorem Morse_Gromov_theorem_aux_m {f : ℝ → X}
                   ((4 * exp (1/2 * log 2)) * Λ * (x - v) * exp (-(d * 2^k - QC k -C/2) * log 2 / (5 * δ))) := by
               apply quasiconvex_projection_exp_contracting (G := V k) (f := f)
               · intro x1 x2 hx1 hx2
-                apply hf'.upper_bound
+                apply hf'
                 · exact ⟨by linarith only [hv₁.1, hx1.1],
                     by linarith only [hx1.2, hx₁.2]⟩
                 · exact ⟨by linarith only [hv₁.1, hx2.1],
@@ -512,8 +511,9 @@ theorem Morse_Gromov_theorem_aux_m {f : ℝ → X}
     -- This is the end of the second substep.
 
 theorem Morse_Gromov_theorem_aux_M {f : ℝ → X}
-    {u y : ℝ} (hf : ContinuousOn f (Icc y u)) {Λ C : ℝ}
-    (hf' : QuasiIsometryOn Λ C (Icc y u) f) (h_y_u : y ≤ u)
+    {u y : ℝ} (hf : ContinuousOn f (Icc y u)) {Λ C : ℝ} (hC : 0 ≤ C) (hΛ : 0 ≤ Λ)
+    (hf' : ∀ s t, s ∈ Icc y u → t ∈ Icc y u → dist (f s) (f t) ≤ Λ * |s - t| + C)
+    (h_y_u : y ≤ u)
     {H : Set X} (h_H' : GeodesicSegment H) (hδ : δ > deltaG X) {p : ℝ → X}
     (hp : ∀ t, p t ∈ projSet (f t) H)
     (d : ℝ) (hclosest : ∀ v ∈ Icc y u, d ≤ infDist (f v) H)
@@ -523,7 +523,7 @@ theorem Morse_Gromov_theorem_aux_M {f : ℝ → X}
         ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((v - y)
           * exp (-(α * max d ((dist (f v) (p v) + d) / 4) * log 2 / (5 * δ)))) := by
   have key := Morse_Gromov_theorem_aux_m (Λ := Λ) (C := C) (f := f ∘ Neg.neg) (u := -u)
-    (y := - y) (H := H) (d := d) (p := p ∘ Neg.neg) ?_ ⟨hf'.1, hf'.2, ?_, ?_⟩ ?_ h_H' hδ ?_ ?_
+    (y := - y) (H := H) (d := d) (p := p ∘ Neg.neg) ?_ hC hΛ ?_ ?_ h_H' hδ ?_ ?_
     I₁ ?_
   obtain ⟨v', hv', h₁⟩ := key
   refine ⟨-v', ?_, ?_⟩
@@ -535,13 +535,9 @@ theorem Morse_Gromov_theorem_aux_M {f : ℝ → X}
     intro x hx
     rwa [neg_mem_Icc_iff]
   · intro a b ha hb
-    convert hf'.upper_bound (x := -a) (y := -b) ?_ ?_ using 2
-    · simp
-    · rwa [neg_mem_Icc_iff]
-    · rwa [neg_mem_Icc_iff]
-  · intro a b ha hb
-    convert hf'.lower_bound (x := -a) (y := -b) ?_ ?_ using 2
-    · simp
+    convert hf' (s := -a) (t := -b) ?_ ?_ using 2
+    · rw [← abs_neg]
+      ring_nf
     · rwa [neg_mem_Icc_iff]
     · rwa [neg_mem_Icc_iff]
   · simpa using h_y_u
@@ -905,10 +901,11 @@ lemma Morse_Gromov_theorem_aux0
       L - 13 * δ
         ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((ym - v)
             * exp (-(α * max dm ((dist (f v) (p v) + dm) / 4) * log 2 / (5 * δ)))) := by
-      refine Morse_Gromov_theorem_aux_m (hf.mono ?_) (hf'.mono ?_) hym.1 h_H' hδ hp dm ?_ I₁
-        hym_dist
+      refine Morse_Gromov_theorem_aux_m (hf.mono ?_) hC ?_ ?_ hym.1 h_H' hδ hp dm ?_ I₁ hym_dist
       · exact h_um_ym_subset
-      · exact h_um_ym_subset
+      · positivity
+      · intro s t hs ht
+        exact hf'.upper_bound (h_um_ym_subset hs) (h_um_ym_subset ht)
       · exact hclosestm.2
 
     set M : ℝ := max dm ((dist (f v) (p v) + dm) / 4)
@@ -1098,10 +1095,11 @@ lemma Morse_Gromov_theorem_aux0
         L - 13 * δ
         ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((v - yM)
           * exp (-(α * max dM ((dist (f v) (p v) + dM) / 4) * log 2 / (5 * δ)))) := by
-      refine Morse_Gromov_theorem_aux_M (hf.mono ?_) (hf'.mono ?_) hyM.2 h_H' hδ hp dM ?_ I₁
-        hyM_dist
+      refine Morse_Gromov_theorem_aux_M (hf.mono ?_) hC ?_ ?_ hyM.2 h_H' hδ hp dM ?_ I₁ hyM_dist
       · exact h_yM_uM_subset
-      · exact h_yM_uM_subset
+      · positivity
+      · intro s t hs ht
+        exact hf'.upper_bound (h_yM_uM_subset hs) (h_yM_uM_subset ht)
       · exact hclosestM.2
 
     set M : ℝ := max dM ((dist (f v) (p v) + dM) / 4)
