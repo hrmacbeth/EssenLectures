@@ -127,6 +127,13 @@ Comments on the formalization below:
 
 variable {X : Type*} [MetricSpace X] [GromovHyperbolicSpace X] [GeodesicSpace X]
 
+variable {δ : ℝ}
+
+/- We give their values to the parameters `L`, `D` and `α` that we will use in the proof. -/
+local notation "α" => 12 / 100
+local notation "L" => 18 * δ
+local notation "D" => 55 * δ
+
 open GromovHyperbolicSpace
 
 /-- Let `f` be a continuous quasi-geodesic on the interval $[u, y]$, and let `H` be a geodesic.
@@ -137,19 +144,14 @@ distance from `H`. -/
 theorem Morse_Gromov_theorem_aux_m {f : ℝ → X}
     {u y : ℝ} (hf : ContinuousOn f (Icc u y)) {Λ C : ℝ}
     (hf' : QuasiIsometryOn Λ C (Icc u y) f) (h_u_y : u ≤ y)
-    {H : Set X} (h_H' : GeodesicSegment H) {δ : ℝ} (hδ : δ > deltaG X) {p : ℝ → X}
+    {H : Set X} (h_H' : GeodesicSegment H)  (hδ : δ > deltaG X) {p : ℝ → X}
     (hp : ∀ t, p t ∈ projSet (f t) H)
-    (d : ℝ) (hclosest : ∀ v ∈ Icc u y, d ≤ infDist (f v) H) :
-    let α := 12 / 100;
-    let L := 18 * δ;
-    let D := 55 * δ;
-    D + 4 * C ≤ d →
-    L - 4 * δ ≤ dist (p u) (p y) →
+    (d : ℝ) (hclosest : ∀ v ∈ Icc u y, d ≤ infDist (f v) H)
+    (I₁ : D + 4 * C ≤ d) (I₂ : L - 4 * δ ≤ dist (p u) (p y)) :
     ∃ v ∈ Icc u y,
       L - 13 * δ
         ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((y - v)
           * exp (-(α * max d ((dist (f v) (p v) + d) / 4) * log 2 / (5 * δ)))) := by
-  intro α L D I₁ I₂
   have : Inhabited X := ⟨f u⟩
   have hδ₀ : 0 < δ := by linarith only [hδ, delta_nonneg X]
   have hC := hf'.C_nonneg
@@ -167,7 +169,7 @@ theorem Morse_Gromov_theorem_aux_m {f : ℝ → X}
   let QC : ℕ → ℝ := fun k ↦ if k = 0 then 0 else 8 * δ
   have QC_nonneg (k : ℕ) : 0 ≤ QC k := by dsimp [QC]; split <;> positivity
 
-  · have : 0 < d := by dsimp [D] at I₁; linarith only [I₁, hC, hδ₀]
+  · have : 0 < d := by linarith only [I₁, hC, hδ₀]
     let V : ℕ → Set X := fun k ↦ cthickening ((2^k - 1) * d) H
     have Q (k : ℕ) : Quasiconvex (0 + 8 * deltaG X) (V k) := by
       apply h_H'.quasiconvex.cthickening
@@ -255,13 +257,10 @@ theorem Morse_Gromov_theorem_aux_m {f : ℝ → X}
       dsimp [QC]
       split_ifs with h
       · simp only [h, pow_zero]
-        dsimp [α, D] at I₁ ⊢
         linarith only [I₁, hδ₀, hC]
       have :=
       calc C/2 + 8 * δ + (1-α) * D
-          ≤ 2 * (1-α) * d := by
-            dsimp [α, D] at I₁ ⊢
-            linarith only [I₁, hδ₀, hC]
+          ≤ 2 * (1-α) * d := by linarith only [I₁, hδ₀, hC]
         _ = 2 ^ 1 * (1-α) * d := by ring
         _ ≤ 2^k * (1-α) * d := by
             gcongr
@@ -296,8 +295,7 @@ theorem Morse_Gromov_theorem_aux_m {f : ℝ → X}
         refine ⟨?_, le_trans ?_ hx₃⟩
         · ring_nf
           linarith only [this, hδ₀]
-        · dsimp [L]
-          ring_nf
+        · ring_nf
           linarith only [this, hδ₀]
 
     /- The projections of `u` and `w` onto `V (k + 1)` are necessarily at least O(δ) apart. -/
@@ -362,8 +360,6 @@ theorem Morse_Gromov_theorem_aux_m {f : ℝ → X}
               split_ifs
               · positivity
               · rfl
-            dsimp [L]
-            dsimp [D] at I₁
             linarith only [I₁, h₁, h₂, hC, hδ₀]
         _ ≤ 2^(k+1) * d - 5 * δ - 2 * QC k := by
             gcongr
@@ -443,7 +439,6 @@ theorem Morse_Gromov_theorem_aux_m {f : ℝ → X}
               · intro t
                 exact aux4
               · simp only [pow_zero]
-                dsimp [D] at I₁
                 linarith only [I₁, hC, hδ₀]
               · exact hδ
               · exact hC
@@ -469,7 +464,6 @@ theorem Morse_Gromov_theorem_aux_m {f : ℝ → X}
                 exact aux4
               · dsimp [QC]
                 rw [if_neg hk]
-                dsimp [D] at I₁
                 linarith only [hδ₀, hC, I₁, aux.2.2]
               · exact hδ
               · exact hC
@@ -489,7 +483,6 @@ theorem Morse_Gromov_theorem_aux_m {f : ℝ → X}
           rw [le_max_iff] at this
           apply this.resolve_left
           push_neg
-          dsimp [L]
           linarith only [hδ]
       /- We separate the exponential gain coming from the contraction into two parts, one
       to be spent to improve the constant, and one for the inductive argument. -/
@@ -521,19 +514,14 @@ theorem Morse_Gromov_theorem_aux_m {f : ℝ → X}
 theorem Morse_Gromov_theorem_aux_M {f : ℝ → X}
     {u y : ℝ} (hf : ContinuousOn f (Icc y u)) {Λ C : ℝ}
     (hf' : QuasiIsometryOn Λ C (Icc y u) f) (h_y_u : y ≤ u)
-    {H : Set X} (h_H' : GeodesicSegment H) {δ : ℝ} (hδ : δ > deltaG X) {p : ℝ → X}
+    {H : Set X} (h_H' : GeodesicSegment H) (hδ : δ > deltaG X) {p : ℝ → X}
     (hp : ∀ t, p t ∈ projSet (f t) H)
-    (d : ℝ) (hclosest : ∀ v ∈ Icc y u, d ≤ infDist (f v) H) :
-    let α := 12 / 100;
-    let L := 18 * δ;
-    let D := 55 * δ;
-    D + 4 * C ≤ d →
-    L - 4 * δ ≤ dist (p u) (p y) →
+    (d : ℝ) (hclosest : ∀ v ∈ Icc y u, d ≤ infDist (f v) H)
+    (I₁ : D + 4 * C ≤ d) (I₂ : L - 4 * δ ≤ dist (p u) (p y)) :
     ∃ v ∈ Icc y u,
       L - 13 * δ
         ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((v - y)
           * exp (-(α * max d ((dist (f v) (p v) + d) / 4) * log 2 / (5 * δ)))) := by
-  intro α L D I₁ I₂
   have key := Morse_Gromov_theorem_aux_m (Λ := Λ) (C := C) (f := f ∘ Neg.neg) (u := -u)
     (y := - y) (H := H) (d := d) (p := p ∘ Neg.neg) ?_ ⟨hf'.1, hf'.2, ?_, ?_⟩ ?_ h_H' hδ ?_ ?_
     I₁ ?_
@@ -582,13 +570,9 @@ lemma Morse_Gromov_theorem_aux0
     {Λ C : ℝ} (hf' : QuasiIsometryOn Λ C (Icc um uM) f)
     (h_um_uM : um ≤ uM)
     {z : ℝ} (hz : z ∈ Icc um uM)
-    {δ : ℝ} (hδ : δ > deltaG X) :
-    /- We give their values to the parameters `L`, `D` and `α` that we will use in the proof.
-    We also define two constants `K` and `Kmult` that appear in the precise formulation of the
+    (hδ : δ > deltaG X) :
+    /- We define two constants `K` and `Kmult` that appear in the precise formulation of the
     bounds. Their values have no precise meaning, they are just the outcome of the computation. -/
-    let α : ℝ := 12/100
-    let L : ℝ := 18 * δ
-    let D : ℝ := 55 * δ
     let K : ℝ := α * log 2 / (5 * (4 + (L + 2 * δ)/D) * δ * Λ)
     let Kmult : ℝ := ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp (1/2 * log 2)) * Λ * exp (- ((1 - α) * D * log 2 / (5 * δ))) / K)
     gromovProductAt (f z) (f um) (f uM)
@@ -597,7 +581,7 @@ lemma Morse_Gromov_theorem_aux0
   have := hf'.one_le_lambda
   have : Inhabited X := ⟨f 0⟩
   have hδ₀ : 0 < δ := by linarith only [hδ, delta_nonneg X]
-  intro α L D K Kmult
+  intro K Kmult
 
   have : 0 < K := by ring_nf; positivity
   have : 1 ≤ Λ ^ 2 := by nlinarith only [hf'.one_le_lambda]
@@ -609,7 +593,6 @@ lemma Morse_Gromov_theorem_aux0
     the induction assumption. This is case 1 in the description above. -/
     calc gromovProductAt (f z) (f um) (f uM) ≤ L := hz_um_uM_L
       _ ≤ 1 * (D + (3/2) * L + δ + 11/2 * C) - 2 * δ + 0 * (1 - exp (- K * (uM - um))) := by
-        dsimp [L, D]
         linarith only [hf'.C_nonneg, hδ₀]
       _ ≤ Λ^2 * (D + (3/2) * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um))) := by
         gcongr
@@ -674,8 +657,7 @@ lemma Morse_Gromov_theorem_aux0
       · exact hf.mono (Icc_subset_Icc (by rfl) hz.2)
       · exact h_H'.quasiconvex
       · refine ⟨?_, ?_⟩
-        · dsimp [L]
-          linarith only [hδ₀, h_fz_pum_G]
+        · linarith only [hδ₀, h_fz_pum_G]
         · simp only [dist_comm, pz] at hz_um_uM_L ⊢
           linarith only [hz_um_uM_L]
     refine ⟨ym, hym.1, ?_, ?_⟩
@@ -726,8 +708,7 @@ lemma Morse_Gromov_theorem_aux0
       · exact hf.mono (Icc_subset_Icc hz.1 (le_refl _))
       · exact h_H'.quasiconvex
       · refine ⟨?_, ?_⟩
-        · dsimp [L]
-          linarith only [hδ₀, h_fz_puM_G]
+        · linarith only [hδ₀, h_fz_puM_G]
         · simp only [pz] at hz_um_uM_L ⊢
           linarith only [hz_um_uM_L]
     refine ⟨yM, hyM.1, ?_, ?_⟩
@@ -882,8 +863,7 @@ lemma Morse_Gromov_theorem_aux0
           _ = Λ^2 * (24 * δ + 3 * C) - Λ^2 * 12 * δ := by ring
           _ ≤ Λ^2 * ((2 * D + L + 2 * δ) + 11 * C) - 1 * 12 * δ := by
               gcongr
-              . dsimp [D, L]
-                linarith only [hδ₀]
+              . linarith only [hδ₀]
               · norm_num
         linarith only [this]
       · have :=
@@ -920,9 +900,7 @@ lemma Morse_Gromov_theorem_aux0
       push_neg at h
       obtain I₁ | I₁ := h <;> linarith only [I₁, I₂]
 
-    have : 0 < dm := by
-      dsimp [D] at I₁
-      linarith only [I₁, hC, hδ₀]
+    have : 0 < dm := by linarith only [I₁, hC, hδ₀]
     obtain ⟨v, hv₁, A⟩ : ∃ v ∈ Icc um ym,
       L - 13 * δ
         ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((ym - v)
@@ -943,8 +921,7 @@ lemma Morse_Gromov_theorem_aux0
         _ ≤ (L/D) * (D + 4 * C) := by
             gcongr
             rw [div_le_iff]
-            · dsimp [D, L]
-              linarith only [hδ₀]
+            · linarith only [hδ₀]
             positivity
         _ ≤ (L/D) * dm := by gcongr
       have h₂ :=
@@ -1044,8 +1021,7 @@ lemma Morse_Gromov_theorem_aux0
             _ ≤ 20 := by norm_num1
     have : (1/4) * δ / Λ ≤ ym - v := by
       rw [div_le_iff]
-      · dsimp [L] at this
-        linarith only [this]
+      · linarith only [this]
       positivity
     have :=
     calc (1/4) * δ / Λ
@@ -1075,8 +1051,7 @@ lemma Morse_Gromov_theorem_aux0
     the upper bound of the first substep to get a definite gain when one goes from
     the old geodesic to the new one. Then, apply the inductive assumption to the new one
     to conclude the desired inequality for the old one. -/
-    have : 0 < (L - 13 * δ) := by
-      dsimp [L]
+    have : 0 < L - 13 * δ := by
       ring_nf
       positivity
     have H₂ :=
@@ -1102,7 +1077,7 @@ lemma Morse_Gromov_theorem_aux0
             rw [Icc_subset_Icc_iff h₁]
             exact ⟨hym.1, hclosestM.1.2⟩
           have := Morse_Gromov_theorem_aux0 (hf.mono h₃) (hf'.mono h₃) h₁ h₂ hδ
-          dsimp [D, K, Kmult, L] at this H₂ ⊢
+          dsimp [K, Kmult] at this H₂ ⊢
           linarith only [this, H₂]
       _ = (Λ^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um)))) := by
           dsimp [K]
@@ -1139,8 +1114,7 @@ lemma Morse_Gromov_theorem_aux0
         _ ≤ (L/D) * (D + 4 * C) := by
             gcongr
             rw [div_le_iff]
-            · dsimp [D, L]
-              linarith only [hδ₀]
+            · linarith only [hδ₀]
             positivity
         _ ≤ (L/D) * dM := by gcongr
       have h₂ :=
@@ -1240,8 +1214,7 @@ lemma Morse_Gromov_theorem_aux0
             _ ≤ 20 := by norm_num1
     have : (1/4) * δ / Λ ≤ v - yM := by
       rw [div_le_iff]
-      · dsimp [L] at this
-        linarith only [this]
+      · linarith only [this]
       positivity
     have :=
     calc (1/4) * δ / Λ
@@ -1272,8 +1245,7 @@ lemma Morse_Gromov_theorem_aux0
     the upper bound of the first substep to get a definite gain when one goes from
     the old geodesic to the new one. Then, apply the inductive assumption to the new one
     to conclude the desired inequality for the old one. -/
-    have : 0 < (L - 13 * δ) := by
-      dsimp [L]
+    have : 0 < L - 13 * δ := by
       ring_nf
       positivity
     have H₂ :=
@@ -1299,7 +1271,7 @@ lemma Morse_Gromov_theorem_aux0
             rw [Icc_subset_Icc_iff h₁]
             exact ⟨hclosestm.1.1, hyM.2⟩
           have := Morse_Gromov_theorem_aux0 (hf.mono h₃) (hf'.mono h₃) h₁ h₂ hδ
-          dsimp [D, K, Kmult, L] at this H₂ ⊢
+          dsimp [K, Kmult] at this H₂ ⊢
           linarith only [this, H₂]
       _ = (Λ^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um)))) := by
           dsimp [K]
