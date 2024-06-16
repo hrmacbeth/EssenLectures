@@ -169,347 +169,347 @@ theorem Morse_Gromov_theorem_aux_m {f : ℝ → X}
   let QC : ℕ → ℝ := fun k ↦ if k = 0 then 0 else 8 * δ
   have QC_nonneg (k : ℕ) : 0 ≤ QC k := by dsimp [QC]; split <;> positivity
 
-  · have : 0 < d := by linarith only [I₁, hC, hδ₀]
-    let V : ℕ → Set X := fun k ↦ cthickening ((2^k - 1) * d) H
-    have Q (k : ℕ) : Quasiconvex (0 + 8 * deltaG X) (V k) := by
-      apply h_H'.quasiconvex.cthickening
-      have : 1 ≤ (2:ℝ) ^ k := one_le_pow_of_one_le (by norm_num) k
-      have : 0 ≤ (2:ℝ) ^ k - 1 := by linarith only [this]
-      positivity
-    have V_quasiconvex (k : ℕ) : Quasiconvex (QC k) (V k) := by
-      dsimp [QC]
-      split_ifs with h
-      · simp only [h, pow_zero, sub_self, zero_mul, V, cthickening_zero]
-        rw [H_closure]
-        apply h_H'.quasiconvex
-      · refine (Q k).mono ?_
-        linarith only [hδ]
+  have : 0 < d := by linarith only [I₁, hC, hδ₀]
+  let V : ℕ → Set X := fun k ↦ cthickening ((2^k - 1) * d) H
+  have Q (k : ℕ) : Quasiconvex (0 + 8 * deltaG X) (V k) := by
+    apply h_H'.quasiconvex.cthickening
+    have : 1 ≤ (2:ℝ) ^ k := one_le_pow_of_one_le (by norm_num) k
+    have : 0 ≤ (2:ℝ) ^ k - 1 := by linarith only [this]
+    positivity
+  have V_quasiconvex (k : ℕ) : Quasiconvex (QC k) (V k) := by
+    dsimp [QC]
+    split_ifs with h
+    · simp only [h, pow_zero, sub_self, zero_mul, V, cthickening_zero]
+      rw [H_closure]
+      apply h_H'.quasiconvex
+    · refine (Q k).mono ?_
+      linarith only [hδ]
 
-    -- Define `q k x` to be the projection of `f x` on `V k`.
-    let q : ℕ → ℝ → X := fun k x ↦ {p x‒f x}.param (p x) ((2^k - 1) * d)
-    have hq0 (x : ℝ) : q 0 x = p x := by
+  -- Define `q k x` to be the projection of `f x` on `V k`.
+  let q : ℕ → ℝ → X := fun k x ↦ {p x‒f x}.param (p x) ((2^k - 1) * d)
+  have hq0 (x : ℝ) : q 0 x = p x := by
+    dsimp [q]
+    convert [p x‒f x].param1
+    simp
+
+  -- We introduce a certain property of natural numbers `k` which will eventually let us select
+  -- our endpoint `x`.
+  let P (k : ℕ) := ∃ x ∈ Icc u y, dist (q k u) (q k x) ≥ L - 4 * δ + 7 * QC k
+    ∧ ∀ w ∈ Icc u x, dist (f w) (p w) ≥ (2^(k+1)-1) * d
+
+  /- The property holds for `k = 0`, i.e. there is a point far enough from `q 0 u` on `H`. This
+  is just the right endpoint `y`, by construction. -/
+  have hP₀ : P 0 := by
+    refine ⟨y, ?_, ?_, ?_⟩
+    · simp [h_u_y]
+    · simp only [hq0, QC, reduceIte]
+      linarith only [I₂]
+    · intro w hw
+      change _ ≤ _
+      convert hclosest w hw
+      · ring
+      · rw [(hp w).2]
+
+  /- The property fails for `k` sufficiently large, by considering the left endpoint `u`. -/
+  have hP : ∀ᶠ k in atTop, ¬ P k := by
+    have H : ∀ᶠ k in atTop, dist (f u) (p u) < (2 ^ (k + 1) + -1) * d := by
+      refine tendsto_atTop_add_const_right _ (-1:ℝ)
+        (tendsto_pow_atTop_atTop_of_one_lt (r := (2:ℝ)) ?_)
+        |>.atTop_mul_const (r := d) ?_
+        |>.comp (tendsto_add_atTop_nat 1)
+        |>.eventually_gt_atTop _
+      · norm_num
+      · positivity
+    filter_upwards [H] with k hk
+    dsimp [P]
+    push_neg
+    intro t ht _
+    exact ⟨u, ⟨by rfl, ht.1⟩, hk⟩
+
+  -- Thus there exists a natural number `k` such that `P k` holds and `P (k + 1)` doesn't.
+  -- Select the witness `x` for this `k`.
+  obtain ⟨k, hk₁, hk₂⟩ : ∃ k, P k ∧ ¬ P (k + 1) := by -- there should be a lemma for this!
+    by_contra! h
+    obtain ⟨k, hk⟩ := hP.exists
+    exact hk (Nat.rec hP₀ h k)
+  obtain ⟨x, hx₁, hx₃, hx₂⟩ :
+    ∃ x ∈ Icc u y, L - 4 * δ + 7 * QC k ≤ dist (q k u) (q k x)
+      ∧ (∀ w, w ∈ Icc u x → dist (f w) (p w) ≥ (2^(k+1)-1) * d) := hk₁
+
+  -- FIXME these are basically `aux`, deduplicate
+  have h_pow : (1:ℝ) ≤ 2 ^ k := one_le_pow_of_one_le (by norm_num) k
+  have h_pow' : 0 ≤ (2:ℝ) ^ k - 1 := by linarith only [h_pow]
+  have h_pow'' : (1:ℝ) ≤ 2 ^ (k + 1) := one_le_pow_of_one_le (by norm_num) _
+  have h_pow''' : 0 ≤ (2:ℝ) ^ (k + 1) - 1 := by linarith only [h_pow'']
+  have hd_mul : 0 ≤ d * 2 ^ k := by positivity
+  have H₁ : (2 ^ k - 1) * d ≤ (2 ^ (k + 1) - 1) * d := by ring_nf; linarith only [hd_mul]
+
+  -- Some auxiliary technical inequalities to be used later on.
+  have aux : (2 ^ k - 1) * d ≤ (2*2^k-1) * d ∧ 0 ≤ 2 * 2 ^ k - (1:ℝ) ∧ d ≤ d * 2 ^ k := by
+    refine ⟨?_, ?_, ?_⟩
+    · convert H₁ using 1
+      ring
+    · convert h_pow''' using 1
+      ring
+    · calc _ = d * 1 := by ring
+        _ ≤ _ := by gcongr
+  have aux3 : (1-α) * D + α * 2^k * d ≤ d * 2^k - C/2 - QC k := by
+    dsimp [QC]
+    split_ifs with h
+    · simp only [h, pow_zero]
+      linarith only [I₁, hδ₀, hC]
+    have :=
+    calc C/2 + 8 * δ + (1-α) * D
+        ≤ 2 * (1-α) * d := by linarith only [I₁, hδ₀, hC]
+      _ = 2 ^ 1 * (1-α) * d := by ring
+      _ ≤ 2^k * (1-α) * d := by
+          gcongr
+          · norm_num
+          · show 0 < k
+            positivity
+    linarith only [this]
+
+  have proj_mem {r : ℝ} (hr : r ∈ Icc u x) : q k r ∈ projSet (f r) (V k) := by
+    dsimp [q, V]
+    convert [p r‒f r].projSet_thickening' (E := dist (p r) (f r)) (hp _) ?_ ?_ (by rfl) using 2
+    · rw [[p r‒f r].param2]
+    · positivity
+    · rw [dist_comm]
+      exact le_trans H₁ (hx₂ _ hr)
+
+  have h_u_x_subset : Icc u x ⊆ Icc u y := Icc_subset_Icc (le_refl _) hx₁.2
+  /- Construct a point `w` such that its projection on `V k` is O(δ)-close to that of `u`
+  and therefore far away from that of `x`. This is just the intermediate value theorem
+  (with some care as the closest point projection is not continuous). -/
+  obtain ⟨w, hw₁, hw₂, hw₃⟩ : ∃ w ∈ Icc u x,
+      dist (q k u) (q k w) ∈ Icc ((9 * δ + 4 * QC k) - 4 * δ - 2 * QC k) (9 * δ + 4 * QC k)
+      ∧ (∀ v ∈ Icc u w, dist (q k u) (q k v) ≤ 9 * δ + 4 * QC k) := by
+    apply quasi_convex_projection_small_gaps (f := f) (G := V k)
+    · exact hf.mono h_u_x_subset
+    · exact hx₁.1
+    · exact V_quasiconvex _
+    · intro w hw
+      apply proj_mem hw
+    · exact hδ
+    · have := QC_nonneg k
+      refine ⟨?_, le_trans ?_ hx₃⟩
+      · ring_nf
+        linarith only [this, hδ₀]
+      · ring_nf
+        linarith only [this, hδ₀]
+
+  /- The projections of `u` and `w` onto `V (k + 1)` are necessarily at least O(δ) apart. -/
+  have : dist (q (k + 1) u) (q (k + 1) w) ≥ L - 4 * δ + 7 * QC (k + 1) := by
+    have h₁ : dist (q k u) (q (k+1) u) = 2^k * d := by
       dsimp [q]
-      convert [p x‒f x].param1
-      simp
-
-    -- We introduce a certain property of natural numbers `k` which will eventually let us select
-    -- our endpoint `x`.
-    let P (k : ℕ) := ∃ x ∈ Icc u y, dist (q k u) (q k x) ≥ L - 4 * δ + 7 * QC k
-      ∧ ∀ w ∈ Icc u x, dist (f w) (p w) ≥ (2^(k+1)-1) * d
-
-    /- The property holds for `k = 0`, i.e. there is a point far enough from `q 0 u` on `H`. This
-    is just the right endpoint `y`, by construction. -/
-    have hP₀ : P 0 := by
-      refine ⟨y, ?_, ?_, ?_⟩
-      · simp [h_u_y]
-      · simp only [hq0, QC, reduceIte]
-        linarith only [I₂]
-      · intro w hw
-        change _ ≤ _
-        convert hclosest w hw
+      rw [[p u‒f u].param7]
+      · rw [abs_of_nonpos]
         · ring
-        · rw [(hp w).2]
-
-    /- The property fails for `k` sufficiently large, by considering the left endpoint `u`. -/
-    have hP : ∀ᶠ k in atTop, ¬ P k := by
-      have H : ∀ᶠ k in atTop, dist (f u) (p u) < (2 ^ (k + 1) + -1) * d := by
-        refine tendsto_atTop_add_const_right _ (-1:ℝ)
-          (tendsto_pow_atTop_atTop_of_one_lt (r := (2:ℝ)) ?_)
-          |>.atTop_mul_const (r := d) ?_
-          |>.comp (tendsto_add_atTop_nat 1)
-          |>.eventually_gt_atTop _
-        · norm_num
-        · positivity
-      filter_upwards [H] with k hk
-      dsimp [P]
-      push_neg
-      intro t ht _
-      exact ⟨u, ⟨by rfl, ht.1⟩, hk⟩
-
-    -- Thus there exists a natural number `k` such that `P k` holds and `P (k + 1)` doesn't.
-    -- Select the witness `x` for this `k`.
-    obtain ⟨k, hk₁, hk₂⟩ : ∃ k, P k ∧ ¬ P (k + 1) := by -- there should be a lemma for this!
-      by_contra! h
-      obtain ⟨k, hk⟩ := hP.exists
-      exact hk (Nat.rec hP₀ h k)
-    obtain ⟨x, hx₁, hx₃, hx₂⟩ :
-      ∃ x ∈ Icc u y, L - 4 * δ + 7 * QC k ≤ dist (q k u) (q k x)
-        ∧ (∀ w, w ∈ Icc u x → dist (f w) (p w) ≥ (2^(k+1)-1) * d) := hk₁
-
-    -- FIXME these are basically `aux`, deduplicate
-    have h_pow : (1:ℝ) ≤ 2 ^ k := one_le_pow_of_one_le (by norm_num) k
-    have h_pow' : 0 ≤ (2:ℝ) ^ k - 1 := by linarith only [h_pow]
-    have h_pow'' : (1:ℝ) ≤ 2 ^ (k + 1) := one_le_pow_of_one_le (by norm_num) _
-    have h_pow''' : 0 ≤ (2:ℝ) ^ (k + 1) - 1 := by linarith only [h_pow'']
-    have hd_mul : 0 ≤ d * 2 ^ k := by positivity
-    have H₁ : (2 ^ k - 1) * d ≤ (2 ^ (k + 1) - 1) * d := by ring_nf; linarith only [hd_mul]
-
-    -- Some auxiliary technical inequalities to be used later on.
-    have aux : (2 ^ k - 1) * d ≤ (2*2^k-1) * d ∧ 0 ≤ 2 * 2 ^ k - (1:ℝ) ∧ d ≤ d * 2 ^ k := by
-      refine ⟨?_, ?_, ?_⟩
-      · convert H₁ using 1
-        ring
-      · convert h_pow''' using 1
-        ring
-      · calc _ = d * 1 := by ring
-          _ ≤ _ := by gcongr
-    have aux3 : (1-α) * D + α * 2^k * d ≤ d * 2^k - C/2 - QC k := by
-      dsimp [QC]
-      split_ifs with h
-      · simp only [h, pow_zero]
-        linarith only [I₁, hδ₀, hC]
-      have :=
-      calc C/2 + 8 * δ + (1-α) * D
-          ≤ 2 * (1-α) * d := by linarith only [I₁, hδ₀, hC]
-        _ = 2 ^ 1 * (1-α) * d := by ring
-        _ ≤ 2^k * (1-α) * d := by
-            gcongr
-            · norm_num
-            · show 0 < k
-              positivity
-      linarith only [this]
-
-    have proj_mem {r : ℝ} (hr : r ∈ Icc u x) : q k r ∈ projSet (f r) (V k) := by
-      dsimp [q, V]
-      convert [p r‒f r].projSet_thickening' (E := dist (p r) (f r)) (hp _) ?_ ?_ (by rfl) using 2
-      · rw [[p r‒f r].param2]
+        · ring_nf
+          linarith only [hd_mul]
+      · refine ⟨by positivity, ?_⟩
+        rw [dist_comm]
+        exact H₁.trans (hx₂ _ ⟨by rfl, hx₁.1⟩)
+      · refine ⟨by positivity, ?_⟩
+        rw [dist_comm]
+        refine le_trans ?_ (hx₂ _ ⟨by rfl, hx₁.1⟩)
+        ring_nf
+        linarith only [hd_mul]
+    have h₂ : dist (q k w) (q (k+1) w) = 2^k * d := by
+      dsimp [q]
+      rw [[p w‒f w].param7]
+      · rw [abs_of_nonpos]
+        · ring
+        · ring_nf
+          linarith only [hd_mul]
+      · refine ⟨by positivity, ?_⟩
+        rw [dist_comm]
+        exact H₁.trans (hx₂ _ hw₁)
+      · refine ⟨by positivity, ?_⟩
+        rw [dist_comm]
+        refine le_trans ?_ (hx₂ _ hw₁)
+        ring_nf
+        linarith only [hd_mul]
+    have i : q k u ∈ projSet (q (k+1) u) (V k) := by
+      refine [p u‒f u].projSet_thickening' (hp _) ?_ H₁ ?_
       · positivity
       · rw [dist_comm]
-        exact le_trans H₁ (hx₂ _ hr)
+        refine le_trans ?_ (hx₂ _ ⟨by rfl, hx₁.1⟩).le
+        rw [← sub_nonneg]
+        ring_nf
+        positivity
+    have j : q k w ∈ projSet (q (k+1) w) (V k) := by
+      refine [p w‒f w].projSet_thickening' (hp _) ?_ H₁ ?_
+      · positivity
+      · rw [dist_comm]
+        refine le_trans ?_ (hx₂ _ hw₁).le
+        rw [← sub_nonneg]
+        ring_nf
+        positivity
+    have : 5 * δ + 2 * QC k ≤ dist (q (k + 1) u) (q (k + 1) w) - dist (q k u) (q (k + 1) u)
+                - dist (q k w) (q (k + 1) w) + 10 * δ + 4 * QC k := by
+      have := proj_along_quasiconvex_contraction (V_quasiconvex k) i j
+      rw [le_max_iff] at this
+      obtain h₁ | h₂ := this
+      · linarith only [h₁, hw₂.1, hδ]
+      · linarith only [h₂, hw₂.1, hδ]
+    calc L - 4 * δ + 7 * QC (k+1) ≤ 2 * d - 5 * δ - 2 * QC k := by
+          have h₁ : QC (k + 1) = 8 * δ := by simp [QC]
+          have h₂ : QC k ≤ 8 * δ := by
+            dsimp only [QC]
+            split_ifs
+            · positivity
+            · rfl
+          linarith only [I₁, h₁, h₂, hC, hδ₀]
+      _ ≤ 2^(k+1) * d - 5 * δ - 2 * QC k := by
+          gcongr
+          ring_nf
+          linarith only [h_pow]
+      _ ≤ dist (q (k + 1) u) (q (k + 1) w) := by
+          ring_nf at this h₁ h₂ ⊢
+          linarith only [this, h₁, h₂]
 
-    have h_u_x_subset : Icc u x ⊆ Icc u y := Icc_subset_Icc (le_refl _) hx₁.2
-    /- Construct a point `w` such that its projection on `V k` is O(δ)-close to that of `u`
-    and therefore far away from that of `x`. This is just the intermediate value theorem
-    (with some care as the closest point projection is not continuous). -/
-    obtain ⟨w, hw₁, hw₂, hw₃⟩ : ∃ w ∈ Icc u x,
-        dist (q k u) (q k w) ∈ Icc ((9 * δ + 4 * QC k) - 4 * δ - 2 * QC k) (9 * δ + 4 * QC k)
-        ∧ (∀ v ∈ Icc u w, dist (q k u) (q k v) ≤ 9 * δ + 4 * QC k) := by
-      apply quasi_convex_projection_small_gaps (f := f) (G := V k)
-      · exact hf.mono h_u_x_subset
-      · exact hx₁.1
-      · exact V_quasiconvex _
-      · intro w hw
-        apply proj_mem hw
-      · exact hδ
-      · have := QC_nonneg k
-        refine ⟨?_, le_trans ?_ hx₃⟩
-        · ring_nf
-          linarith only [this, hδ₀]
-        · ring_nf
-          linarith only [this, hδ₀]
+  /- So, since `k` is chosen so that `P (k + 1)` is known to be false, this implies there is a
+  good point `v` between `u` and `w`. -/
+  dsimp [P] at hk₂
+  push_neg at hk₂
+  obtain ⟨v, hv₁, hv₂⟩ : ∃ v ∈ Icc u w, dist (f v) (p v) < (2^(k+2)-1) * d :=
+    hk₂ w ⟨hw₁.1, hw₁.2.trans hx₁.2⟩ this
+  have : 0 ≤ y - v := by linarith only [hv₁.2, hw₁.2, hx₁.2]
 
-    /- The projections of `u` and `w` onto `V (k + 1)` are necessarily at least O(δ) apart. -/
-    have : dist (q (k + 1) u) (q (k + 1) w) ≥ L - 4 * δ + 7 * QC (k + 1) := by
-      have h₁ : dist (q k u) (q (k+1) u) = 2^k * d := by
-        dsimp [q]
-        rw [[p u‒f u].param7]
-        · rw [abs_of_nonpos]
-          · ring
-          · ring_nf
-            linarith only [hd_mul]
-        · refine ⟨by positivity, ?_⟩
-          rw [dist_comm]
-          exact H₁.trans (hx₂ _ ⟨by rfl, hx₁.1⟩)
-        · refine ⟨by positivity, ?_⟩
-          rw [dist_comm]
-          refine le_trans ?_ (hx₂ _ ⟨by rfl, hx₁.1⟩)
+  -- Auxiliary basic fact to be used later on.
+  have aux4 {r : ℝ} (hr : r ∈ Icc v x) : d * 2 ^ k ≤ infDist (f r) (V k) := by
+    have hr : r ∈ Icc u x := ⟨hv₁.1.trans hr.1, hr.2⟩
+    have h₁ :=
+    calc infDist (f r) (V k)
+        = dist ({p r‒f r}.param (p r) (dist (p r) (f r)))
+            ({p r‒f r}.param (p r) ((2 ^ k - 1) * d)) := by
+            rw [← (proj_mem hr).2]
+            dsimp [q]
+            rw [[p r‒f r].param2]
+        _ = |dist (p r) (f r) - (2 ^ k - 1) * d| := by
+            apply [p r‒f r].param7
+            · simpa using dist_nonneg
+            refine ⟨by positivity, ?_⟩
+            rw [dist_comm]
+            exact le_trans H₁ (hx₂ _ hr)
+        _ = dist (f r) (p r) - (2 ^ k - 1) * d := by
+            rw [dist_comm (p r), abs_of_nonneg]
+            linarith only [hx₂ r hr, H₁]
+    have h₂ : (2^(k+1) - 1) * d ≤ dist (f r) (p r) := hx₂ _ hr
+    ring_nf at h₂
+    linarith only [h₁, h₂]
+
+  refine ⟨v, ⟨hv₁.1, (hv₁.2.trans hw₁.2).trans hx₁.2⟩, ?_⟩
+
+  /- Substep 2: The projections of `f v` and `f x` on the cylinder `V k` are well separated,
+  by construction. This implies that `v` and `x` themselves are well separated, thanks
+  to the exponential contraction property of the projection on the quasi-convex set `V k`.
+  This leads to a uniform lower bound for `(x-v) * exp (-2^k * d)`, which has been upper bounded
+  in Substep 1. -/
+  have :=
+  calc L - 4 * δ + 7 * QC k ≤ dist (q k u) (q k x) := hx₃
+    _ ≤ dist (q k u) (q k v) + dist (q k v) (q k x) := dist_triangle ..
+    _ ≤ (9 * δ + 4 * QC k) + dist (q k v) (q k x) := by
+        gcongr
+        apply hw₃ _ hv₁
+  have :=
+  calc L - 13 * δ + 3 * QC k ≤ dist (q k v) (q k x) := by linarith only [this]
+    _ ≤ 3 * QC k + max (5 * deltaG X)
+          ((4 * exp (1/2 * log 2)) * Λ * (x - v) -- FIXME change to `y - v`
+          * exp (-(d * 2^k - C/2 - QC k) * log 2 / (5 * δ))) := by
+        /- We use different statements for the projection in the case `k = 0` (projection on
+        a geodesic) and `k > 0` (projection on a quasi-convex set) as the bounds are better in
+        the first case, which is the most important one for the final value of the constant. -/
+        obtain rfl | hk := eq_or_ne k 0
+        · have : dist (q 0 v) (q 0 x)
+              ≤ max (5 * deltaG X)
+                ((4 * exp (1/2 * log 2)) * Λ * (x - v)
+                * exp (-(d * 2^0 - C/2) * log 2 / (5 * δ))) := by
+            apply geodesic_projection_exp_contracting (G := V 0) (f := f)
+            · intro x1 x2 hx1 hx2
+              apply hf'
+              · exact ⟨by linarith only [hv₁.1, hx1.1],
+                  by linarith only [hx1.2, hx₁.2]⟩
+              · exact ⟨by linarith only [hv₁.1, hx2.1],
+                  by linarith only [hx2.2, hx₁.2]⟩
+            · exact hv₁.2.trans hw₁.2
+            · simpa [hq0, V, H_closure] using hp v
+            · simpa [hq0, V, H_closure] using hp x
+            · intro t
+              exact aux4
+            · simp only [pow_zero]
+              linarith only [I₁, hC, hδ₀]
+            · exact hδ
+            · exact hC
+            · positivity
+            · simpa [V, H_closure] using h_H'
+          simpa [hq0, QC] using this
+        · have : dist (q k v) (q k x)
+              ≤ 2 * QC k + 8 * δ + max (5 * deltaG X)
+                ((4 * exp (1/2 * log 2)) * Λ * (x - v) * exp (-(d * 2^k - QC k -C/2) * log 2 / (5 * δ))) := by
+            apply quasiconvex_projection_exp_contracting (G := V k) (f := f)
+            · intro x1 x2 hx1 hx2
+              apply hf'
+              · exact ⟨by linarith only [hv₁.1, hx1.1],
+                  by linarith only [hx1.2, hx₁.2]⟩
+              · exact ⟨by linarith only [hv₁.1, hx2.1],
+                  by linarith only [hx2.2, hx₁.2]⟩
+            · exact hv₁.2.trans hw₁.2
+            · apply proj_mem
+              exact ⟨hv₁.1, hv₁.2.trans hw₁.2⟩
+            · apply proj_mem
+              exact ⟨hx₁.1, by rfl⟩
+            · intro t
+              exact aux4
+            · dsimp [QC]
+              rw [if_neg hk]
+              linarith only [hδ₀, hC, I₁, aux.2.2]
+            · exact hδ
+            · exact hC
+            · positivity
+            · apply V_quasiconvex
+          refine le_trans this ?_
+          simp only [if_neg hk, QC]
           ring_nf
-          linarith only [hd_mul]
-      have h₂ : dist (q k w) (q (k+1) w) = 2^k * d := by
-        dsimp [q]
-        rw [[p w‒f w].param7]
-        · rw [abs_of_nonpos]
-          · ring
-          · ring_nf
-            linarith only [hd_mul]
-        · refine ⟨by positivity, ?_⟩
-          rw [dist_comm]
-          exact H₁.trans (hx₂ _ hw₁)
-        · refine ⟨by positivity, ?_⟩
-          rw [dist_comm]
-          refine le_trans ?_ (hx₂ _ hw₁)
-          ring_nf
-          linarith only [hd_mul]
-      have i : q k u ∈ projSet (q (k+1) u) (V k) := by
-        refine [p u‒f u].projSet_thickening' (hp _) ?_ H₁ ?_
-        · positivity
-        · rw [dist_comm]
-          refine le_trans ?_ (hx₂ _ ⟨by rfl, hx₁.1⟩).le
-          rw [← sub_nonneg]
-          ring_nf
-          positivity
-      have j : q k w ∈ projSet (q (k+1) w) (V k) := by
-        refine [p w‒f w].projSet_thickening' (hp _) ?_ H₁ ?_
-        · positivity
-        · rw [dist_comm]
-          refine le_trans ?_ (hx₂ _ hw₁).le
-          rw [← sub_nonneg]
-          ring_nf
-          positivity
-      have : 5 * δ + 2 * QC k ≤ dist (q (k + 1) u) (q (k + 1) w) - dist (q k u) (q (k + 1) u)
-                  - dist (q k w) (q (k + 1) w) + 10 * δ + 4 * QC k := by
-        have := proj_along_quasiconvex_contraction (V_quasiconvex k) i j
+          rfl
+
+  have : L - 13 * δ ≤ max (5 * deltaG X)
+    ((4 * exp (1/2 * log 2)) * Λ * (x - v) * exp (-(d * 2^k - C/2 - QC k) * log 2 / (5 * δ))) := by
+    linarith only [this]
+  calc L - 13 * δ
+      ≤ (4 * exp (1/2 * log 2)) * Λ * (x - v)
+        * exp (-(d * 2^k - C/2 - QC k) * log 2 / (5 * δ)) := by
         rw [le_max_iff] at this
-        obtain h₁ | h₂ := this
-        · linarith only [h₁, hw₂.1, hδ]
-        · linarith only [h₂, hw₂.1, hδ]
-      calc L - 4 * δ + 7 * QC (k+1) ≤ 2 * d - 5 * δ - 2 * QC k := by
-            have h₁ : QC (k + 1) = 8 * δ := by simp [QC]
-            have h₂ : QC k ≤ 8 * δ := by
-              dsimp only [QC]
-              split_ifs
-              · positivity
-              · rfl
-            linarith only [I₁, h₁, h₂, hC, hδ₀]
-        _ ≤ 2^(k+1) * d - 5 * δ - 2 * QC k := by
-            gcongr
-            ring_nf
-            linarith only [h_pow]
-        _ ≤ dist (q (k + 1) u) (q (k + 1) w) := by
-            ring_nf at this h₁ h₂ ⊢
-            linarith only [this, h₁, h₂]
-
-    /- So, since `k` is chosen so that `P (k + 1)` is known to be false, this implies there is a
-    good point `v` between `u` and `w`. -/
-    dsimp [P] at hk₂
-    push_neg at hk₂
-    obtain ⟨v, hv₁, hv₂⟩ : ∃ v ∈ Icc u w, dist (f v) (p v) < (2^(k+2)-1) * d :=
-      hk₂ w ⟨hw₁.1, hw₁.2.trans hx₁.2⟩ this
-    have : 0 ≤ y - v := by linarith only [hv₁.2, hw₁.2, hx₁.2]
-
-    -- Auxiliary basic fact to be used later on.
-    have aux4 {r : ℝ} (hr : r ∈ Icc v x) : d * 2 ^ k ≤ infDist (f r) (V k) := by
-      have hr : r ∈ Icc u x := ⟨hv₁.1.trans hr.1, hr.2⟩
-      have h₁ :=
-      calc infDist (f r) (V k)
-          = dist ({p r‒f r}.param (p r) (dist (p r) (f r)))
-              ({p r‒f r}.param (p r) ((2 ^ k - 1) * d)) := by
-              rw [← (proj_mem hr).2]
-              dsimp [q]
-              rw [[p r‒f r].param2]
-          _ = |dist (p r) (f r) - (2 ^ k - 1) * d| := by
-              apply [p r‒f r].param7
-              · simpa using dist_nonneg
-              refine ⟨by positivity, ?_⟩
-              rw [dist_comm]
-              exact le_trans H₁ (hx₂ _ hr)
-          _ = dist (f r) (p r) - (2 ^ k - 1) * d := by
-              rw [dist_comm (p r), abs_of_nonneg]
-              linarith only [hx₂ r hr, H₁]
-      have h₂ : (2^(k+1) - 1) * d ≤ dist (f r) (p r) := hx₂ _ hr
-      ring_nf at h₂
-      linarith only [h₁, h₂]
-
-    refine ⟨v, ⟨hv₁.1, (hv₁.2.trans hw₁.2).trans hx₁.2⟩, ?_⟩
-
-    /- Substep 2: The projections of `f v` and `f x` on the cylinder `V k` are well separated,
-    by construction. This implies that `v` and `x` themselves are well separated, thanks
-    to the exponential contraction property of the projection on the quasi-convex set `V k`.
-    This leads to a uniform lower bound for `(x-v) * exp (-2^k * d)`, which has been upper bounded
-    in Substep 1. -/
-    have :=
-    calc L - 4 * δ + 7 * QC k ≤ dist (q k u) (q k x) := hx₃
-      _ ≤ dist (q k u) (q k v) + dist (q k v) (q k x) := dist_triangle ..
-      _ ≤ (9 * δ + 4 * QC k) + dist (q k v) (q k x) := by
-          gcongr
-          apply hw₃ _ hv₁
-    have :=
-    calc L - 13 * δ + 3 * QC k ≤ dist (q k v) (q k x) := by linarith only [this]
-      _ ≤ 3 * QC k + max (5 * deltaG X)
-            ((4 * exp (1/2 * log 2)) * Λ * (x - v) -- FIXME change to `y - v`
-            * exp (-(d * 2^k - C/2 - QC k) * log 2 / (5 * δ))) := by
-          /- We use different statements for the projection in the case `k = 0` (projection on
-          a geodesic) and `k > 0` (projection on a quasi-convex set) as the bounds are better in
-          the first case, which is the most important one for the final value of the constant. -/
-          obtain rfl | hk := eq_or_ne k 0
-          · have : dist (q 0 v) (q 0 x)
-                ≤ max (5 * deltaG X)
-                  ((4 * exp (1/2 * log 2)) * Λ * (x - v)
-                  * exp (-(d * 2^0 - C/2) * log 2 / (5 * δ))) := by
-              apply geodesic_projection_exp_contracting (G := V 0) (f := f)
-              · intro x1 x2 hx1 hx2
-                apply hf'
-                · exact ⟨by linarith only [hv₁.1, hx1.1],
-                    by linarith only [hx1.2, hx₁.2]⟩
-                · exact ⟨by linarith only [hv₁.1, hx2.1],
-                    by linarith only [hx2.2, hx₁.2]⟩
-              · exact hv₁.2.trans hw₁.2
-              · simpa [hq0, V, H_closure] using hp v
-              · simpa [hq0, V, H_closure] using hp x
-              · intro t
-                exact aux4
-              · simp only [pow_zero]
-                linarith only [I₁, hC, hδ₀]
-              · exact hδ
-              · exact hC
-              · positivity
-              · simpa [V, H_closure] using h_H'
-            simpa [hq0, QC] using this
-          · have : dist (q k v) (q k x)
-                ≤ 2 * QC k + 8 * δ + max (5 * deltaG X)
-                  ((4 * exp (1/2 * log 2)) * Λ * (x - v) * exp (-(d * 2^k - QC k -C/2) * log 2 / (5 * δ))) := by
-              apply quasiconvex_projection_exp_contracting (G := V k) (f := f)
-              · intro x1 x2 hx1 hx2
-                apply hf'
-                · exact ⟨by linarith only [hv₁.1, hx1.1],
-                    by linarith only [hx1.2, hx₁.2]⟩
-                · exact ⟨by linarith only [hv₁.1, hx2.1],
-                    by linarith only [hx2.2, hx₁.2]⟩
-              · exact hv₁.2.trans hw₁.2
-              · apply proj_mem
-                exact ⟨hv₁.1, hv₁.2.trans hw₁.2⟩
-              · apply proj_mem
-                exact ⟨hx₁.1, by rfl⟩
-              · intro t
-                exact aux4
-              · dsimp [QC]
-                rw [if_neg hk]
-                linarith only [hδ₀, hC, I₁, aux.2.2]
-              · exact hδ
-              · exact hC
-              · positivity
-              · apply V_quasiconvex
-            refine le_trans this ?_
-            simp only [if_neg hk, QC]
-            ring_nf
-            rfl
-
-    have : L - 13 * δ ≤ max (5 * deltaG X)
-      ((4 * exp (1/2 * log 2)) * Λ * (x - v) * exp (-(d * 2^k - C/2 - QC k) * log 2 / (5 * δ))) := by
-      linarith only [this]
-    calc L - 13 * δ
-        ≤ (4 * exp (1/2 * log 2)) * Λ * (x - v)
-          * exp (-(d * 2^k - C/2 - QC k) * log 2 / (5 * δ)) := by
-          rw [le_max_iff] at this
-          apply this.resolve_left
-          push_neg
-          linarith only [hδ]
-      /- We separate the exponential gain coming from the contraction into two parts, one
-      to be spent to improve the constant, and one for the inductive argument. -/
-      _ ≤ (4 * exp (1/2 * log 2)) * Λ * (x - v)
-          * exp (-((1-α) * D + α * 2^k * d) * log 2 / (5 * δ)) := by
-          have : 0 ≤ x - v := by linarith only [hv₁.2, hw₁.2]
-          gcongr -- `aux3`
-      _ ≤ (4 * exp (1/2 * log 2)) * Λ * (y - v)
-          * exp (-((1-α) * D + α * 2^k * d) * log 2 / (5 * δ)) := by
-          gcongr
-          exact hx₁.2
-      _ = (4 * exp (1/2 * log 2)) * Λ * 1 * ((y - v)
-          * (exp (-(1-α) * D * log 2 / (5 * δ)) * exp (-α * 2^k * d * log 2 / (5 * δ)))) := by
-          rw [← exp_add]
-          ring_nf
-      _ = (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((y - v)
-          * exp (-(α * (2^k * d) * log 2 / (5 * δ)))) := by
-          ring_nf
-      _ ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((y - v)
-          * exp (-(α * max d ((dist (f v) (p v) + d) / 4) * log 2 / (5 * δ)))) := by
-          gcongr
-          apply max_le
-          · calc _ = 1 * d := by ring
-              _ ≤ 2 ^ k * d := by gcongr
-          · ring_nf at hv₂
-            linarith only [hv₂]
-    -- This is the end of the second substep.
+        apply this.resolve_left
+        push_neg
+        linarith only [hδ]
+    /- We separate the exponential gain coming from the contraction into two parts, one
+    to be spent to improve the constant, and one for the inductive argument. -/
+    _ ≤ (4 * exp (1/2 * log 2)) * Λ * (x - v)
+        * exp (-((1-α) * D + α * 2^k * d) * log 2 / (5 * δ)) := by
+        have : 0 ≤ x - v := by linarith only [hv₁.2, hw₁.2]
+        gcongr -- `aux3`
+    _ ≤ (4 * exp (1/2 * log 2)) * Λ * (y - v)
+        * exp (-((1-α) * D + α * 2^k * d) * log 2 / (5 * δ)) := by
+        gcongr
+        exact hx₁.2
+    _ = (4 * exp (1/2 * log 2)) * Λ * 1 * ((y - v)
+        * (exp (-(1-α) * D * log 2 / (5 * δ)) * exp (-α * 2^k * d * log 2 / (5 * δ)))) := by
+        rw [← exp_add]
+        ring_nf
+    _ = (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((y - v)
+        * exp (-(α * (2^k * d) * log 2 / (5 * δ)))) := by
+        ring_nf
+    _ ≤ (4 * exp (1/2 * log 2)) * Λ * exp (-((1-α) * D * log 2 / (5 * δ))) * ((y - v)
+        * exp (-(α * max d ((dist (f v) (p v) + d) / 4) * log 2 / (5 * δ)))) := by
+        gcongr
+        apply max_le
+        · calc _ = 1 * d := by ring
+            _ ≤ 2 ^ k * d := by gcongr
+        · ring_nf at hv₂
+          linarith only [hv₂]
+  -- This is the end of the second substep.
 
 theorem Morse_Gromov_theorem_aux_M {f : ℝ → X}
     {u y : ℝ} (hf : ContinuousOn f (Icc y u)) {Λ C : ℝ} (hC : 0 ≤ C) (hΛ : 0 ≤ Λ)
