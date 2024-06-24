@@ -913,82 +913,7 @@ lemma Morse_Gromov_theorem_aux0
     have : _ ≤ M := le_max_left ..
     have : _ ≤ M := le_max_right ..
 
-    have aux2 : L + C + 2 * δ ≤ ((L + 2 * δ)/D) * dm := by
-      have h₁ :=
-      calc L + C = (L/D) * (D + (D/L) * C) := by field_simp; ring
-        _ ≤ (L/D) * (D + 4 * C) := by
-            gcongr
-            rw [div_le_iff]
-            · linarith only [hδ₀]
-            positivity
-        _ ≤ (L/D) * dm := by gcongr
-      have h₂ :=
-      calc 2 * δ = (2 * δ) / D * D := by field_simp
-        _ ≤ (2 * δ)/D * dm := by
-            gcongr
-            linarith only [I₁, hC]
-      rw [add_div, add_mul]
-      linarith only [h₁, h₂]
-
-    /- Substep 1: We can control the distance from `f v` to `f closestM` in terms of the distance
-    of the distance of `f v` to `H`, i.e., by `2^k * dm`. The same control follows
-    for `closestM - v` thanks to the quasi-isometry property. Then, we massage this
-    inequality to put it in the form we will need, as an upper bound on `(x-v) * exp (-2^k * dm)`. -/
-    have :=
-    calc |v - closestM| ≤ Λ * (infDist (f v) H + (L + C + 2 * δ) + infDist (f closestM) H) :=
-          hD hv₁ hclosestM.1
-      _ ≤ Λ * (dist (f v) (p v) + (L + C + 2 * δ) + dM) := by
-          gcongr
-          rw [← (hp v).2]
-      _ = Λ * (dist (f v) (p v) + dM + (L + C + 2 * δ)) := by ring
-      _ ≤ Λ * (dist (f v) (p v) + dm + ((L + 2 * δ)/D) * dm) := by gcongr
-      _ = Λ * ((dist (f v) (p v) + dm) / 4 * 4 + ((L + 2 * δ)/D) * dm) := by ring
-      _ ≤ Λ * (M * 4 + ((L + 2 * δ)/D) * M) := by gcongr
-      _ = Λ * (4 + ((L + 2 * δ)/D)) * M := by ring
-    have : |v - closestM| / (Λ * (4 + (L + 2 * δ)/D)) ≤ M := by
-      rw [div_le_iff]
-      convert this using 1
-      · ring
-      · positivity
-    /- We reformulate this control inside of an exponential, as this is the form we
-    will use later on. -/
-    have :=
-    calc exp (- (α * M * log 2 / (5 * δ)))
-        ≤ exp (-(α * (|v - closestM| / (Λ * (4 + (L + 2 * δ)/D))) * log 2 / (5 * δ))) := by
-          gcongr
-      _ = exp (-K * |v - closestM|) := by
-          dsimp [K]
-          congr
-          field_simp
-          ring
-      _ = exp (-K * (closestM - v)) := by
-          congr
-          rw [abs_of_nonpos]
-          · ring
-          linarith only [hv₁.2, hym.2, hyM.1, hclosestM.1.1]
     have : 0 ≤ ym - v := by linarith only [hv₁.2]
-    -- Plug in `ym-v` to get the final form of this inequality.
-    have :=
-    calc K * (ym - v) * exp (- (α * M * log 2 / (5 * δ)))
-        ≤ K * (ym - v) * exp (-K * (closestM - v)) := by gcongr
-      _ = ((K * (ym - v) + 1) - 1) * exp (- K * (closestM - v)) := by ring
-      _ ≤ (exp (K * (ym - v)) - 1) * exp (-K * (closestM - v)) := by gcongr; apply add_one_le_exp
-      _ = exp (-K * (closestM - ym)) - exp (-K * (closestM - v)) := by
-          rw [sub_mul, ← exp_add]
-          ring_nf
-      _ ≤ exp (-K * (closestM - ym)) - exp (-K * (uM - um)) := by
-          gcongr _ - exp ?_
-          apply mul_le_mul_of_nonpos_left
-          · linarith only [hv₁.1, hclosestM.1.2]
-          rw [Left.neg_nonpos_iff]
-          positivity
-    have B : (ym - v) * exp (- (α * M * log 2 / (5 * δ)))
-        ≤ (exp (-K * (closestM - ym)) - exp (-K * (uM-um)))/K := by
-      rw [le_div_iff]
-      · convert this using 1
-        ring
-      positivity
-    -- End of substep 1
 
     /- Use the second substep to show that `ym-v` is bounded below, and therefore
     that `closestM - ym` (the endpoints of the new geodesic we want to consider in the
@@ -1049,37 +974,97 @@ lemma Morse_Gromov_theorem_aux0
     the upper bound of the first substep to get a definite gain when one goes from
     the old geodesic to the new one. Then, apply the inductive assumption to the new one
     to conclude the desired inequality for the old one. -/
+    calc gromovProductAt (f z) (f um) (f uM)
+        ≤ gromovProductAt (f z) (f ym) (f closestM) + (L + 4 * δ) := by
+          refine Rec ?_ hclosestM.1
+          simp [hym.1]
+      _ ≤ Λ ^ 2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - rexp (-K * (closestM - ym)))
+            + (L + 4 * δ) := by
+          gcongr
+          have h₃ : Icc ym closestM ⊆ Icc um uM := by
+            rw [Icc_subset_Icc_iff h₁]
+            exact ⟨hym.1, hclosestM.1.2⟩
+          exact Morse_Gromov_theorem_aux0 (hf.mono h₃) (hf'.mono h₃) h₁ h₂ hδ
+      _ ≤ (Λ ^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ
+          + Kmult * (1 - exp (- K * (closestM - ym))))
+          + (Kmult * (exp (-K * (closestM - ym)) - exp (-K * (uM-um)))) := ?_
+      _ = (Λ^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um)))) := by
+          dsimp [K]
+          ring
+
+    gcongr
     have : 0 < L - 13 * δ := by
       ring_nf
       positivity
-    have H₂ :=
+
     calc L + 4 * δ = ((L + 4 * δ)/(L - 13 * δ)) * (L - 13 * δ) := by field_simp
       _ ≤ ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp (1/2 * log 2)) * Λ
           * exp (- ((1 - α) * D * log 2 / (5 * δ))) * ((ym - v)
           * exp (- (α * M * log 2 / (5 * δ))))) := by rel [A]
       _ ≤ ((L + 4 * δ)/(L - 13 * δ)) * ((4 * exp (1/2 * log 2)) * Λ
           * exp (- ((1 - α) * D * log 2 / (5 * δ)))
-          * ((exp (-K * (closestM - ym)) - exp (-K * (uM - um)))/K)) := by rel [B]
+          * ((exp (-K * (closestM - ym)) - exp (-K * (uM - um)))/K)) := ?_
       _ = Kmult * (exp (-K * (closestM - ym)) - exp (-K * (uM - um))) := by
           dsimp [Kmult]
           ring
 
-    calc gromovProductAt (f z) (f um) (f uM)
-        ≤ gromovProductAt (f z) (f ym) (f closestM) + (L + 4 * δ) := by
-          refine Rec ?_ hclosestM.1
-          simp [hym.1]
-      _ ≤ (Λ ^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ
-          + Kmult * (1 - exp (- K * (closestM - ym))))
-          + (Kmult * (exp (-K * (closestM - ym)) - exp (-K * (uM-um)))) := by
-          have h₃ : Icc ym closestM ⊆ Icc um uM := by
-            rw [Icc_subset_Icc_iff h₁]
-            exact ⟨hym.1, hclosestM.1.2⟩
-          have := Morse_Gromov_theorem_aux0 (hf.mono h₃) (hf'.mono h₃) h₁ h₂ hδ
-          dsimp [K, Kmult] at this H₂ ⊢
-          linarith only [this, H₂]
-      _ = (Λ^2 * (D + 3/2 * L + δ + 11/2 * C) - 2 * δ + Kmult * (1 - exp (- K * (uM - um)))) := by
+    gcongr
+    rw [le_div_iff]
+    swap; positivity
+
+    calc (ym - v) * exp (- (α * M * log 2 / (5 * δ))) * K
+        ≤ (ym - v) * exp (-K * (closestM - v)) * K := ?_
+      _ = ((K * (ym - v) + 1) - 1) * exp (- K * (closestM - v)) := by ring
+      _ ≤ (exp (K * (ym - v)) - 1) * exp (-K * (closestM - v)) := by
+          gcongr
+          apply add_one_le_exp
+      _ = exp (-K * (closestM - ym)) - exp (-K * (closestM - v)) := by
+          rw [sub_mul, ← exp_add]
+          ring_nf
+      _ ≤ exp (-K * (closestM - ym)) - exp (-K * (uM - um)) := by
+          gcongr _ - exp ?_
+          apply mul_le_mul_of_nonpos_left
+          · linarith only [hv₁.1, hclosestM.1.2]
+          rw [Left.neg_nonpos_iff]
+          positivity
+
+    gcongr (ym - v) * ?_ * K
+    /- We reformulate this control inside of an exponential, as this is the form we
+    will use later on. -/
+    calc exp (- (α * M * log 2 / (5 * δ)))
+        ≤ exp (-(α * (|v - closestM| / (Λ * (4 + (L + 2 * δ)/D))) * log 2 / (5 * δ))) := ?_
+      _ = exp (-K * |v - closestM|) := by
           dsimp [K]
+          congr
+          field_simp
           ring
+      _ = exp (-K * (closestM - v)) := by
+          congr
+          rw [abs_of_nonpos]
+          · ring
+          linarith only [hv₁.2, hym.2, hyM.1, hclosestM.1.1]
+
+    gcongr exp (- (α * ?_ * log 2 / (5 * δ)))
+    rw [div_le_iff]
+    swap; positivity
+    /- Substep 1: We can control the distance from `f v` to `f closestM` in terms of the distance
+    of the distance of `f v` to `H`, i.e., by `2^k * dm`. The same control follows
+    for `closestM - v` thanks to the quasi-isometry property. Then, we massage this
+    inequality to put it in the form we will need, as an upper bound on `(x-v) * exp (-2^k * dm)`. -/
+    calc |v - closestM| ≤ Λ * (infDist (f v) H + (L + C + 2 * δ) + infDist (f closestM) H) :=
+          hD hv₁ hclosestM.1
+      _ ≤ Λ * (dist (f v) (p v) + (L + C + 2 * δ) + dM) := by
+          gcongr Λ * (?_ + _ + _)
+          rw [← (hp v).2]
+      _ = Λ * (dist (f v) (p v) + dM + (L + C + 2 * δ)) := by ring
+      _ ≤ Λ * (dist (f v) (p v) + dm + ((L + 2 * δ)/D) * dm) := by
+          gcongr Λ * (_ + ?_ + ?_)
+          ring_nf
+          field_simp
+          linarith only [I₁, hC]
+      _ = Λ * ((dist (f v) (p v) + dm) / 4 * 4 + ((L + 2 * δ)/D) * dm) := by ring
+      _ ≤ Λ * (M * 4 + ((L + 2 * δ)/D) * M) := by gcongr Λ * (?_ * 4 + _ * ?_)
+      _ = M * (Λ * (4 + ((L + 2 * δ)/D))) := by ring
   -- end of the case where `D + 4 * C ≤ dm` and `dM ≤ dm`.
 
   /- This is the exact copy of the previous case, except that the roles of the points before
