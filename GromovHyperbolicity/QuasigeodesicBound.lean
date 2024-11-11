@@ -1,7 +1,6 @@
 /-  Author:  Sébastien Gouëzel   sebastien.gouezel@univ-rennes1.fr
     License: BSD -/
 import Mathlib.Data.Complex.ExponentialBounds
-import Mathlib.Util.Time
 import GromovHyperbolicity.Prereqs.QuasiIsometry
 import GromovHyperbolicity.QuasiconvexProjectionExpContracting
 
@@ -173,7 +172,7 @@ theorem Morse_Gromov_theorem_aux_m {f : ℝ → X}
   let V : ℕ → Set X := fun k ↦ cthickening ((2^k - 1) * d) H
   have Q (k : ℕ) : Quasiconvex (0 + 8 * deltaG X) (V k) := by
     apply h_H'.quasiconvex.cthickening
-    have : 1 ≤ (2:ℝ) ^ k := one_le_pow_of_one_le (by norm_num) k
+    have : 1 ≤ (2:ℝ) ^ k := one_le_pow₀ (by norm_num)
     have : 0 ≤ (2:ℝ) ^ k - 1 := by linarith only [this]
     positivity
   have V_quasiconvex (k : ℕ) : Quasiconvex (QC k) (V k) := by
@@ -237,9 +236,9 @@ theorem Morse_Gromov_theorem_aux_m {f : ℝ → X}
       ∧ (∀ w, w ∈ Icc u x → dist (f w) (p w) ≥ (2^(k+1)-1) * d) := hk₁
 
   -- FIXME these are basically `aux`, deduplicate
-  have h_pow : (1:ℝ) ≤ 2 ^ k := one_le_pow_of_one_le (by norm_num) k
+  have h_pow : (1:ℝ) ≤ 2 ^ k := one_le_pow₀ (by norm_num)
   have h_pow' : 0 ≤ (2:ℝ) ^ k - 1 := by linarith only [h_pow]
-  have h_pow'' : (1:ℝ) ≤ 2 ^ (k + 1) := one_le_pow_of_one_le (by norm_num) _
+  have h_pow'' : (1:ℝ) ≤ 2 ^ (k + 1) := one_le_pow₀ (by norm_num)
   have h_pow''' : 0 ≤ (2:ℝ) ^ (k + 1) - 1 := by linarith only [h_pow'']
   have hd_mul : 0 ≤ d * 2 ^ k := by positivity
   have H₁ : (2 ^ k - 1) * d ≤ (2 ^ (k + 1) - 1) * d := by ring_nf; linarith only [hd_mul]
@@ -550,7 +549,7 @@ theorem Morse_Gromov_theorem_aux_M {f : ℝ → X}
   · simpa using I₂
 
 #time
-set_option maxHeartbeats 1000000 in
+set_option maxHeartbeats 500000 in
 /-- We prove that, for any pair of points to the left and to the right of `f z`, the distance
 from `f z` to a geodesic between these points is controlled. We prove this by reducing to a
 closer pair of points, i.e., this is an inductive argument over real numbers. It is "well-founded"
@@ -943,7 +942,7 @@ lemma Morse_Gromov_theorem_aux0
                 exact exp_one_lt_d9.le
             _ ≤ 20 := by norm_num1
     have : (1/4) * δ / Λ ≤ ym - v := by
-      rw [div_le_iff]
+      rw [div_le_iff₀]
       · linarith only [this]
       positivity
     have :=
@@ -961,8 +960,8 @@ lemma Morse_Gromov_theorem_aux0
             positivity
         _ ≤ Nat.floor (4 * Λ * |uM - um| / δ) := by
             gcongr
-            rw [le_div_iff]
-            rw [div_le_iff] at this
+            rw [le_div_iff₀]
+            rw [div_le_iff₀] at this
             field_simp
             rw [abs_of_nonneg, abs_of_nonneg]
             linarith only [this]
@@ -1009,7 +1008,7 @@ lemma Morse_Gromov_theorem_aux0
           ring
 
     gcongr
-    rw [le_div_iff]
+    rw [le_div_iff₀]
     swap; positivity
 
     calc (ym - v) * exp (- (α * M * log 2 / (5 * δ))) * K
@@ -1045,7 +1044,7 @@ lemma Morse_Gromov_theorem_aux0
           linarith only [hv₁.2, hym.2, hyM.1, hclosestM.1.1]
 
     gcongr exp (- (α * ?_ * log 2 / (5 * δ)))
-    rw [div_le_iff]
+    rw [div_le_iff₀]
     swap; positivity
     /- Substep 1: We can control the distance from `f v` to `f closestM` in terms of the distance
     of the distance of `f v` to `H`, i.e., by `2^k * dm`. The same control follows
@@ -1097,7 +1096,7 @@ lemma Morse_Gromov_theorem_aux0
       calc L + C = (L/D) * (D + (D/L) * C) := by field_simp; ring
         _ ≤ (L/D) * (D + 4 * C) := by
             gcongr
-            rw [div_le_iff]
+            rw [div_le_iff₀]
             · linarith only [hδ₀]
             positivity
         _ ≤ (L/D) * dM := by gcongr
@@ -1125,7 +1124,7 @@ lemma Morse_Gromov_theorem_aux0
       _ ≤ Λ * ((((L + 2 * δ)/D) * M) + M * 4) := by gcongr
       _ = Λ * (4 + (L + 2 * δ)/D) * M := by ring
     have : |v - closestm| / (Λ * (4 + (L + 2 * δ)/D)) ≤ M := by
-      rw [div_le_iff]
+      rw [div_le_iff₀]
       convert this using 1
       · rw [abs_sub_comm]
       · ring
@@ -1163,7 +1162,7 @@ lemma Morse_Gromov_theorem_aux0
           positivity
     have B : (v - yM) * exp (- (α * M * log 2 / (5 * δ)))
         ≤ (exp (-K * (yM - closestm)) - exp (-K * (uM-um)))/K := by
-      rw [le_div_iff]
+      rw [le_div_iff₀]
       · convert this using 1
         ring
       positivity
@@ -1197,7 +1196,7 @@ lemma Morse_Gromov_theorem_aux0
                 exact exp_one_lt_d9.le
             _ ≤ 20 := by norm_num1
     have : (1/4) * δ / Λ ≤ v - yM := by
-      rw [div_le_iff]
+      rw [div_le_iff₀]
       · linarith only [this]
       positivity
     have :=
@@ -1216,8 +1215,8 @@ lemma Morse_Gromov_theorem_aux0
             positivity
         _ ≤ Nat.floor (4 * Λ * |uM - um| / δ) := by
             gcongr
-            rw [le_div_iff]
-            rw [div_le_iff] at this
+            rw [le_div_iff₀]
+            rw [div_le_iff₀] at this
             field_simp
             rw [abs_of_nonneg, abs_of_nonneg]
             linarith only [this]

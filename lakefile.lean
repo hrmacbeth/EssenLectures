@@ -7,11 +7,12 @@ package «gromov-hyperbolicity» where
     ⟨`pp.proofs.withType, false⟩,
     ⟨`autoImplicit, false⟩,
     ⟨`relaxedAutoImplicit, true⟩,
-    ⟨`warningAsError, false⟩
+    ⟨`warningAsError, false⟩,
+    ⟨`linter.docPrime, false⟩
   ]
 
 require mathlib from git
-  "https://github.com/leanprover-community/mathlib4.git" @ s!"v{Lean.versionString}"
+  "https://github.com/leanprover-community/mathlib4.git" @ s!"81eef4025c7e481f517bcb7369aad6db1be6ce51"
 
 lean_lib Examples
 

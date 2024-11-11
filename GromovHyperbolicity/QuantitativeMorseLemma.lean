@@ -1,7 +1,6 @@
 /-  Author:  Sébastien Gouëzel   sebastien.gouezel@univ-rennes1.fr
     License: BSD -/
 import Mathlib.Data.Complex.ExponentialBounds
-import Mathlib.Util.Time
 import GromovHyperbolicity.QuasigeodesicBound
 
 open Set Metric Real Classical
@@ -124,7 +123,7 @@ lemma Morse_Gromov_theorem_aux2
     · dsimp [δ]
       dsimp [D] at hc
       change _ < _
-      rw [lt_div_iff, lt_sub_iff_add_lt, lt_div_iff]
+      rw [lt_div_iff₀, lt_sub_iff_add_lt, lt_div_iff₀]
       · linarith only [hc]
       all_goals positivity
     · dsimp [δ]

@@ -241,7 +241,7 @@ lemma geodesic_projection_exp_contracting (hG : GeodesicSegment G) {f : ℝ → 
       norm_cast
       apply Nat.lt_succ_floor
   have hk' : D ≥ 5 * δ * k + 15/2 * δ + C/2 ∧ D ≤ 5 * δ * (k+1) + 15/2 * δ + C/2 := by
-    rw [div_le_iff, le_div_iff] at hk₁
+    rw [div_le_iff₀, le_div_iff₀] at hk₁
     · constructor <;> linarith only [hk₁]
     all_goals positivity
   have hk : 1 / (2^k) ≤ 2 * exp (15/2/5 * log 2) * exp (- ((D-C/2) * log 2 / (5 * δ))) := by
@@ -308,7 +308,7 @@ lemma geodesic_projection_exp_contracting (hG : GeodesicSegment G) {f : ℝ → 
                   positivity
         _ ≤ 10 * δ + C := by
             gcongr
-            rwa [div_le_iff]
+            rwa [div_le_iff₀]
             positivity
     let p := fun i ↦ if i = 0 then pa else if i = 2^k then pb else (hG_nonempty (g i)).choose
     have B (i : ℕ) (_ : i ≤ (2 ^ k)) : p i ∈ projSet (g i) G := by
@@ -338,14 +338,14 @@ lemma geodesic_projection_exp_contracting (hG : GeodesicSegment G) {f : ℝ → 
   calc log (Λ * (b-a) / (10 * δ))
       ≥ log (2^k) := by
         gcongr
-        rw [le_div_iff]
+        rw [le_div_iff₀]
         · convert h_split.le using 1
           ring
         · positivity
     _ = k * log 2 := by simp
   have : log (2 ^ n) ≤ log (Λ * (b-a) / (10 * δ)) := by
     have : (n:ℝ) ≤ _ := Nat.floor_le ?_
-    rw [le_div_iff] at this
+    rw [le_div_iff₀] at this
     · simpa using this
     · positivity
     calc _ ≥ (k * log 2) / log 2 := by gcongr
@@ -355,7 +355,7 @@ lemma geodesic_projection_exp_contracting (hG : GeodesicSegment G) {f : ℝ → 
     all_goals positivity
   have h₂ : log (Λ * (b-a) / (10 * δ)) < log (2 ^ (n+1)) := by
     have : _ < (↑(n + 1) : ℝ) := Nat.lt_succ_floor _
-    rw [div_lt_iff] at this
+    rw [div_lt_iff₀] at this
     · simpa [mul_comm] using this
     positivity
   have J : Λ * (b-a) / (10 * δ) < 2 ^ (n+1) := by
@@ -374,11 +374,11 @@ lemma geodesic_projection_exp_contracting (hG : GeodesicSegment G) {f : ℝ → 
     constructor
     · gcongr
     constructor
-    · rw [div_lt_iff] at J ⊢
+    · rw [div_lt_iff₀] at J ⊢
       · convert J using 1
         ring
       all_goals positivity
-    · rw [le_div_iff] at I ⊢
+    · rw [le_div_iff₀] at I ⊢
       · convert I using 1
         ring
       all_goals positivity
